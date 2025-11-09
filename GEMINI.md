@@ -24,7 +24,7 @@ The project is organized into the following structure:
 ## Setup and Dependencies
 
 ### Python Dependencies
-This project is written in Python. All dependencies, including `torch`, `ollama`, `WeasyPrint`, and `markdown`, are listed in `requirements.txt`.
+This project is written in Python. All dependencies, including `torch`, `ollama`, `WeasyPrint`, `markdown`, and `tkcalendar`, are listed in `requirements.txt`.
 
 Install the dependencies using pip:
 ```bash
@@ -57,7 +57,7 @@ python src/radiology_report_gui.py
 ```
 
 **GUI Workflow:**
-1.  Enter the patient's information in the provided text box.
+1.  Enter the patient's information (Name, DOB, Patient ID) in the provided fields.
 2.  The application will attempt to auto-load the model from `models/brain_tumor_classifier.pt`. If needed, load it manually via the **"Load Classifier Model"** button.
 3.  Click **"Choose Image..."** to select an MRI scan.
 4.  Click **"Analyze & Generate Report"**. This performs the classification and calls the local Ollama LLM to draft the report.
@@ -70,3 +70,16 @@ python src/radiology_report_gui.py
 -   **Configuration:** The training script uses `argparse` for hyperparameters. The GUI is self-contained.
 -   **Model Checkpoints:** The training script saves self-contained model files that include metadata like class names and architecture.
 -   **Device Agnostic:** The code attempts to use available hardware acceleration (CUDA or DirectML) and falls back to the CPU.
+
+## Development Log
+
+### Session Summary
+
+This session focused on iteratively refining the GUI and report generation functionality of the `radiology_report_gui.py` application based on user feedback.
+
+**Key Changes:**
+
+-   **GUI Overhaul:** The patient information input was completely redesigned. The single text box was replaced with three distinct fields: "Name" (text entry), "Patient ID" (text entry), and "DOB" (a user-friendly date picker). This improves data entry accuracy and user experience.
+-   **Report Generation Refinement:** The LLM prompt was significantly improved to produce more professional and clinically relevant reports. The "History" and "Technique" sections were removed for conciseness, and the "Patient Details" are now formatted with clear line breaks. The prompt also now explicitly prevents the LLM from redacting patient information.
+-   **Performance Tuning:** The application's responsiveness was improved by reverting the full background processing for classification. The initial (and fast) classification now runs in the main thread to provide immediate feedback to the user, while the slower LLM report generation remains in a background thread to prevent the GUI from freezing.
+-   **New Dependency:** The `tkcalendar` library was added to support the new date picker functionality and was added to `requirements.txt`.

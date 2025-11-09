@@ -28,14 +28,14 @@ This project uses a deep learning model (PyTorch) to classify brain tumors from 
 
 -   **AI Classification:** Utilizes a pre-trained `EfficientNet-B3` model to distinguish between four classes: `glioma`, `meningioma`, `no tumor`, and `pituitary`.
 -   **LLM Report Generation:** Integrates with a local LLM (Ollama) to draft a detailed radiology report based on the AI's findings.
--   **Rich GUI:** An advanced GUI that allows for patient data entry, image selection, report generation, and PDF export.
+-   **Rich GUI:** An advanced GUI that allows for structured patient data entry (Name, DOB, Patient ID), image selection, report generation, and PDF export.
 -   **Markdown & PDF Export:** Renders the generated report from Markdown and allows for easy exporting to a PDF document.
 -   **GPU Accelerated:** The training script and inference GUI can be run on a GPU (CUDA/DirectML) or CPU.
 
 ## Requirements
 
 ### Python Dependencies
-All Python dependencies are listed in the `requirements.txt` file.
+All Python dependencies are listed in the `requirements.txt` file. This includes `torch`, `ollama`, `WeasyPrint`, `markdown`, and `tkcalendar`.
 
 Install them using pip:
 ```bash
@@ -70,7 +70,7 @@ python src/radiology_report_gui.py
 The application will automatically load the trained model if it exists at the default path.
 
 **How to use the GUI:**
-1.  Fill in the **Patient Information** at the top left.
+1.  Fill in the **Patient Information** (Name, Patient ID, and DOB) at the top left.
 2.  If the model doesn't load automatically, click **"Load Classifier Model"** and select the `.pt` file.
 3.  Click **"Choose Image..."** to select an MRI scan.
 4.  Click **"Analyze & Generate Report"**. The application will classify the image and use the local LLM to write a report.

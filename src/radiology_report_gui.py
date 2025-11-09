@@ -15,6 +15,7 @@ import markdown
 from tkhtmlview import HTMLLabel
 from datetime import datetime
 from weasyprint import HTML as WeasyHTML
+from tkcalendar import DateEntry
 
 APP_TITLE = "Radiology Report Generator"
 DEFAULT_MODEL_PATH = os.path.join("models", "brain_tumor_classifier.pt")
@@ -88,9 +89,24 @@ class App(ttk.Frame):
         # Patient Info
         patient_frame = ttk.LabelFrame(left_frame, text="Patient Information", padding=10)
         patient_frame.pack(fill="x", pady=(0, 10))
-        self.patient_info_text = tk.Text(patient_frame, height=4, font=("Segoe UI", 9))
-        self.patient_info_text.pack(fill="x", expand=True)
-        self.patient_info_text.insert("1.0", "Name: \nDOB: \nPatient ID: ")
+        
+        info_grid = ttk.Frame(patient_frame)
+        info_grid.pack(fill="x", expand=True)
+        info_grid.columnconfigure(1, weight=1)
+
+        ttk.Label(info_grid, text="Name:").grid(row=0, column=0, sticky="w", pady=2)
+        self.patient_name_entry = ttk.Entry(info_grid)
+        self.patient_name_entry.grid(row=0, column=1, sticky="ew", padx=5)
+
+        ttk.Label(info_grid, text="Patient ID:").grid(row=1, column=0, sticky="w", pady=2)
+        self.patient_id_entry = ttk.Entry(info_grid)
+        self.patient_id_entry.grid(row=1, column=1, sticky="ew", padx=5)
+
+        ttk.Label(info_grid, text="DOB:").grid(row=2, column=0, sticky="w", pady=2)
+        self.dob_entry = DateEntry(info_grid, date_pattern='yyyy-mm-dd', width=12, background='darkblue', foreground='white', borderwidth=2,
+                                   selectmode='day', year=datetime.now().year - 40, month=1, day=1)
+        self.dob_entry.grid(row=2, column=1, sticky="w", padx=5)
+
 
         # Image selection and display
         img_frame = ttk.LabelFrame(left_frame, text="MRI Scan", padding=10)
@@ -205,7 +221,11 @@ class App(ttk.Frame):
             self.pred_label.configure(text=f"Prediction: {pred_label}")
             self.confidence_label.configure(text=f"Confidence: {pred_conf:.2f}%")
             
-            patient_info = self.patient_info_text.get("1.0", tk.END)
+            patient_info = (
+                f"Name: {self.patient_name_entry.get()}<br>"
+                f"DOB: {self.dob_entry.get_date().strftime('%Y-%m-%d')}<br>"
+                f"Patient ID: {self.patient_id_entry.get()}"
+            )
             self._start_report_generation(pred_label, pred_conf, patient_info)
 
         except Exception as e:
@@ -291,7 +311,7 @@ class App(ttk.Frame):
             css = """
             body { font-family: sans-serif; font-size: 10pt; }
             h1, h2, h3 { color: #333; }
-            h3 { margin-top: 2em; margin-bottom: 0.5em; }
+            h3 { margin-top: 1.5em; margin-bottom: 0.5em; }
             p { margin-top: 0; }
             pre { background-color: #f0f0f0; padding: 1em; border: 1px solid #ddd; }
             """
@@ -307,17 +327,18 @@ class App(ttk.Frame):
         prompt = (
             "You are a board-certified radiologist generating a formal report. "
             "An AI model has provided a preliminary classification. Your task is to format this into a complete clinical document.\n\n"
-            "### DO NOT invent any specific details like measurements, slice numbers, or precise locations. ###\n\n"
-            "Use the following template and information. Fill in the 'FINDINGS' and 'IMPRESSION' sections based on the AI's output.\n\n"
+            "### IMPORTANT INSTRUCTIONS ###\n"
+            "1.  **Use the provided Patient Details directly.** Do NOT use placeholders like '[REDACTED]'.\n"
+            "2.  **Do NOT invent any specific details** like measurements, slice numbers, or precise locations.\n"
+            "3.  Fill in the 'FINDINGS' and 'IMPRESSION' sections based on the AI's output, following the provided structure.\n\n"
             "--- TEMPLATE START ---\n"
             "### RADIOLOGY REPORT\n\n"
-            f"**Patient Details:**\n{patient_info}\n\n"
+            "**Patient Details:**\n"
+            f"{patient_info}\n\n"
             f"**Date of Report:** {report_date}\n\n"
-            "**History:** Routine brain scan for analysis.\n\n"
-            "**Technique:** Multi-planar, multi-sequence MRI of the brain was performed without intravenous contrast.\n\n"
-            f"**AI-Assisted Findings:**\nAn AI model analyzed the images and identified features consistent with **{tumor_type}** (Confidence: {confidence:.1f}%).\n\n"
             "### FINDINGS:\n"
-            "- Based on the AI finding, describe the general, textbook imaging characteristics of a '{tumor_type}'.\n"
+            f"- An AI model analyzed the images and identified features consistent with **{tumor_type}** (Confidence: {confidence:.1f}%).\n"
+            f"- Based on this finding, describe the general, textbook imaging characteristics of a '{tumor_type}'.\n"
         )
 
         if confidence < uncertainty_threshold:
@@ -327,7 +348,7 @@ class App(ttk.Frame):
         
         prompt += (
             "\n### IMPRESSION:\n"
-            "- State the most likely diagnosis based on the AI finding.\n\n"
+            f"- The findings are most consistent with **{tumor_type}**.\n\n"
             "--- TEMPLATE END ---\n"
         )
         return prompt
