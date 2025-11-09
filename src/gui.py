@@ -16,7 +16,7 @@ except Exception as e:  # pragma: no cover
 
 
 APP_TITLE = "Brain Tumor MRI Classifier"
-DEFAULT_MODEL_PATH = os.path.join("models", "brain_tumor_classifier.pt")
+DEFAULT_MODEL_PATH = os.path.join("..", "models", "brain_tumor_classifier.pt")
 
 
 def build_model(arch: str, num_classes: int):
@@ -31,8 +31,9 @@ def build_model(arch: str, num_classes: int):
 
 
 def get_eval_transform():
-    weights = EfficientNet_B3_Weights.IMAGENET1K_V1
-    mean, std = weights.meta["mean"], weights.meta["std"]
+    # ImageNet normalization constants (match EfficientNet pretraining)
+    mean = [0.485, 0.456, 0.406]
+    std = [0.229, 0.224, 0.225]
     return transforms.Compose(
         [
             transforms.Resize(320, antialias=True),
@@ -51,15 +52,15 @@ class App(ttk.Frame):
         # Prefer CUDA, fallback to DirectML, then CPU
         if torch.cuda.is_available():
             self.device = torch.device("cuda")
-            device_text = "Device: cuda (GPU detected)"
+            self.device_text = "Device: cuda (GPU detected)"
         else:
             try:
                 import torch_directml as dml  # type: ignore
                 self.device = dml.device()
-                device_text = "Device: directml (GPU via DirectML)"
+                self.device_text = "Device: directml (GPU via DirectML)"
             except Exception:
                 self.device = torch.device("cpu")
-                device_text = "Device: cpu"
+                self.device_text = "Device: cpu"
         self.model = None
         self.class_names = []
         self.arch = "efficientnet_b3"
@@ -89,7 +90,7 @@ class App(ttk.Frame):
         )
 
         # Device label
-        self.device_label = ttk.Label(self, text=device_text)
+        self.device_label = ttk.Label(self, text=self.device_text)
         self.device_label.pack(anchor="w", pady=(0, 8))
 
         # Main area: left image, right predictions

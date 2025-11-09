@@ -252,13 +252,13 @@ def parse_args():
     p.add_argument(
         "--data-dir",
         type=str,
-        default=os.path.join("brain-tumor-mri-dataset"),
+        default=os.path.join("..", "data", "brain-tumor-mri-dataset"),
         help="Folder containing Training/ and Testing/",
     )
     p.add_argument(
         "--out-dir",
         type=str,
-        default=os.path.join("models"),
+        default=os.path.join("..", "models"),
         help="Output directory for model checkpoints and metadata",
     )
     p.add_argument("--epochs", type=int, default=10)

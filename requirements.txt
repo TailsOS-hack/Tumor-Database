@@ -1,0 +1,9 @@
+torch
+torchvision
+Pillow
+ollama
+markdown
+tkhtmlview
+WeasyPrint
+# Optional: For GPU acceleration on Windows with non-NVIDIA cards
+# torch-directml
