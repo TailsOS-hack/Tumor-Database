@@ -2,7 +2,7 @@
 import os
 import sys
 import tkinter as tk
-from tkinter import filedialog, messagebox, ttk
+from tkinter import filedialog, messagebox, ttk, simpledialog
 import torch
 import torch.nn as nn
 from torchvision.models import efficientnet_b3
@@ -16,6 +16,9 @@ from tkhtmlview import HTMLLabel
 from datetime import datetime
 from weasyprint import HTML as WeasyHTML
 from tkcalendar import DateEntry
+import io
+from pypdf import PdfWriter, PdfReader
+import base64
 
 APP_TITLE = "Radiology Report Generator"
 DEFAULT_MODEL_PATH = os.path.join("models", "brain_tumor_classifier.pt")
@@ -211,7 +214,7 @@ class App(ttk.Frame):
         self.save_pdf_btn.configure(state="disabled")
         self.pred_label.configure(text="Prediction: Analyzing...")
         self.confidence_label.configure(text="Confidence: -")
-        self.report_html.set_html("<p><i>Generating report, please wait...</i></p>")
+        self.report_html.set_html("<p><i>Generating report with multimodal LLM, please wait... This may take a moment.</i></p>")
         self.progress_bar.pack(fill="x", pady=5)
         self.progress_bar.start()
         self.update_idletasks()
@@ -240,7 +243,6 @@ class App(ttk.Frame):
         img = Image.open(self.image_path).convert("RGB")
         tensor = self.eval_tfms(img).unsqueeze(0).to(self.device)
         
-        # Use the recommended torch.amp.autocast
         with torch.amp.autocast(device_type=self.device.type, enabled=(self.device.type == "cuda")):
             logits = self.model(tensor)
             probs = torch.softmax(logits, dim=1).squeeze(0)
@@ -265,14 +267,36 @@ class App(ttk.Frame):
     def _generate_report_threaded(self, tumor_type, confidence, patient_info):
         try:
             report_date = datetime.now().strftime("%B %d, %Y")
-            prompt = self._create_llm_prompt(tumor_type, confidence, patient_info, report_date)
+            
+            image_bytes, image_data_uri = None, None
+            try:
+                with open(self.image_path, "rb") as image_file:
+                    image_bytes = image_file.read()
+                    encoded_string = base64.b64encode(image_bytes).decode('utf-8')
+                    image_data_uri = f"data:image/jpeg;base64,{encoded_string}"
+            except Exception as e:
+                print(f"Could not read or encode image: {e}")
+
+            prompt = self._create_llava_prompt(tumor_type, confidence, patient_info, report_date)
             
             response = ollama.chat(
-                model='llama3.2:3b',
-                messages=[{'role': 'user', 'content': prompt}],
+                model='llava:7b',
+                messages=[{
+                    'role': 'user',
+                    'content': prompt,
+                    'images': [image_bytes] if image_bytes else []
+                }],
             )
             
             markdown_text = response['message']['content']
+            
+            # Replace placeholder BEFORE converting to HTML
+            if image_data_uri:
+                image_html = f'<div style="text-align: center; margin-top: 20px;"><img src="{image_data_uri}" alt="MRI Scan" style="max-width: 300px; height: auto;"></div>'
+                markdown_text = markdown_text.replace("[SCAN_IMAGE]", image_html)
+            else:
+                markdown_text = markdown_text.replace("[SCAN_IMAGE]", "<p><i>[Image could not be loaded]</i></p>")
+
             html_text = markdown.markdown(markdown_text, extensions=['fenced_code', 'tables'])
             self.report_queue.put(html_text)
 
@@ -306,51 +330,80 @@ class App(ttk.Frame):
         if not filepath:
             return
 
+        password = simpledialog.askstring("PDF Encryption", "Enter a password to encrypt the PDF (optional):", show='*')
+
         try:
-            # Basic CSS for better PDF formatting
-            css = """
-            body { font-family: sans-serif; font-size: 10pt; }
-            h1, h2, h3 { color: #333; }
-            h3 { margin-top: 1.5em; margin-bottom: 0.5em; }
-            p { margin-top: 0; }
-            pre { background-color: #f0f0f0; padding: 1em; border: 1px solid #ddd; }
-            """
+            css = "body { font-family: sans-serif; font-size: 10pt; } h1, h2, h3 { color: #333; } table { border-collapse: collapse; width: 100%; } td, th { padding: 4px; text-align: left; }"
             html_with_style = f"<style>{css}</style>{self.last_report_html}"
-            WeasyHTML(string=html_with_style).write_pdf(filepath)
-            messagebox.showinfo("Success", f"Report saved successfully to:\n{filepath}")
+            
+            pdf_buffer = io.BytesIO()
+            WeasyHTML(string=html_with_style, base_url=self.image_path).write_pdf(pdf_buffer)
+            pdf_buffer.seek(0)
+
+            if password:
+                reader = PdfReader(pdf_buffer)
+                writer = PdfWriter()
+                for page in reader.pages:
+                    writer.add_page(page)
+                writer.encrypt(password)
+                with open(filepath, "wb") as f:
+                    writer.write(f)
+                messagebox.showinfo("Success", f"Encrypted report saved successfully to:\n{filepath}")
+            else:
+                with open(filepath, "wb") as f:
+                    f.write(pdf_buffer.read())
+                messagebox.showinfo("Success", f"Report saved successfully to:\n{filepath}")
+
         except Exception as e:
             messagebox.showerror("PDF Export Error", f"Failed to save PDF:\n{e}")
 
-    def _create_llm_prompt(self, tumor_type, confidence, patient_info, report_date):
-        uncertainty_threshold = 85.0
-        
-        prompt = (
-            "You are a board-certified radiologist generating a formal report. "
-            "An AI model has provided a preliminary classification. Your task is to format this into a complete clinical document.\n\n"
-            "### IMPORTANT INSTRUCTIONS ###\n"
-            "1.  **Use the provided Patient Details directly.** Do NOT use placeholders like '[REDACTED]'.\n"
-            "2.  **Do NOT invent any specific details** like measurements, slice numbers, or precise locations.\n"
-            "3.  Fill in the 'FINDINGS' and 'IMPRESSION' sections based on the AI's output, following the provided structure.\n\n"
-            "--- TEMPLATE START ---\n"
-            "### RADIOLOGY REPORT\n\n"
-            "**Patient Details:**\n"
-            f"{patient_info}\n\n"
-            f"**Date of Report:** {report_date}\n\n"
-            "### FINDINGS:\n"
-            f"- An AI model analyzed the images and identified features consistent with **{tumor_type}** (Confidence: {confidence:.1f}%).\n"
-            f"- Based on this finding, describe the general, textbook imaging characteristics of a '{tumor_type}'.\n"
-        )
+    def _create_llava_prompt(self, tumor_type, confidence, patient_info, report_date):
+        patient_details_html = "<table>"
+        for line in patient_info.split('<br>'):
+            if ':' in line:
+                key, value = line.split(':', 1)
+                patient_details_html += f"<tr><td style='padding-right: 10px;'><strong>{key.strip()}:</strong></td><td>{value.strip()}</td></tr>"
+        patient_details_html += "</table>"
 
-        if confidence < uncertainty_threshold:
-            prompt += (
-                "- The imaging characteristics are suggestive, but not entirely conclusive due to the model's confidence level. Further clinical correlation is advised.\n"
+        if tumor_type == "notumor":
+            tumor_name = "No Tumor"
+            prompt = (
+                "You are a radiologist. A classifier has determined with {confidence:.1f}% confidence that this MRI scan shows **No Tumor**. "
+                "Your task is to write a concise, formal radiology report confirming this finding. "
+                "Use the provided template and data. Do not add extra notes or disclaimers.\n\n"
+                "--- TEMPLATE FOR OUTPUT ---\n"
+                "<h1>RADIOLOGY REPORT</h1>\n\n"
+                f"**Patient Details:**\n{patient_details_html}\n\n"
+                f"**Date of Report:** {report_date}\n\n"
+                "### FINDINGS:\n"
+                f"- An AI model analyzed the images and identified features consistent with **{tumor_name}** (Confidence: {confidence:.1f}%).\n"
+                "- The scan shows no evidence of an intracranial mass, lesion, or other significant abnormality.\n\n"
+                "### IMPRESSION:\n"
+                f"- No evidence of intracranial tumor.\n"
+                "[SCAN_IMAGE]"
             )
-        
-        prompt += (
-            "\n### IMPRESSION:\n"
-            f"- The findings are most consistent with **{tumor_type}**.\n\n"
-            "--- TEMPLATE END ---\n"
-        )
+        else:
+            tumor_name = f"{tumor_type.capitalize()} Tumor"
+            prompt = (
+                f"You are a radiologist. A highly accurate classifier has already identified a **{tumor_name}** in this MRI scan with {confidence:.1f}% confidence. "
+                "Your task is to analyze the provided image and write a formal radiology report.\n\n"
+                "### CRITICAL INSTRUCTIONS ###\n"
+                "1.  **Analyze the Image:** Look at the tumor in the image.\n"
+                "2.  **Estimate Size:** Based on the image, estimate the tumor's dimensions in millimeters (mm). State this as 'approx. X x Y mm'.\n"
+                "3.  **Describe Appearance:** Describe the specific appearance of the tumor you see in the image (e.g., its shape, margins, signal intensity, location). Do NOT use generic or 'typical' descriptions.\n"
+                "4.  **Use Template:** Format your entire response using the template below. Do not add extra notes or disclaimers.\n\n"
+                "--- TEMPLATE FOR OUTPUT ---\n"
+                "<h1>RADIOLOGY REPORT</h1>\n\n"
+                f"**Patient Details:**\n{patient_details_html}\n\n"
+                f"**Date of Report:** {report_date}\n\n"
+                "### FINDINGS:\n"
+                f"- An AI model identified features consistent with a **{tumor_name}** (Confidence: {confidence:.1f}%).\n"
+                "- The lesion is estimated to have approximate dimensions of [**INSERT YOUR ESTIMATED DIMENSIONS HERE**].\n"
+                "- The scan reveals [**INSERT YOUR DESCRIPTION OF THE TUMOR'S APPEARANCE HERE**].\n\n"
+                "### IMPRESSION:\n"
+                f"- The findings are most consistent with a **{tumor_name}**.\n"
+                "[SCAN_IMAGE]"
+            )
         return prompt
 
 def main():

@@ -73,6 +73,27 @@ python src/radiology_report_gui.py
 
 ## Development Log
 
+### Session Summary: Hybrid AI and Multimodal Analysis
+
+This session marks a major architectural evolution of the project, moving from a text-based LLM approach to a sophisticated hybrid AI system. The core changes were driven by the need for the AI to "see" the MRI scan to provide more accurate descriptions and size estimations.
+
+**Key Architectural Changes:**
+
+-   **Hybrid AI Model:** The system now uses a two-stage process:
+    1.  **Classification:** The fine-tuned PyTorch `EfficientNet-B3` model is retained for its primary, high-accuracy classification task (identifying the tumor type).
+    2.  **Visual Analysis & Generation:** A local multimodal LLM (`ollava/llava:7b`) is introduced to perform visual analysis. It receives the MRI scan and the classification result from the first stage, and is tasked with describing the tumor's specific appearance and estimating its size.
+
+-   **Component Decoupling:** The original `tumor_size_analyzer.py` script, which relied on OpenCV and fixed conversion ratios, has been removed. The responsibility for size estimation is now delegated to the multimodal LLM, streamlining the pipeline.
+
+**New Features & Major Refinements:**
+
+-   **Multimodal Report Generation:** The LLM prompt system was completely overhauled. The application now sends the image data directly to the `llava` model, instructing it to act as a radiologist, accept the classifier's finding, and generate a detailed report based on what it "sees".
+-   **PDF Encryption:** To address the sensitive nature of medical data, a new feature was added to encrypt the exported PDF report with a user-provided password, using the `pypdf` library.
+-   **Dynamic "No Tumor" Reports:** The prompt system now has conditional logic to generate a much simpler and more appropriate report when the classifier identifies an image as having "no tumor".
+-   **Improved Report Layout:**
+    -   The patient details are now formatted into a robust HTML table to ensure correct line breaks and alignment in the final PDF.
+    -   The MRI scan image is now embedded at the bottom of the report under the "IMPRESSION" section and is centered on the page.
+
 ### Session Summary
 
 This session focused on iteratively refining the GUI and report generation functionality of the `radiology_report_gui.py` application based on user feedback.

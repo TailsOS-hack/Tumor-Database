@@ -1,2 +1,5 @@
 .gemini/
 gha-creds-*.json
+*.pdf
+__pycache__/
+src/__pycache__/

@@ -1,10 +1,12 @@
 torch
 torchvision
 Pillow
+opencv-python
 ollama
 markdown
 tkhtmlview
 WeasyPrint
 tkcalendar
+pypdf
 # Optional: For GPU acceleration on Windows with non-NVIDIA cards
 # torch-directml
