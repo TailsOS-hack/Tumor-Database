@@ -73,6 +73,18 @@ python src/radiology_report_gui.py
 
 ## Development Log
 
+### Session Summary: Final Polishing and Formatting
+
+This session focused on the final, detailed formatting of the PDF report to match the user's exact specifications. The process involved several iterations of refining the LLM prompt and the data passed to it, as the LLM's interpretation of formatting instructions proved to be inconsistent.
+
+**Key Formatting Fixes:**
+
+-   **Centered Title:** The main "RADIOLOGY REPORT" title is now reliably centered by wrapping the `<h1>` tag in a `<div style="text-align: center;">`.
+-   **Patient Details:** To enforce new lines for each item, the patient information is now pre-formatted with `<br>` tags and bolded labels (`**Name:**`, `**DOB:**`) before being passed to the LLM prompt. This proved more reliable than asking the LLM to format the data itself.
+-   **Bulleted Findings:** The prompt template was modified to explicitly include the hyphen (`-`) and a newline for each point in the "FINDINGS" section, forcing the LLM to generate a correctly formatted bulleted list.
+-   **Confidence Score Display:** A bug where the confidence score was not being displayed (showing as `{confidence:.1f}%`) was fixed by pre-formatting the confidence value into a string in Python before inserting it into the prompt.
+-   **Robust Image Embedding:** The most significant change was decoupling the image from the LLM's response. The final, robust solution involves programmatically appending the image's HTML block to the report's HTML *after* the LLM has generated the text, ensuring the image is always included in the PDF without relying on a fragile placeholder.
+
 ### Session Summary: Hybrid AI and Multimodal Analysis
 
 This session marks a major architectural evolution of the project, moving from a text-based LLM approach to a sophisticated hybrid AI system. The core changes were driven by the need for the AI to "see" the MRI scan to provide more accurate descriptions and size estimations.

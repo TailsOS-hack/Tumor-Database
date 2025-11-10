@@ -68,6 +68,7 @@ class App(ttk.Frame):
         self.eval_tfms = get_eval_transform()
         self.report_queue = queue.Queue()
         self.last_report_html = None
+        self.last_report_markdown = None
 
         self._build_ui()
         if os.path.isfile(DEFAULT_MODEL_PATH):
@@ -224,12 +225,14 @@ class App(ttk.Frame):
             self.pred_label.configure(text=f"Prediction: {pred_label}")
             self.confidence_label.configure(text=f"Confidence: {pred_conf:.2f}%")
             
-            patient_info = (
-                f"Name: {self.patient_name_entry.get()}<br>"
-                f"DOB: {self.dob_entry.get_date().strftime('%Y-%m-%d')}<br>"
-                f"Patient ID: {self.patient_id_entry.get()}"
+            # Pre-format confidence and patient info for the LLM
+            confidence_str = f"{pred_conf:.1f}%"
+            patient_info_formatted = (
+                f"**Name:** {self.patient_name_entry.get()}<br>"
+                f"**DOB:** {self.dob_entry.get_date().strftime('%Y-%m-%d')}<br>"
+                f"**Patient ID:** {self.patient_id_entry.get()}"
             )
-            self._start_report_generation(pred_label, pred_conf, patient_info)
+            self._start_report_generation(pred_label, confidence_str, patient_info_formatted)
 
         except Exception as e:
             messagebox.showerror("Analysis Error", f"An error occurred during analysis:\n{e}")
@@ -252,32 +255,30 @@ class App(ttk.Frame):
         pred_conf = top_prob.item() * 100.0
         return pred_label, pred_conf
 
-    def _start_report_generation(self, tumor_type, confidence, patient_info):
+    def _start_report_generation(self, tumor_type, confidence_str, patient_info_formatted):
         while not self.report_queue.empty():
             self.report_queue.get_nowait()
 
         thread = threading.Thread(
             target=self._generate_report_threaded,
-            args=(tumor_type, confidence, patient_info),
+            args=(tumor_type, confidence_str, patient_info_formatted),
             daemon=True
         )
         thread.start()
         self.master.after(100, self._check_report_queue)
 
-    def _generate_report_threaded(self, tumor_type, confidence, patient_info):
+    def _generate_report_threaded(self, tumor_type, confidence_str, patient_info_formatted):
         try:
             report_date = datetime.now().strftime("%B %d, %Y")
             
-            image_bytes, image_data_uri = None, None
+            image_bytes = None
             try:
                 with open(self.image_path, "rb") as image_file:
                     image_bytes = image_file.read()
-                    encoded_string = base64.b64encode(image_bytes).decode('utf-8')
-                    image_data_uri = f"data:image/jpeg;base64,{encoded_string}"
             except Exception as e:
-                print(f"Could not read or encode image: {e}")
+                print(f"Could not read image for LLM: {e}")
 
-            prompt = self._create_llava_prompt(tumor_type, confidence, patient_info, report_date)
+            prompt = self._create_llava_prompt(tumor_type, confidence_str, patient_info_formatted, report_date)
             
             response = ollama.chat(
                 model='llava:7b',
@@ -288,16 +289,8 @@ class App(ttk.Frame):
                 }],
             )
             
-            markdown_text = response['message']['content']
-            
-            # Replace placeholder BEFORE converting to HTML
-            if image_data_uri:
-                image_html = f'<div style="text-align: center; margin-top: 20px;"><img src="{image_data_uri}" alt="MRI Scan" style="max-width: 300px; height: auto;"></div>'
-                markdown_text = markdown_text.replace("[SCAN_IMAGE]", image_html)
-            else:
-                markdown_text = markdown_text.replace("[SCAN_IMAGE]", "<p><i>[Image could not be loaded]</i></p>")
-
-            html_text = markdown.markdown(markdown_text, extensions=['fenced_code', 'tables'])
+            self.last_report_markdown = response['message']['content']
+            html_text = markdown.markdown(self.last_report_markdown, extensions=['fenced_code', 'tables'])
             self.report_queue.put(html_text)
 
         except Exception as e:
@@ -318,7 +311,7 @@ class App(ttk.Frame):
             self.master.after(100, self._check_report_queue)
 
     def on_save_pdf(self):
-        if not self.last_report_html:
+        if not self.last_report_markdown:
             messagebox.showwarning("No Report", "Please generate a report before saving.")
             return
 
@@ -333,8 +326,26 @@ class App(ttk.Frame):
         password = simpledialog.askstring("PDF Encryption", "Enter a password to encrypt the PDF (optional):", show='*')
 
         try:
+            # Convert the main report body to HTML
+            pdf_html = markdown.markdown(self.last_report_markdown, extensions=['fenced_code', 'tables'])
+
+            # Now, create and append the image HTML programmatically
+            image_data_uri = None
+            try:
+                with open(self.image_path, "rb") as image_file:
+                    encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+                    image_data_uri = f"data:image/jpeg;base64,{encoded_string}"
+            except Exception as e:
+                print(f"Could not read or encode image for PDF: {e}")
+
+            if image_data_uri:
+                image_html = f'<div style="text-align: center; margin-top: 20px;"><img src="{image_data_uri}" alt="MRI Scan" style="max-width: 300px; height: auto;"></div>'
+                pdf_html += image_html
+            else:
+                pdf_html += "<p><i>[Image could not be loaded]</i></p>"
+
             css = "body { font-family: sans-serif; font-size: 10pt; } h1, h2, h3 { color: #333; } table { border-collapse: collapse; width: 100%; } td, th { padding: 4px; text-align: left; }"
-            html_with_style = f"<style>{css}</style>{self.last_report_html}"
+            html_with_style = f"<style>{css}</style>{pdf_html}"
             
             pdf_buffer = io.BytesIO()
             WeasyHTML(string=html_with_style, base_url=self.image_path).write_pdf(pdf_buffer)
@@ -357,52 +368,48 @@ class App(ttk.Frame):
         except Exception as e:
             messagebox.showerror("PDF Export Error", f"Failed to save PDF:\n{e}")
 
-    def _create_llava_prompt(self, tumor_type, confidence, patient_info, report_date):
-        patient_details_html = "<table>"
-        for line in patient_info.split('<br>'):
-            if ':' in line:
-                key, value = line.split(':', 1)
-                patient_details_html += f"<tr><td style='padding-right: 10px;'><strong>{key.strip()}:</strong></td><td>{value.strip()}</td></tr>"
-        patient_details_html += "</table>"
-
+    def _create_llava_prompt(self, tumor_type, confidence_str, patient_info_formatted, report_date):
         if tumor_type == "notumor":
             tumor_name = "No Tumor"
             prompt = (
-                "You are a radiologist. A classifier has determined with {confidence:.1f}% confidence that this MRI scan shows **No Tumor**. "
+                "You are a radiologist. A classifier has determined with {confidence_str} confidence that this MRI scan shows **No Tumor**. "
                 "Your task is to write a concise, formal radiology report confirming this finding. "
                 "Use the provided template and data. Do not add extra notes or disclaimers.\n\n"
+                "### CRITICAL FORMATTING INSTRUCTIONS ###\n"
+                "1.  **Bold Headers:** Make the 'Patient Details', 'FINDINGS', and 'IMPRESSION' headers bold using markdown (`**Header**`).\n\n"
                 "--- TEMPLATE FOR OUTPUT ---\n"
-                "<h1>RADIOLOGY REPORT</h1>\n\n"
-                f"**Patient Details:**\n{patient_details_html}\n\n"
-                f"**Date of Report:** {report_date}\n\n"
-                "### FINDINGS:\n"
-                f"- An AI model analyzed the images and identified features consistent with **{tumor_name}** (Confidence: {confidence:.1f}%).\n"
-                "- The scan shows no evidence of an intracranial mass, lesion, or other significant abnormality.\n\n"
-                "### IMPRESSION:\n"
-                f"- No evidence of intracranial tumor.\n"
-                "[SCAN_IMAGE]"
+                '<div style="text-align: center;"><h1>RADIOLOGY REPORT</h1></div>\n\n'
+                "**Patient Details:**<br>"
+                f"{patient_info_formatted}<br><br>"
+                f"**Date of Report:** {report_date}<br><br>"
+                "**FINDINGS:**<br>"
+                f"- An AI model analyzed the images and identified features consistent with **{tumor_name}** (Confidence: {confidence_str}).<br>"
+                "- The scan shows no evidence of an intracranial mass, lesion, or other significant abnormality.<br><br>"
+                "**IMPRESSION:**<br>"
+                f"- No evidence of intracranial tumor."
             )
         else:
             tumor_name = f"{tumor_type.capitalize()} Tumor"
             prompt = (
-                f"You are a radiologist. A highly accurate classifier has already identified a **{tumor_name}** in this MRI scan with {confidence:.1f}% confidence. "
+                f"You are a radiologist. A highly accurate classifier has already identified a **{tumor_name}** in this MRI scan with {confidence_str} confidence. "
                 "Your task is to analyze the provided image and write a formal radiology report.\n\n"
                 "### CRITICAL INSTRUCTIONS ###\n"
                 "1.  **Analyze the Image:** Look at the tumor in the image.\n"
                 "2.  **Estimate Size:** Based on the image, estimate the tumor's dimensions in millimeters (mm). State this as 'approx. X x Y mm'.\n"
                 "3.  **Describe Appearance:** Describe the specific appearance of the tumor you see in the image (e.g., its shape, margins, signal intensity, location). Do NOT use generic or 'typical' descriptions.\n"
-                "4.  **Use Template:** Format your entire response using the template below. Do not add extra notes or disclaimers.\n\n"
+                "4.  **Format Headers:** Make the 'Patient Details', 'FINDINGS', and 'IMPRESSION' headers bold using markdown (`**Header**`).\n"
+                "5.  **Use Template:** Format your entire response using the template below. Do not add extra notes or disclaimers.\n\n"
                 "--- TEMPLATE FOR OUTPUT ---\n"
-                "<h1>RADIOLOGY REPORT</h1>\n\n"
-                f"**Patient Details:**\n{patient_details_html}\n\n"
-                f"**Date of Report:** {report_date}\n\n"
-                "### FINDINGS:\n"
-                f"- An AI model identified features consistent with a **{tumor_name}** (Confidence: {confidence:.1f}%).\n"
-                "- The lesion is estimated to have approximate dimensions of [**INSERT YOUR ESTIMATED DIMENSIONS HERE**].\n"
-                "- The scan reveals [**INSERT YOUR DESCRIPTION OF THE TUMOR'S APPEARANCE HERE**].\n\n"
-                "### IMPRESSION:\n"
-                f"- The findings are most consistent with a **{tumor_name}**.\n"
-                "[SCAN_IMAGE]"
+                '<div style="text-align: center;"><h1>RADIOLOGY REPORT</h1></div>\n\n'
+                "**Patient Details:**<br>"
+                f"{patient_info_formatted}<br><br>"
+                f"**Date of Report:** {report_date}<br><br>"
+                "**FINDINGS:**<br>"
+                f"- An AI model identified features consistent with a **{tumor_name}** (Confidence: {confidence_str}).<br>"
+                "- The lesion is estimated to have approximate dimensions of [**INSERT YOUR ESTIMATED DIMENSIONS HERE**].<br>"
+                "- The scan reveals [**INSERT YOUR DESCRIPTION OF THE TUMOR'S APPEARANCE HERE**].<br><br>"
+                "**IMPRESSION:**<br>"
+                f"- The findings are most consistent with a **{tumor_name}**."
             )
         return prompt
 
