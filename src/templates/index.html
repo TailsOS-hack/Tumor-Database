@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radiology Report Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="background-gradient"></div>
+    
+    <div class="container">
+        <header>
+            <h1>Radiology Report Generator</h1>
+            <p class="subtitle">AI-Powered Brain Tumor Classification & Reporting</p>
+        </header>
+
+        <main>
+            <div class="grid-layout">
+                <!-- Left Column: Input & Analysis -->
+                <div class="card input-section">
+                    <h2>Patient & Scan Details</h2>
+                    <form id="analysisForm">
+                        <div class="form-group">
+                            <label for="patientName">Patient Name</label>
+                            <input type="text" id="patientName" name="patientName" required placeholder="e.g. John Doe">
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="patientID">Patient ID</label>
+                                <input type="text" id="patientID" name="patientID" required placeholder="e.g. 12345">
+                            </div>
+                            <div class="form-group">
+                                <label for="dob">Date of Birth</label>
+                                <input type="date" id="dob" name="dob" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="mriImage">MRI Scan Image</label>
+                            <div class="file-upload-wrapper">
+                                <input type="file" id="mriImage" name="mriImage" accept="image/*" required>
+                                <div class="file-upload-box">
+                                    <span class="icon">📁</span>
+                                    <span class="text">Click to upload or drag and drop</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="imagePreviewContainer" class="hidden">
+                            <img id="imagePreview" src="" alt="MRI Preview">
+                        </div>
+
+                        <button type="submit" id="analyzeBtn" class="btn-primary" disabled>
+                            <span class="btn-text">Analyze & Generate Report</span>
+                            <div class="spinner hidden"></div>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Right Column: Results -->
+                <div class="card results-section">
+                    <h2>Analysis Results</h2>
+                    
+                    <div id="initialState" class="state-message">
+                        <p>Upload an image and run analysis to see results here.</p>
+                    </div>
+
+                    <div id="loadingState" class="state-message hidden">
+                        <div class="loader"></div>
+                        <p>Analyzing image and generating report...</p>
+                        <p class="sub-text">This may take a moment (running local LLM)</p>
+                    </div>
+
+                    <div id="resultsContent" class="hidden">
+                        <div class="classification-box">
+                            <div class="result-item">
+                                <span class="label">Prediction</span>
+                                <span class="value" id="predLabel">-</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="label">Confidence</span>
+                                <span class="value" id="predConf">-</span>
+                            </div>
+                        </div>
+
+                        <div class="report-container">
+                            <h3>Generated Report</h3>
+                            <div id="reportDisplay" class="report-content">
+                                <!-- Report HTML goes here -->
+                            </div>
+                        </div>
+
+                        <div class="actions">
+                            <button id="downloadPdfBtn" class="btn-secondary">
+                                <span>Download PDF</span>
+                            </button>
+                            <div class="password-group">
+                                <input type="password" id="pdfPassword" placeholder="PDF Password (Optional)">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

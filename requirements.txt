@@ -10,3 +10,6 @@ tkcalendar
 pypdf
 # Optional: For GPU acceleration on Windows with non-NVIDIA cards
 # torch-directml
+fastapi
+uvicorn
+python-multipart
