@@ -21,7 +21,6 @@ This project uses a sophisticated hybrid AI system to classify brain tumors from
 ├── .gitattributes
 ├── README.md
 └── requirements.txt
-```
 
 ## Features
 

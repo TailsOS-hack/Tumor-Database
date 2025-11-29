@@ -9,7 +9,6 @@ The project is organized into the following structure:
   - `train.py`: A command-line script to train the `EfficientNet-B3` model.
   - `radiology_report_gui.py`: The primary GUI application for classification, report generation, and PDF export.
   - `gui.py`: The original, simpler GUI for classification only.
-  - `web_app.py`: A web-based application for classification and report generation.
 - `data/`: Contains the image dataset.
 - `models/`: Contains the trained model checkpoints.
 - `requirements.txt`: Lists all Python dependencies.
@@ -17,7 +16,6 @@ The project is organized into the following structure:
 ## Key Files
 
 -   `src/radiology_report_gui.py`: The main GUI application. This `tkinter`-based GUI provides a complete workflow for loading the classifier, inputting patient data, analyzing an MRI image, generating a formatted report using a local LLM, and exporting the final report as a PDF.
--   `src/web_app.py`: The web-based application providing similar functionality through a browser.
 -   `src/train.py`: The script for training the image classifier. It handles data loading, augmentation, model training, validation, and saving the best model.
 -   `src/gui.py`: The original, basic GUI for classifying images. Superseded by `radiology_report_gui.py`.
 -   `models/brain_tumor_classifier.pt`: The trained PyTorch model checkpoint saved by the training script.
@@ -26,7 +24,7 @@ The project is organized into the following structure:
 ## Setup and Dependencies
 
 ### Python Dependencies
-This project is written in Python. All dependencies, including `torch`, `ollama`, `WeasyPrint`, `markdown`, `tkcalendar`, and `Flask` (for web_app.py) are listed in `requirements.txt`.
+This project is written in Python. All dependencies, including `torch`, `ollama`, `WeasyPrint`, `markdown`, and `tkcalendar`, are listed in `requirements.txt`.
 
 Install the dependencies using pip:
 ```bash
@@ -66,25 +64,9 @@ python src/radiology_report_gui.py
 5.  Review the generated report.
 6.  Click **"Save as PDF"** to export the final report to a PDF file.
 
-### 3. Run the Web Application
-
-To run the web-based application:
-
-```bash
-python src/web_app.py
-```
-
-Then, open your web browser and navigate to `http://127.0.0.1:5000`.
-
-**Web App Workflow:**
-1.  Fill in the patient details.
-2.  Upload an MRI image.
-3.  Click "Generate Report" to get the classification and LLM-generated report.
-4.  Optionally, save the report as a PDF.
-
 ## Development Conventions
 
--   **Separation of Concerns:** The project separates the ML model training (`train.py`), the core classification logic, and the user interfaces (`radiology_report_gui.py`, `web_app.py`). It further separates the classification task (PyTorch model) from the text generation task (Ollama LLM).
+-   **Separation of Concerns:** The project separates the ML model training (`train.py`), the core classification logic, and the user interface (`radiology_report_gui.py`). It further separates the classification task (PyTorch model) from the text generation task (Ollama LLM).
 -   **Configuration:** The training script uses `argparse` for hyperparameters. The GUIs are self-contained.
 -   **Model Checkpoints:** The training script saves self-contained model files that include metadata like class names and architecture.
 -   **Device Agnostic:** The code attempts to use available hardware acceleration (CUDA or DirectML) and falls back to the CPU.
@@ -134,22 +116,3 @@ This session focused on iteratively refining the GUI and report generation funct
 -   **Report Generation Refinement:** The LLM prompt was significantly improved to produce more professional and clinically relevant reports. The "History" and "Technique" sections were removed for conciseness, and the "Patient Details" are now formatted with clear line breaks. The prompt also now explicitly prevents the LLM from redacting patient information.
 -   **Performance Tuning:** The application's responsiveness was improved by reverting the full background processing for classification. The initial (and fast) classification now runs in the main thread to provide immediate feedback to the user, while the slower LLM report generation remains in a background thread to prevent the GUI from freezing.
 -   **New Dependency:** The `tkcalendar` library was added to support the new date picker functionality and was added to `requirements.txt`.
-
-### Session Summary: Web Application Development
-
-This session focused on adding a new web-based interface to the project, `web_app.py`, leveraging Flask, HTML, CSS, and JavaScript.
-
-**Key Changes:**
-
--   **New Web Application (`web_app.py`):**
-    -   Implemented a Flask application to provide a web interface for tumor classification and report generation.
-    -   The web app allows users to upload MRI images, input patient details, and receive AI-generated radiology reports directly in their browser.
-    -   It integrates with the existing PyTorch model for classification and the Ollama LLM for report generation.
-    -   The web application uses HTML templates (`templates/index.html`) for structure, CSS (`static/style.css`) for styling, and JavaScript (`static/script.js`) for dynamic client-side interactions.
--   **Enhanced Patient Data Handling:**
-    -   Patient data (Name, Patient ID, DOB) is now collected via web forms and securely passed to the backend for report generation.
--   **Improved User Experience (Web):**
-    -   A responsive and intuitive web interface was designed to make the report generation process accessible through a browser.
-    -   Asynchronous operations (image upload, report generation) are handled to ensure a smooth user experience, providing feedback to the user during processing.
--   **Dependency Updates:**
-    -   Added `Flask` to `requirements.txt` to support the web application.
