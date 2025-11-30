@@ -1,89 +1,50 @@
-# Hybrid AI Brain Tumor Radiology Report Generator
+# AI-Powered Neuro-Radiology Report Generator
 
-This project uses a sophisticated hybrid AI system to classify brain tumors from MRI images and generate detailed, radiologist-style reports. It combines a fine-tuned PyTorch model for accurate classification with a local multimodal Large Language Model (LLM) for advanced visual analysis and report drafting.
-
-![GUI Screenshot](<placeholder_for_advanced_gui_screenshot.png>)
-*(Note: You can replace the placeholder above with a screenshot of the `src/radiology_report_gui.py` application in action.)*
-
-## Project Structure
-```
-.
-├── data
-│   └── brain-tumor-mri-dataset
-│       ├── Testing
-│       └── Training
-├── models
-│   └── brain_tumor_classifier.pt
-├── src
-│   ├── __init__.py
-│   ├── radiology_report_gui.py (Main Application)
-│   └── train.py
-├── .gitattributes
-├── README.md
-└── requirements.txt
+This project is an advanced medical imaging analysis tool. It uses deep learning to analyze MRI scans for both **Brain Tumors** and **Alzheimer's/Dementia** signs, and then employs a local Large Language Model (LLM) to generate detailed, professional radiology reports.
 
 ## Features
 
--   **Hybrid AI Analysis:**
-    -   **Stage 1 (Classification):** Utilizes a fine-tuned `EfficientNet-B3` model in PyTorch to achieve high-accuracy classification among four classes: `glioma`, `meningioma`, `no tumor`, and `pituitary`.
-    -   **Stage 2 (Visual Analysis):** Employs a local multimodal LLM (`ollama/llava:7b`) to "see" the MRI scan. Based on the initial classification, it describes the tumor's specific visual characteristics and estimates its size.
--   **Advanced Report Generation:** The `llava` model drafts a detailed radiology report, with conditional logic to handle "no tumor" cases gracefully.
--   **Embedded Imagery:** The final PDF report dynamically embeds the analyzed MRI scan at the bottom for complete reference.
--   **PDF Encryption:** Generated reports can be encrypted with a user-provided password for enhanced security of sensitive patient data.
--   **Rich GUI:** A user-friendly interface for entering patient data, selecting an image, and generating/saving the report.
--   **GPU Accelerated:** Supports both GPU (CUDA/DirectML) and CPU for model inference.
+-   **Dual-Model Classification:** automatically selects the best model for the image:
+    -   **Brain Tumor Classifier:** `EfficientNet-B3` (PyTorch) trained to detect Glioma, Meningioma, Pituitary tumors, and No Tumor.
+    -   **Alzheimer's Classifier:** `MobileNetV3-Large` (PyTorch) trained to detect Non-Demented, Very Mild, Mild, and Moderate Dementia.
+-   **Smart Model Selection:** Runs both classifiers in parallel and selects the diagnosis with the highest confidence score.
+-   **Generative AI Reporting:** Uses a local Multimodal LLM (`ollava/llava:7b` via Ollama) to "see" the image and draft a full radiology report, describing findings, size, and appearance.
+-   **PDF Export:** Saves reports as professional PDF documents with the MRI image embedded and optional password encryption.
+-   **User-Friendly GUI:** A modern Tkinter interface for easy patient data entry and analysis.
 
-## Requirements
+## Project Structure
 
-### 1. Ollama Setup
-This project requires a local Ollama instance to be running.
+-   `src/radiology_report_gui.py`: The main application.
+-   `src/web_app.py`: A web-based version (currently tumor-focused).
+-   `models/`:
+    -   `brain_tumor_classifier.pt`: EfficientNet-B3 model.
+    -   `alzheimers_classifier.pt`: MobileNetV3 model.
+-   `data/`: Directory for datasets (Brain Tumor and Alzheimer's).
 
-1.  **Install Ollama:** Follow the instructions at [ollama.com](https://ollama.com/).
-2.  **Pull the Multimodal Model:** Once Ollama is running, open a terminal and pull the `llava:7b` model. This is required for the visual analysis part of the report generation.
+## Setup
+
+1.  **Install Dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+2.  **Install Ollama:**
+    Ensure [Ollama](https://ollama.com/) is installed and the `llava:7b` model is pulled:
     ```bash
     ollama pull llava:7b
     ```
+3.  **GTK3 (Windows only):**
+    For PDF generation, you may need GTK3 installed via MSYS2 (see `WeasyPrint` docs).
 
-### 2. Python Dependencies
-All Python dependencies are listed in `requirements.txt`. This includes `torch`, `ollama`, `pypdf`, `WeasyPrint`, `markdown`, and `tkcalendar`.
+## How to Run
 
-Install them using pip:
-```bash
-pip install -r requirements.txt
-```
-
-### 3. System-Level Dependencies (for Windows)
-The PDF export feature relies on the `WeasyPrint` library, which requires a one-time installation of the GTK+ runtime on Windows.
-
-1.  **Install MSYS2:** Download and run the installer from [msys2.org](https://www.msys2.org/).
-2.  **Install GTK3 via MSYS2:** Open the MSYS2 terminal and run `pacman -S mingw-w64-x86_64-gtk3`.
-3.  **Update PATH:** Add `C:\msys64\mingw64\bin` to your system's PATH environment variable to make the GTK+ libraries discoverable.
-
-## Usage
-
-### 1. Train the Classifier (Optional)
-
-If you want to train the PyTorch classifier from scratch, run the training script. This will save the best-performing model to `models/brain_tumor_classifier.pt`.
-
-```bash
-python src/train.py
-```
-
-### 2. Run the Report Generation GUI
-
-This is the main application for generating reports. **Ensure your local Ollama application is running before you start.**
+Run the main GUI application:
 
 ```bash
 python src/radiology_report_gui.py
 ```
 
-The application will automatically load the trained classifier if it exists at the default path.
-
-**How to use the GUI:**
-1.  Fill in the **Patient Information** (Name, Patient ID, and DOB).
-2.  If the classifier model doesn't load automatically, click **"Load Classifier Model"** and select the `.pt` file.
-3.  Click **"Choose Image..."** to select an MRI scan.
-4.  Click **"Analyze & Generate Report"**. The application will:
-    -   Classify the image using the PyTorch model.
-    -   Pass the image and classification to the `llava` model to write a detailed report, including a description and size estimate.
-5.  Once the report is generated, click **"Save as PDF"**. You will be prompted to add an optional password to encrypt the report.
+1.  Enter Patient Name, ID, and Date of Birth.
+2.  Click **"Choose Image..."** to load an MRI scan (Tumor or Alzheimer's).
+3.  Click **"Analyze & Generate Report"**.
+4.  The system will classify the image and generate a report.
+5.  Click **"Save as PDF"** to export.

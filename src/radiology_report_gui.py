@@ -1,11 +1,10 @@
-
 import os
 import sys
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk, simpledialog
 import torch
 import torch.nn as nn
-from torchvision.models import efficientnet_b3
+from torchvision.models import efficientnet_b3, mobilenet_v3_large
 from torchvision import transforms
 import ollama
 from PIL import Image, ImageTk
@@ -20,10 +19,15 @@ import io
 from pypdf import PdfWriter, PdfReader
 import base64
 
-APP_TITLE = "Radiology Report Generator"
-DEFAULT_MODEL_PATH = os.path.join("models", "brain_tumor_classifier.pt")
+APP_TITLE = "Radiology Report Generator (Tumor & Alzheimer's)"
+TUMOR_MODEL_PATH = os.path.join("models", "brain_tumor_classifier.pt")
+ALZHEIMERS_MODEL_PATH = os.path.join("models", "alzheimers_classifier.pt")
 
-def build_model(arch: str, num_classes: int):
+# Constants for Alzheimer's
+ALZ_CLASSES = ['MildDemented', 'ModerateDemented', 'NonDemented', 'VeryMildDemented']
+ALZ_IMG_SIZE = 160
+
+def build_tumor_model(arch: str, num_classes: int):
     if arch == "efficientnet_b3":
         model = efficientnet_b3(weights=None)
         in_features = model.classifier[1].in_features
@@ -33,7 +37,7 @@ def build_model(arch: str, num_classes: int):
         return model
     raise ValueError(f"Unsupported architecture: {arch}")
 
-def get_eval_transform():
+def get_tumor_transform():
     mean = [0.485, 0.456, 0.406]
     std = [0.229, 0.224, 0.225]
     return transforms.Compose(
@@ -45,12 +49,23 @@ def get_eval_transform():
         ]
     )
 
+def get_alzheimers_transform():
+    # Matches the MobileNetV3 training (ImageNet stats)
+    mean = [0.485, 0.456, 0.406]
+    std = [0.229, 0.224, 0.225]
+    return transforms.Compose([
+        transforms.Resize((ALZ_IMG_SIZE, ALZ_IMG_SIZE), antialias=True),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=mean, std=std),
+    ])
+
 class App(ttk.Frame):
     def __init__(self, master):
         super().__init__(master, padding=15)
         self.pack(fill="both", expand=True)
         self.master = master
 
+        # Device selection
         if torch.cuda.is_available():
             self.device = torch.device("cuda")
         else:
@@ -60,27 +75,38 @@ class App(ttk.Frame):
             except Exception:
                 self.device = torch.device("cpu")
 
-        self.model = None
-        self.class_names = []
-        self.arch = "efficientnet_b3"
+        # Models
+        self.tumor_model = None
+        self.tumor_classes = []
+        self.alz_model = None
+        self.alz_classes = ALZ_CLASSES
+
         self.image_path = None
         self.tk_image = None
-        self.eval_tfms = get_eval_transform()
+        
+        # Transforms
+        self.tumor_tfms = get_tumor_transform()
+        self.alz_tfms = get_alzheimers_transform()
+
+        # Reporting
         self.report_queue = queue.Queue()
         self.last_report_html = None
         self.last_report_markdown = None
 
         self._build_ui()
-        if os.path.isfile(DEFAULT_MODEL_PATH):
-            self.load_model(DEFAULT_MODEL_PATH)
+        
+        # Auto-load models
+        self.load_models()
 
     def _build_ui(self):
-        # Top bar for model status and loading
+        # Top bar for model status
         top_bar = ttk.Frame(self)
         top_bar.pack(fill="x", pady=(0, 10))
-        self.model_label = ttk.Label(top_bar, text="Model: (none loaded)", anchor="w")
-        self.model_label.pack(side="left", fill="x", expand=True)
-        ttk.Button(top_bar, text="Load Classifier Model", command=self.on_load_model).pack(side="right")
+        self.model_status_label = ttk.Label(top_bar, text="Models: Loading...", anchor="w")
+        self.model_status_label.pack(side="left", fill="x", expand=True)
+        
+        # Manual reload button
+        ttk.Button(top_bar, text="Reload Models", command=self.load_models).pack(side="right")
 
         # Main layout with a resizable pane
         main_pane = ttk.PanedWindow(self, orient="horizontal")
@@ -111,7 +137,6 @@ class App(ttk.Frame):
                                    selectmode='day', year=datetime.now().year - 40, month=1, day=1)
         self.dob_entry.grid(row=2, column=1, sticky="w", padx=5)
 
-
         # Image selection and display
         img_frame = ttk.LabelFrame(left_frame, text="MRI Scan", padding=10)
         img_frame.pack(fill="both", expand=True)
@@ -131,7 +156,7 @@ class App(ttk.Frame):
         # Loading indicator
         self.progress_bar = ttk.Progressbar(left_frame, mode='indeterminate')
         self.progress_bar.pack(fill="x", pady=5)
-        self.progress_bar.pack_forget() # Hide it initially
+        self.progress_bar.pack_forget()
 
         # Classification result
         result_frame = ttk.LabelFrame(left_frame, text="Classification Details", padding=10)
@@ -140,6 +165,8 @@ class App(ttk.Frame):
         self.pred_label.pack(anchor="w")
         self.confidence_label = ttk.Label(result_frame, text="Confidence: -")
         self.confidence_label.pack(anchor="w")
+        self.model_used_label = ttk.Label(result_frame, text="Model Used: -", foreground="#555")
+        self.model_used_label.pack(anchor="w")
 
         # --- Right Column: Generated Report ---
         right_frame = ttk.Frame(main_pane, padding=5)
@@ -154,32 +181,44 @@ class App(ttk.Frame):
         self.save_pdf_btn = ttk.Button(right_frame, text="Save as PDF", command=self.on_save_pdf, state="disabled")
         self.save_pdf_btn.pack(pady=5)
 
-    def on_load_model(self):
-        path = filedialog.askopenfilename(
-            title="Select Model Checkpoint",
-            filetypes=[["PyTorch checkpoint", "*.pt;*.pth"]],
-            initialdir=os.path.abspath("models"),
-        )
-        if path:
-            self.load_model(path)
+    def load_models(self):
+        status_texts = []
+        
+        # 1. Load Tumor Model
+        if os.path.isfile(TUMOR_MODEL_PATH):
+            try:
+                checkpoint = torch.load(TUMOR_MODEL_PATH, map_location=self.device)
+                arch = checkpoint.get("arch", "efficientnet_b3")
+                self.tumor_classes = checkpoint.get("class_names", ["glioma", "meningioma", "notumor", "pituitary"])
+                model = build_tumor_model(arch, len(self.tumor_classes))
+                model.load_state_dict(checkpoint["model_state"])
+                model.eval().to(self.device)
+                self.tumor_model = model
+                status_texts.append("Tumor: Ready")
+            except Exception as e:
+                print(f"Error loading tumor model: {e}")
+                status_texts.append("Tumor: Error")
+        else:
+            status_texts.append("Tumor: Not Found")
 
-    def load_model(self, path: str):
-        try:
-            checkpoint = torch.load(path, map_location=self.device)
-            self.arch = checkpoint.get("arch", "efficientnet_b3")
-            self.class_names = checkpoint.get("class_names", [])
-            num_classes = len(self.class_names)
-            
-            model = build_model(self.arch, num_classes)
-            model.load_state_dict(checkpoint["model_state"])
-            model.eval().to(self.device)
+        # 2. Load Alzheimer's Model
+        if os.path.isfile(ALZHEIMERS_MODEL_PATH):
+            try:
+                # This model was saved as a full object, not a state dict
+                self.alz_model = torch.load(ALZHEIMERS_MODEL_PATH, map_location=self.device, weights_only=False)
+                self.alz_model.eval().to(self.device)
+                status_texts.append("Alzheimer's: Ready")
+            except Exception as e:
+                print(f"Error loading alzheimer model: {e}")
+                status_texts.append("Alzheimer's: Error")
+        else:
+            status_texts.append("Alzheimer's: Not Found")
 
-            self.model = model
-            self.model_label.configure(text=f"Model: {os.path.basename(path)} ({self.arch} on {self.device})")
+        self.model_status_label.configure(text=" | ".join(status_texts))
+        
+        if self.tumor_model or self.alz_model:
             if self.image_path:
                 self.generate_btn.configure(state="normal")
-        except Exception as e:
-            messagebox.showerror("Load Model Error", f"Failed to load model:\n{e}")
 
     def on_choose_image(self):
         path = filedialog.askopenfilename(
@@ -190,15 +229,14 @@ class App(ttk.Frame):
         if path:
             self.image_path = path
             self._display_image(path)
-            if self.model:
+            if self.tumor_model or self.alz_model:
                 self.generate_btn.configure(state="normal")
 
     def _display_image(self, path: str):
         try:
             img = Image.open(path).convert("RGB")
             w, h = self.canvas.winfo_width(), self.canvas.winfo_height()
-            if w == 1 or h == 1: # Canvas not yet drawn
-                w, h = 350, 350
+            if w == 1 or h == 1: w, h = 350, 350
             img.thumbnail((w, h))
             self.tk_image = ImageTk.PhotoImage(img)
             self.canvas.delete("all")
@@ -207,25 +245,26 @@ class App(ttk.Frame):
             messagebox.showerror("Image Error", f"Failed to load image:\n{e}")
 
     def on_analyze_and_generate(self):
-        if not self.image_path or not self.model:
-            return
+        if not self.image_path: return
 
         self.generate_btn.configure(state="disabled")
         self.choose_img_btn.configure(state="disabled")
         self.save_pdf_btn.configure(state="disabled")
         self.pred_label.configure(text="Prediction: Analyzing...")
         self.confidence_label.configure(text="Confidence: -")
-        self.report_html.set_html("<p><i>Generating report with multimodal LLM, please wait... This may take a moment.</i></p>")
+        self.model_used_label.configure(text="Model Used: -")
+        self.report_html.set_html("<p><i>Running multi-stage analysis and generating report...</i></p>")
         self.progress_bar.pack(fill="x", pady=5)
         self.progress_bar.start()
         self.update_idletasks()
 
         try:
-            pred_label, pred_conf = self._run_classification()
+            pred_label, pred_conf, model_name = self._run_cascaded_classification()
+            
             self.pred_label.configure(text=f"Prediction: {pred_label}")
             self.confidence_label.configure(text=f"Confidence: {pred_conf:.2f}%")
+            self.model_used_label.configure(text=f"Model Used: {model_name}")
             
-            # Pre-format confidence and patient info for the LLM
             confidence_str = f"{pred_conf:.1f}%"
             patient_info_formatted = (
                 f"**Name:** {self.patient_name_entry.get()}<br>"
@@ -235,50 +274,76 @@ class App(ttk.Frame):
             self._start_report_generation(pred_label, confidence_str, patient_info_formatted)
 
         except Exception as e:
-            messagebox.showerror("Analysis Error", f"An error occurred during analysis:\n{e}")
+            messagebox.showerror("Analysis Error", f"An error occurred:\n{e}")
             self.generate_btn.configure(state="normal")
             self.choose_img_btn.configure(state="normal")
             self.progress_bar.stop()
             self.progress_bar.pack_forget()
 
     @torch.no_grad()
-    def _run_classification(self):
+    def _run_cascaded_classification(self):
         img = Image.open(self.image_path).convert("RGB")
-        tensor = self.eval_tfms(img).unsqueeze(0).to(self.device)
         
-        with torch.amp.autocast(device_type=self.device.type, enabled=(self.device.type == "cuda")):
-            logits = self.model(tensor)
-            probs = torch.softmax(logits, dim=1).squeeze(0)
-        
-        top_prob, top_idx = torch.topk(probs, 1)
-        pred_label = self.class_names[top_idx.item()]
-        pred_conf = top_prob.item() * 100.0
-        return pred_label, pred_conf
+        # 1. Run Tumor Model
+        tumor_res = None
+        if self.tumor_model:
+            tensor = self.tumor_tfms(img).unsqueeze(0).to(self.device)
+            with torch.amp.autocast(device_type=self.device.type, enabled=(self.device.type == "cuda")):
+                logits = self.tumor_model(tensor)
+                probs = torch.softmax(logits, dim=1).squeeze(0)
+            top_prob, top_idx = torch.topk(probs, 1)
+            tumor_res = (self.tumor_classes[top_idx.item()], top_prob.item() * 100.0)
 
-    def _start_report_generation(self, tumor_type, confidence_str, patient_info_formatted):
+        # 2. Run Alzheimer's Model
+        alz_res = None
+        if self.alz_model:
+            tensor_alz = self.alz_tfms(img).unsqueeze(0).to(self.device)
+            with torch.amp.autocast(device_type=self.device.type, enabled=(self.device.type == "cuda")):
+                logits = self.alz_model(tensor_alz)
+                probs = torch.softmax(logits, dim=1).squeeze(0)
+            top_prob, top_idx = torch.topk(probs, 1)
+            alz_res = (self.alz_classes[top_idx.item()], top_prob.item() * 100.0)
+        
+        # 3. Compare and Pick Winner
+        if tumor_res and alz_res:
+            print(f"Tumor Model: {tumor_res[0]} ({tumor_res[1]:.2f}%)")
+            print(f"Alz Model: {alz_res[0]} ({alz_res[1]:.2f}%)")
+            
+            if alz_res[1] > tumor_res[1]:
+                return alz_res[0], alz_res[1], "Alzheimer's/Dementia Model"
+            else:
+                return tumor_res[0], tumor_res[1], "Brain Tumor Model"
+        elif tumor_res:
+            return tumor_res[0], tumor_res[1], "Brain Tumor Model"
+        elif alz_res:
+            return alz_res[0], alz_res[1], "Alzheimer's/Dementia Model"
+        
+        raise Exception("No models loaded or available.")
+
+    def _start_report_generation(self, prediction, confidence_str, patient_info_formatted):
         while not self.report_queue.empty():
             self.report_queue.get_nowait()
 
         thread = threading.Thread(
             target=self._generate_report_threaded,
-            args=(tumor_type, confidence_str, patient_info_formatted),
+            args=(prediction, confidence_str, patient_info_formatted),
             daemon=True
         )
         thread.start()
         self.master.after(100, self._check_report_queue)
 
-    def _generate_report_threaded(self, tumor_type, confidence_str, patient_info_formatted):
+    def _generate_report_threaded(self, prediction, confidence_str, patient_info_formatted):
         try:
             report_date = datetime.now().strftime("%B %d, %Y")
             
             image_bytes = None
             try:
-                with open(self.image_path, "rb") as image_file:
-                    image_bytes = image_file.read()
+                with open(self.image_path, "rb") as f:
+                    image_bytes = f.read()
             except Exception as e:
-                print(f"Could not read image for LLM: {e}")
+                print(f"Image read error: {e}")
 
-            prompt = self._create_llava_prompt(tumor_type, confidence_str, patient_info_formatted, report_date)
+            prompt = self._create_llava_prompt(prediction, confidence_str, patient_info_formatted, report_date)
             
             response = ollama.chat(
                 model='llava:7b',
@@ -294,8 +359,7 @@ class App(ttk.Frame):
             self.report_queue.put(html_text)
 
         except Exception as e:
-            error_html = f"<p><b>Error generating report:</b></p><pre>{e}</pre>"
-            self.report_queue.put(error_html)
+            self.report_queue.put(f"<p><b>Error generating report:</b></p><pre>{e}</pre>")
 
     def _check_report_queue(self):
         try:
@@ -311,40 +375,32 @@ class App(ttk.Frame):
             self.master.after(100, self._check_report_queue)
 
     def on_save_pdf(self):
-        if not self.last_report_markdown:
-            messagebox.showwarning("No Report", "Please generate a report before saving.")
-            return
+        if not self.last_report_markdown: return
 
         filepath = filedialog.asksaveasfilename(
             title="Save Report as PDF",
             defaultextension=".pdf",
             filetypes=[("PDF Documents", "*.pdf"), ("All Files", "*.*")],
         )
-        if not filepath:
-            return
+        if not filepath: return
 
-        password = simpledialog.askstring("PDF Encryption", "Enter a password to encrypt the PDF (optional):", show='*')
+        password = simpledialog.askstring("PDF Encryption", "Enter a password (optional):", show='*')
 
         try:
-            # Convert the main report body to HTML
             pdf_html = markdown.markdown(self.last_report_markdown, extensions=['fenced_code', 'tables'])
-
-            # Now, create and append the image HTML programmatically
+            
+            # Embed image
             image_data_uri = None
             try:
-                with open(self.image_path, "rb") as image_file:
-                    encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
-                    image_data_uri = f"data:image/jpeg;base64,{encoded_string}"
-            except Exception as e:
-                print(f"Could not read or encode image for PDF: {e}")
+                with open(self.image_path, "rb") as f:
+                    encoded = base64.b64encode(f.read()).decode('utf-8')
+                    image_data_uri = f"data:image/jpeg;base64,{encoded}"
+            except Exception: pass
 
             if image_data_uri:
-                image_html = f'<div style="text-align: center; margin-top: 20px;"><img src="{image_data_uri}" alt="MRI Scan" style="max-width: 300px; height: auto;"></div>'
-                pdf_html += image_html
-            else:
-                pdf_html += "<p><i>[Image could not be loaded]</i></p>"
+                pdf_html += f'<div style="text-align: center; margin-top: 20px;"><img src="{image_data_uri}" alt="MRI Scan" style="max-width: 300px; height: auto;"></div>'
 
-            css = "body { font-family: sans-serif; font-size: 10pt; } h1, h2, h3 { color: #333; } table { border-collapse: collapse; width: 100%; } td, th { padding: 4px; text-align: left; }"
+            css = "body { font-family: sans-serif; font-size: 10pt; } h1, h2, h3 { color: #333; } table { border-collapse: collapse; width: 100%; } td, th { padding: 4px; text-align: left; border-bottom: 1px solid #ddd; }"
             html_with_style = f"<style>{css}</style>{pdf_html}"
             
             pdf_buffer = io.BytesIO()
@@ -354,62 +410,85 @@ class App(ttk.Frame):
             if password:
                 reader = PdfReader(pdf_buffer)
                 writer = PdfWriter()
-                for page in reader.pages:
-                    writer.add_page(page)
+                for page in reader.pages: writer.add_page(page)
                 writer.encrypt(password)
-                with open(filepath, "wb") as f:
-                    writer.write(f)
-                messagebox.showinfo("Success", f"Encrypted report saved successfully to:\n{filepath}")
+                with open(filepath, "wb") as f: writer.write(f)
             else:
-                with open(filepath, "wb") as f:
-                    f.write(pdf_buffer.read())
-                messagebox.showinfo("Success", f"Report saved successfully to:\n{filepath}")
+                with open(filepath, "wb") as f: f.write(pdf_buffer.read())
+            
+            messagebox.showinfo("Success", f"Report saved to:\n{filepath}")
 
         except Exception as e:
-            messagebox.showerror("PDF Export Error", f"Failed to save PDF:\n{e}")
+            messagebox.showerror("PDF Error", f"Failed to save PDF:\n{e}")
 
-    def _create_llava_prompt(self, tumor_type, confidence_str, patient_info_formatted, report_date):
-        if tumor_type == "notumor":
-            tumor_name = "No Tumor"
+    def _create_llava_prompt(self, prediction, confidence_str, patient_info_formatted, report_date):
+        # Determine context based on prediction
+        if prediction in ALZ_CLASSES:
+            # Alzheimer's Context
+            cond = prediction
+            if cond == "NonDemented":
+                finding_text = f"The analysis finds features consistent with a **Non-Demented** (normal) brain (Confidence: {confidence_str})."
+                imp_text = "Normal brain MRI study with no significant signs of atrophy or dementia."
+                task = "Verify normal brain volume and absence of significant atrophy."
+            else:
+                formatted_cond = cond.replace("VeryMild", "Very Mild ").replace("Mild", "Mild ").replace("Moderate", "Moderate ")
+                finding_text = f"The analysis identifies patterns consistent with **{formatted_cond}** (Confidence: {confidence_str})."
+                imp_text = f"Findings suggestive of {formatted_cond}."
+                task = "Describe the degree of cortical atrophy and ventricular enlargement visible in the image."
+            
             prompt = (
-                "You are a radiologist. A classifier has determined with {confidence_str} confidence that this MRI scan shows **No Tumor**. "
-                "Your task is to write a concise, formal radiology report confirming this finding. "
-                "Use the provided template and data. Do not add extra notes or disclaimers.\n\n"
-                "### CRITICAL FORMATTING INSTRUCTIONS ###\n"
-                "1.  **Bold Headers:** Make the 'Patient Details', 'FINDINGS', and 'IMPRESSION' headers bold using markdown (`**Header**`).\n\n"
-                "--- TEMPLATE FOR OUTPUT ---\n"
+                f"You are a specialized Neuroradiologist. An AI classifier has identified this scan as **{prediction}** (Confidence: {confidence_str}). "
+                f"Your task is to write a report focusing on signs of neurodegeneration.\n\n"
+                f"**Task:** {task}\n"
+                "1. **Analyze the Image:** Look for cortical atrophy, hippocampal volume loss, and ventricular size.\n"
+                "--- TEMPLATE ---\n"
+                '<div style="text-align: center;"><h1>NEURORADIOLOGY REPORT</h1></div>\n\n'
+                "**Patient Details:**<br>"
+                f"{patient_info_formatted}<br><br>"
+                f"**Date of Report:** {report_date}<br><br>"
+                "**FINDINGS:**<br>"
+                f"- {finding_text}<br>"
+                "- [**DESCRIBE VENTRICLES AND SULCI HERE BASED ON IMAGE**]<br>"
+                "- [**DESCRIBE HIPPOCAMPAL/TEMPORAL LOBE APPEARANCE HERE**]<br><br>"
+                "**IMPRESSION:**<br>"
+                f"- {imp_text}"
+            )
+            
+        elif prediction == "notumor":
+            # No Tumor Context
+            prompt = (
+                f"You are a radiologist. Classifier: **No Tumor** ({confidence_str}). "
+                "Write a concise normal report.\n\n"
+                "--- TEMPLATE ---\n"
                 '<div style="text-align: center;"><h1>RADIOLOGY REPORT</h1></div>\n\n'
                 "**Patient Details:**<br>"
                 f"{patient_info_formatted}<br><br>"
                 f"**Date of Report:** {report_date}<br><br>"
                 "**FINDINGS:**<br>"
-                f"- An AI model analyzed the images and identified features consistent with **{tumor_name}** (Confidence: {confidence_str}).<br>"
-                "- The scan shows no evidence of an intracranial mass, lesion, or other significant abnormality.<br><br>"
+                f"- AI Analysis: **No Tumor** ({confidence_str}).<br>"
+                "- No intracranial mass or acute abnormality.<br><br>"
                 "**IMPRESSION:**<br>"
-                f"- No evidence of intracranial tumor."
+                "- Normal MRI brain."
             )
         else:
-            tumor_name = f"{tumor_type.capitalize()} Tumor"
+            # Tumor Context
+            tumor_name = f"{prediction.capitalize()} Tumor"
             prompt = (
-                f"You are a radiologist. A highly accurate classifier has already identified a **{tumor_name}** in this MRI scan with {confidence_str} confidence. "
-                "Your task is to analyze the provided image and write a formal radiology report.\n\n"
-                "### CRITICAL INSTRUCTIONS ###\n"
-                "1.  **Analyze the Image:** Look at the tumor in the image.\n"
-                "2.  **Estimate Size:** Based on the image, estimate the tumor's dimensions in millimeters (mm). State this as 'approx. X x Y mm'.\n"
-                "3.  **Describe Appearance:** Describe the specific appearance of the tumor you see in the image (e.g., its shape, margins, signal intensity, location). Do NOT use generic or 'typical' descriptions.\n"
-                "4.  **Format Headers:** Make the 'Patient Details', 'FINDINGS', and 'IMPRESSION' headers bold using markdown (`**Header**`).\n"
-                "5.  **Use Template:** Format your entire response using the template below. Do not add extra notes or disclaimers.\n\n"
-                "--- TEMPLATE FOR OUTPUT ---\n"
+                f"You are a radiologist. Classifier: **{tumor_name}** ({confidence_str}). "
+                "Write a detailed tumor report.\n\n"
+                "1. **Estimate Size:** (approx mm).\n"
+                "2. **Describe:** Shape, margins, intensity.\n\n"
+                "--- TEMPLATE ---\n"
                 '<div style="text-align: center;"><h1>RADIOLOGY REPORT</h1></div>\n\n'
                 "**Patient Details:**<br>"
                 f"{patient_info_formatted}<br><br>"
                 f"**Date of Report:** {report_date}<br><br>"
                 "**FINDINGS:**<br>"
-                f"- An AI model identified features consistent with a **{tumor_name}** (Confidence: {confidence_str}).<br>"
-                "- The lesion is estimated to have approximate dimensions of [**INSERT YOUR ESTIMATED DIMENSIONS HERE**].<br>"
-                "- The scan reveals [**INSERT YOUR DESCRIPTION OF THE TUMOR'S APPEARANCE HERE**].<br><br>"
+                f"- AI Analysis: **{tumor_name}** ({confidence_str}).<br>"
+                "- Dimensions: [**ESTIMATE SIZE**]<br>"
+                "- Appearance: [**DESCRIBE TUMOR**]<br><br>"
                 "**IMPRESSION:**<br>"
-                f"- The findings are most consistent with a **{tumor_name}**."
+                f"- Findings consistent with **{tumor_name}**."
             )
         return prompt
 
@@ -417,17 +496,12 @@ def main():
     root = tk.Tk()
     root.title(APP_TITLE)
     root.geometry("1100x750")
-    
     try:
         style = ttk.Style()
-        if sys.platform.startswith("win"):
-            style.theme_use("vista")
-        else:
-            style.theme_use("clam")
-    except Exception:
+        style.theme_use("vista" if sys.platform.startswith("win") else "clam")
+    except:
         pass
-
-    app = App(root)
+    App(root)
     root.mainloop()
 
 if __name__ == "__main__":

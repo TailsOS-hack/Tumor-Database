@@ -115,4 +115,25 @@ This session focused on iteratively refining the GUI and report generation funct
 -   **GUI Overhaul:** The patient information input was completely redesigned. The single text box was replaced with three distinct fields: "Name" (text entry), "Patient ID" (text entry), and "DOB" (a user-friendly date picker). This improves data entry accuracy and user experience.
 -   **Report Generation Refinement:** The LLM prompt was significantly improved to produce more professional and clinically relevant reports. The "History" and "Technique" sections were removed for conciseness, and the "Patient Details" are now formatted with clear line breaks. The prompt also now explicitly prevents the LLM from redacting patient information.
 -   **Performance Tuning:** The application's responsiveness was improved by reverting the full background processing for classification. The initial (and fast) classification now runs in the main thread to provide immediate feedback to the user, while the slower LLM report generation remains in a background thread to prevent the GUI from freezing.
--   **New Dependency:** The `tkcalendar` library was added to support the new date picker functionality and was added to `requirements.txt`.
+-   Added `Flask` to `requirements.txt` to support the web application.
+
+### Session Summary: Alzheimer's Detection & Dual-Model Integration
+
+This session expanded the project's scope from a dedicated Brain Tumor classifier to a multi-purpose Neuro-Radiology tool by integrating Alzheimer's/Dementia detection.
+
+**Key Achievements:**
+-   **New Dataset & Model:**
+    -   Downloaded the "Alzheimer's Dataset (4 class of Images)" from Kaggle.
+    -   Trained a `MobileNetV3-Large` model on this dataset for 5 epochs.
+    -   Achieved a validation accuracy of **90.20%**.
+    -   Saved the model as `models/alzheimers_classifier.pt`.
+-   **Dual-Model Architecture:**
+    -   Updated `src/radiology_report_gui.py` to load *both* the original Brain Tumor model (`EfficientNet-B3`) and the new Alzheimer's model.
+    -   Implemented a **Competitive Classification Logic**: When an image is uploaded, both models analyze it. The system compares their confidence scores and selects the prediction with the highest confidence.
+-   **Context-Aware Reporting:**
+    -   The LLM prompt generation was updated to be dynamic.
+    -   If the winner is an Alzheimer's class (e.g., "MildDemented"), the prompt instructs the LLM to act as a Neuroradiologist looking for atrophy and ventricular enlargement.
+    -   If the winner is a Tumor class, it retains the original tumor-focused prompt.
+-   **Bug Fixes:**
+    -   Addressed `torch.load` security warnings by explicitly setting `weights_only=False` for the new model.
+    -   Fixed syntax errors in the multi-line f-strings for the LLM prompts.

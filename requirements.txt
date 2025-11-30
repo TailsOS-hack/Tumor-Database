@@ -8,5 +8,6 @@ tkhtmlview
 WeasyPrint
 tkcalendar
 pypdf
+kagglehub
 # Optional: For GPU acceleration on Windows with non-NVIDIA cards
 # torch-directml
