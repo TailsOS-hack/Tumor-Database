@@ -15,7 +15,6 @@ This project is an advanced medical imaging analysis tool. It uses deep learning
 ## Project Structure
 
 -   `src/radiology_report_gui.py`: The main application.
--   `src/web_app.py`: A web-based version (currently tumor-focused).
 -   `models/`:
     -   `brain_tumor_classifier.pt`: EfficientNet-B3 model.
     -   `alzheimers_classifier.pt`: MobileNetV3 model.
