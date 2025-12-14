@@ -137,3 +137,19 @@ This session expanded the project's scope from a dedicated Brain Tumor classifie
 -   **Bug Fixes:**
     -   Addressed `torch.load` security warnings by explicitly setting `weights_only=False` for the new model.
     -   Fixed syntax errors in the multi-line f-strings for the LLM prompts.
+
+### Session Summary: Comprehensive Data Visualization Suite
+
+This session added a robust performance analysis and visualization suite to validate the system's "Competitive Classification" logic.
+
+**Key Deliverables:**
+-   **New Directory:** `data_visualization/` containing the analysis tools.
+-   **Performance Script:** `visualize_performance.py`:
+    -   Loads both the Brain Tumor and Alzheimer's models.
+    -   Runs evaluation on **20%** of the dataset (randomly subsampled for efficiency).
+    -   Simulates the dual-model decision logic used in the GUI to verify cross-domain accuracy.
+    -   Generates performance metrics and saves them as images.
+-   **Visualizations Created:**
+    -   **Confusion Matrices:** Heatmaps showing classification accuracy (in percentages) for the Tumor model, Alzheimer's model, and the Combined System.
+    -   **Accuracy Bar Charts:** Per-class accuracy breakdowns for all scenarios.
+-   **Results:** The combined system demonstrated ~76% overall accuracy and ~79% accuracy in correctly selecting the appropriate model type (Tumor vs. Alzheimer's) for a given image.
