@@ -8,6 +8,17 @@ from torchvision.models import efficientnet_b3, mobilenet_v3_large
 from torchvision import transforms
 from src.gatekeeper_model import GatekeeperClassifier
 import ollama
+import threading
+import queue
+import io
+import base64
+from datetime import datetime
+from PIL import Image, ImageTk
+from tkhtmlview import HTMLLabel
+from tkcalendar import DateEntry
+import markdown
+from weasyprint import HTML as WeasyHTML
+from pypdf import PdfReader, PdfWriter
 
 APP_TITLE = "Radiology Report Generator"
 GATEKEEPER_MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "models", "gatekeeper_classifier.pt")
@@ -50,6 +61,16 @@ def get_alzheimers_transform():
         transforms.Normalize(mean=mean, std=std),
     ])
 
+def get_gatekeeper_transform():
+    # Gatekeeper (ResNet50) uses 224x224
+    mean = [0.485, 0.456, 0.406]
+    std = [0.229, 0.224, 0.225]
+    return transforms.Compose([
+        transforms.Resize((224, 224), antialias=True),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=mean, std=std),
+    ])
+
 class App(ttk.Frame):
     def __init__(self, master):
         super().__init__(master, padding=15)
@@ -79,6 +100,7 @@ class App(ttk.Frame):
         # Transforms
         self.tumor_tfms = get_tumor_transform()
         self.alz_tfms = get_alzheimers_transform()
+        self.gate_tfms = get_gatekeeper_transform()
 
         # Reporting
         self.report_queue = queue.Queue()
@@ -180,7 +202,7 @@ class App(ttk.Frame):
         if os.path.isfile(GATEKEEPER_MODEL_PATH):
             try:
                 model = GatekeeperClassifier(freeze_base=False)
-                model.load_state_dict(torch.load(GATEKEEPER_MODEL_PATH, map_location=self.device))
+                model.load_state_dict(torch.load(GATEKEEPER_MODEL_PATH, map_location=self.device, weights_only=True))
                 model.eval().to(self.device)
                 self.gatekeeper_model = model
                 status_texts.append("Gatekeeper: Ready")
@@ -193,7 +215,7 @@ class App(ttk.Frame):
         # 2. Load Tumor Model
         if os.path.isfile(TUMOR_MODEL_PATH):
             try:
-                checkpoint = torch.load(TUMOR_MODEL_PATH, map_location=self.device)
+                checkpoint = torch.load(TUMOR_MODEL_PATH, map_location=self.device, weights_only=False)
                 arch = checkpoint.get("arch", "efficientnet_b3")
                 self.tumor_classes = checkpoint.get("class_names", ["glioma", "meningioma", "notumor", "pituitary"])
                 model = build_tumor_model(arch, len(self.tumor_classes))
@@ -207,7 +229,7 @@ class App(ttk.Frame):
         else:
             status_texts.append("Tumor: Not Found")
 
-        # 2. Load Alzheimer's Model
+        # 3. Load Alzheimer's Model
         if os.path.isfile(ALZHEIMERS_MODEL_PATH):
             try:
                 # This model was saved as a full object, not a state dict
@@ -241,8 +263,10 @@ class App(ttk.Frame):
     def _display_image(self, path: str):
         try:
             img = Image.open(path).convert("RGB")
+            # Force layout update to get correct dimensions
+            self.master.update_idletasks()
             w, h = self.canvas.winfo_width(), self.canvas.winfo_height()
-            if w == 1 or h == 1: w, h = 350, 350
+            if w <= 1 or h <= 1: w, h = 350, 350
             img.thumbnail((w, h))
             self.tk_image = ImageTk.PhotoImage(img)
             self.canvas.delete("all")
@@ -293,13 +317,16 @@ class App(ttk.Frame):
         # 1. Gatekeeper Phase (Routing)
         target_domain = "tumor" # Default fallback
         if self.gatekeeper_model:
-            # ResNet50 typically uses 224x224, but let's use the tumor transform for consistency or specific gatekeeper ones
-            # Actually gatekeeper was trained with default load_data which uses some transform.
-            # Let's use the tumor transform as it's close enough (300x300) and usually works well for MRI
-            tensor = self.tumor_tfms(img).unsqueeze(0).to(self.device)
-            with torch.amp.autocast(device_type=self.device.type, enabled=(self.device.type == "cuda")):
+            # ResNet50 typically uses 224x224
+            tensor = self.gate_tfms(img).unsqueeze(0).to(self.device)
+            # Use appropriate autocast for the device
+            if self.device.type == "cuda":
+                with torch.amp.autocast(device_type="cuda"):
+                    output = self.gatekeeper_model(tensor)
+            else:
                 output = self.gatekeeper_model(tensor)
-                prob = torch.sigmoid(output).item()
+            
+            prob = torch.sigmoid(output).item()
             
             # Class 0 = Tumor, Class 1 = Dementia (per train_gatekeeper.py)
             if prob > 0.5:
@@ -312,17 +339,23 @@ class App(ttk.Frame):
         # 2. Specialized Classification Phase
         if target_domain == "dementia" and self.alz_model:
             tensor_alz = self.alz_tfms(img).unsqueeze(0).to(self.device)
-            with torch.amp.autocast(device_type=self.device.type, enabled=(self.device.type == "cuda")):
+            if self.device.type == "cuda":
+                with torch.amp.autocast(device_type="cuda"):
+                    logits = self.alz_model(tensor_alz)
+            else:
                 logits = self.alz_model(tensor_alz)
-                probs = torch.softmax(logits, dim=1).squeeze(0)
+            probs = torch.softmax(logits, dim=1).squeeze(0)
             top_prob, top_idx = torch.topk(probs, 1)
             return self.alz_classes[top_idx.item()], top_prob.item() * 100.0, "Alzheimer's/Dementia Model"
             
         elif target_domain == "tumor" and self.tumor_model:
             tensor = self.tumor_tfms(img).unsqueeze(0).to(self.device)
-            with torch.amp.autocast(device_type=self.device.type, enabled=(self.device.type == "cuda")):
+            if self.device.type == "cuda":
+                with torch.amp.autocast(device_type="cuda"):
+                    logits = self.tumor_model(tensor)
+            else:
                 logits = self.tumor_model(tensor)
-                probs = torch.softmax(logits, dim=1).squeeze(0)
+            probs = torch.softmax(logits, dim=1).squeeze(0)
             top_prob, top_idx = torch.topk(probs, 1)
             return self.tumor_classes[top_idx.item()], top_prob.item() * 100.0, "Brain Tumor Model"
         

@@ -46,7 +46,7 @@ This project is an advanced medical imaging analysis tool. It uses deep learning
 Run the main GUI application:
 
 ```bash
-python src/radiology_report_gui.py
+python -m src.radiology_report_gui
 ```
 
 1.  Enter Patient Name, ID, and Date of Birth.
