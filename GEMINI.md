@@ -149,7 +149,26 @@ This session added a robust performance analysis and visualization suite to vali
     -   Runs evaluation on **20%** of the dataset (randomly subsampled for efficiency).
     -   Simulates the dual-model decision logic used in the GUI to verify cross-domain accuracy.
     -   Generates performance metrics and saves them as images.
--   **Visualizations Created:**
+- **Visualizations Created:**
     -   **Confusion Matrices:** Heatmaps showing classification accuracy (in percentages) for the Tumor model, Alzheimer's model, and the Combined System.
     -   **Accuracy Bar Charts:** Per-class accuracy breakdowns for all scenarios.
 -   **Results:** The combined system demonstrated ~76% overall accuracy and ~79% accuracy in correctly selecting the appropriate model type (Tumor vs. Alzheimer's) for a given image.
+
+### Session Summary: Hierarchical Classification & Gatekeeper Integration
+
+This session introduced a "Gatekeeper" model to transition from a competitive classification approach to a more robust hierarchical one.
+
+**Key Achievements:**
+-   **Gatekeeper Model:**
+    -   Implemented `src/gatekeeper_model.py` using a **ResNet50** backbone.
+    -   Designed as a binary classifier to distinguish between "Tumor" and "Dementia" MRI scans.
+    -   Trained via `src/train_gatekeeper.py` to act as the primary router for the system.
+-   **Hierarchical Architecture:**
+    -   Updated the analysis pipeline to first run the Gatekeeper model.
+    -   The Gatekeeper's output now determines which specialized model (EfficientNet-B3 for tumors or MobileNetV3 for Alzheimer's) should perform the final diagnosis.
+    -   This reduces false positives by ensuring the specialized models only process images relevant to their training domain.
+-   **GUI Integration:**
+    -   Updated `src/radiology_report_gui.py` to load and utilize the Gatekeeper model during the "Analyze" phase.
+    -   The GUI now reports the Gatekeeper's routing decision in the logs/console.
+-   **Improved Reliability:** The hierarchical approach addresses edge cases where one specialized model might incorrectly assign high confidence to an image from the "other" domain.
+

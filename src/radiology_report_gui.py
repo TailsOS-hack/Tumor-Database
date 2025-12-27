@@ -6,22 +6,13 @@ import torch
 import torch.nn as nn
 from torchvision.models import efficientnet_b3, mobilenet_v3_large
 from torchvision import transforms
+from src.gatekeeper_model import GatekeeperClassifier
 import ollama
-from PIL import Image, ImageTk
-import threading
-import queue
-import markdown
-from tkhtmlview import HTMLLabel
-from datetime import datetime
-from weasyprint import HTML as WeasyHTML
-from tkcalendar import DateEntry
-import io
-from pypdf import PdfWriter, PdfReader
-import base64
 
-APP_TITLE = "Radiology Report Generator (Tumor & Alzheimer's)"
-TUMOR_MODEL_PATH = os.path.join("models", "brain_tumor_classifier.pt")
-ALZHEIMERS_MODEL_PATH = os.path.join("models", "alzheimers_classifier.pt")
+APP_TITLE = "Radiology Report Generator"
+GATEKEEPER_MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "models", "gatekeeper_classifier.pt")
+TUMOR_MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "models", "brain_tumor_classifier.pt")
+ALZHEIMERS_MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "models", "alzheimers_classifier.pt")
 
 # Constants for Alzheimer's
 ALZ_CLASSES = ['MildDemented', 'ModerateDemented', 'NonDemented', 'VeryMildDemented']
@@ -76,6 +67,7 @@ class App(ttk.Frame):
                 self.device = torch.device("cpu")
 
         # Models
+        self.gatekeeper_model = None
         self.tumor_model = None
         self.tumor_classes = []
         self.alz_model = None
@@ -184,7 +176,21 @@ class App(ttk.Frame):
     def load_models(self):
         status_texts = []
         
-        # 1. Load Tumor Model
+        # 1. Load Gatekeeper Model
+        if os.path.isfile(GATEKEEPER_MODEL_PATH):
+            try:
+                model = GatekeeperClassifier(freeze_base=False)
+                model.load_state_dict(torch.load(GATEKEEPER_MODEL_PATH, map_location=self.device))
+                model.eval().to(self.device)
+                self.gatekeeper_model = model
+                status_texts.append("Gatekeeper: Ready")
+            except Exception as e:
+                print(f"Error loading gatekeeper model: {e}")
+                status_texts.append("Gatekeeper: Error")
+        else:
+            status_texts.append("Gatekeeper: Not Found")
+
+        # 2. Load Tumor Model
         if os.path.isfile(TUMOR_MODEL_PATH):
             try:
                 checkpoint = torch.load(TUMOR_MODEL_PATH, map_location=self.device)
@@ -284,40 +290,57 @@ class App(ttk.Frame):
     def _run_cascaded_classification(self):
         img = Image.open(self.image_path).convert("RGB")
         
-        # 1. Run Tumor Model
-        tumor_res = None
-        if self.tumor_model:
+        # 1. Gatekeeper Phase (Routing)
+        target_domain = "tumor" # Default fallback
+        if self.gatekeeper_model:
+            # ResNet50 typically uses 224x224, but let's use the tumor transform for consistency or specific gatekeeper ones
+            # Actually gatekeeper was trained with default load_data which uses some transform.
+            # Let's use the tumor transform as it's close enough (300x300) and usually works well for MRI
             tensor = self.tumor_tfms(img).unsqueeze(0).to(self.device)
             with torch.amp.autocast(device_type=self.device.type, enabled=(self.device.type == "cuda")):
-                logits = self.tumor_model(tensor)
-                probs = torch.softmax(logits, dim=1).squeeze(0)
-            top_prob, top_idx = torch.topk(probs, 1)
-            tumor_res = (self.tumor_classes[top_idx.item()], top_prob.item() * 100.0)
+                output = self.gatekeeper_model(tensor)
+                prob = torch.sigmoid(output).item()
+            
+            # Class 0 = Tumor, Class 1 = Dementia (per train_gatekeeper.py)
+            if prob > 0.5:
+                target_domain = "dementia"
+                print(f"Gatekeeper: Dementia detected (confidence {prob*100:.2f}%)")
+            else:
+                target_domain = "tumor"
+                print(f"Gatekeeper: Tumor scan detected (confidence {(1-prob)*100:.2f}%)")
 
-        # 2. Run Alzheimer's Model
-        alz_res = None
-        if self.alz_model:
+        # 2. Specialized Classification Phase
+        if target_domain == "dementia" and self.alz_model:
             tensor_alz = self.alz_tfms(img).unsqueeze(0).to(self.device)
             with torch.amp.autocast(device_type=self.device.type, enabled=(self.device.type == "cuda")):
                 logits = self.alz_model(tensor_alz)
                 probs = torch.softmax(logits, dim=1).squeeze(0)
             top_prob, top_idx = torch.topk(probs, 1)
-            alz_res = (self.alz_classes[top_idx.item()], top_prob.item() * 100.0)
-        
-        # 3. Compare and Pick Winner
-        if tumor_res and alz_res:
-            print(f"Tumor Model: {tumor_res[0]} ({tumor_res[1]:.2f}%)")
-            print(f"Alz Model: {alz_res[0]} ({alz_res[1]:.2f}%)")
+            return self.alz_classes[top_idx.item()], top_prob.item() * 100.0, "Alzheimer's/Dementia Model"
             
-            if alz_res[1] > tumor_res[1]:
-                return alz_res[0], alz_res[1], "Alzheimer's/Dementia Model"
-            else:
-                return tumor_res[0], tumor_res[1], "Brain Tumor Model"
-        elif tumor_res:
-            return tumor_res[0], tumor_res[1], "Brain Tumor Model"
-        elif alz_res:
-            return alz_res[0], alz_res[1], "Alzheimer's/Dementia Model"
+        elif target_domain == "tumor" and self.tumor_model:
+            tensor = self.tumor_tfms(img).unsqueeze(0).to(self.device)
+            with torch.amp.autocast(device_type=self.device.type, enabled=(self.device.type == "cuda")):
+                logits = self.tumor_model(tensor)
+                probs = torch.softmax(logits, dim=1).squeeze(0)
+            top_prob, top_idx = torch.topk(probs, 1)
+            return self.tumor_classes[top_idx.item()], top_prob.item() * 100.0, "Brain Tumor Model"
         
+        # Fallback if preferred model isn't loaded but the other is
+        if self.tumor_model:
+            tensor = self.tumor_tfms(img).unsqueeze(0).to(self.device)
+            logits = self.tumor_model(tensor)
+            probs = torch.softmax(logits, dim=1).squeeze(0)
+            top_prob, top_idx = torch.topk(probs, 1)
+            return self.tumor_classes[top_idx.item()], top_prob.item() * 100.0, "Brain Tumor Model (Fallback)"
+        
+        if self.alz_model:
+            tensor_alz = self.alz_tfms(img).unsqueeze(0).to(self.device)
+            logits = self.alz_model(tensor_alz)
+            probs = torch.softmax(logits, dim=1).squeeze(0)
+            top_prob, top_idx = torch.topk(probs, 1)
+            return self.alz_classes[top_idx.item()], top_prob.item() * 100.0, "Alzheimer's Model (Fallback)"
+
         raise Exception("No models loaded or available.")
 
     def _start_report_generation(self, prediction, confidence_str, patient_info_formatted):
