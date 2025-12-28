@@ -7,10 +7,15 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import numpy as np
-from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
+from sklearn.metrics import confusion_matrix
 from tqdm import tqdm
 import warnings
 import random
+import sys
+
+# Add project root to path for imports
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from src.gatekeeper_model import GatekeeperClassifier
 
 # Suppress warnings
 warnings.filterwarnings("ignore")
@@ -21,6 +26,7 @@ TUMOR_DATA_DIR = os.path.join(DATA_DIR, 'brain_tumor', 'Testing')
 ALZ_DATA_DIR = os.path.join(DATA_DIR, 'alzheimers') # Using whole dataset as no test split exists
 TUMOR_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'brain_tumor_classifier.pt')
 ALZ_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'alzheimers_classifier.pt')
+GATEKEEPER_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'gatekeeper_classifier.pt')
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {DEVICE}")
@@ -60,11 +66,33 @@ def get_alzheimers_transform():
         transforms.Normalize(mean=mean, std=std),
     ])
 
+def get_gatekeeper_transform():
+    mean = [0.485, 0.456, 0.406]
+    std = [0.229, 0.224, 0.225]
+    return transforms.Compose([
+        transforms.Resize((224, 224), antialias=True),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=mean, std=std),
+    ])
+
 # --- Loading Models ---
 
 def load_models():
     print("Loading models...")
     
+    # Load Gatekeeper
+    gatekeeper_model = None
+    if os.path.exists(GATEKEEPER_MODEL_PATH):
+        try:
+            gatekeeper_model = GatekeeperClassifier(freeze_base=False)
+            gatekeeper_model.load_state_dict(torch.load(GATEKEEPER_MODEL_PATH, map_location=DEVICE, weights_only=True))
+            gatekeeper_model.eval().to(DEVICE)
+            print("Gatekeeper Model Loaded.")
+        except Exception as e:
+            print(f"Error loading gatekeeper model: {e}")
+    else:
+        print(f"Gatekeeper model not found at {GATEKEEPER_MODEL_PATH}")
+
     # Load Tumor Model
     tumor_model = None
     tumor_classes = []
@@ -94,16 +122,26 @@ def load_models():
     else:
         print(f"Alzheimer's model not found at {ALZ_MODEL_PATH}")
         
-    return tumor_model, tumor_classes, alz_model
+    return gatekeeper_model, tumor_model, tumor_classes, alz_model
 
 # --- Evaluation Logic ---
 
-def predict(model, image_tensor):
+def predict_specialized(model, image_tensor, classes):
     with torch.no_grad():
         logits = model(image_tensor)
         probs = torch.softmax(logits, dim=1).squeeze(0)
         top_prob, top_idx = torch.topk(probs, 1)
-        return top_idx.item(), top_prob.item() * 100.0
+        return classes[top_idx.item()], top_prob.item() * 100.0
+
+def predict_gatekeeper(model, image_tensor):
+    with torch.no_grad():
+        output = model(image_tensor)
+        prob = torch.sigmoid(output).item()
+        # > 0.5 is Dementia (Class 1), <= 0.5 is Tumor (Class 0)
+        if prob > 0.5:
+            return "dementia", prob
+        else:
+            return "tumor", 1 - prob
 
 # We need a custom way to handle different transforms for the two models on the same image.
 class RawImageFolder(datasets.ImageFolder):
@@ -113,19 +151,18 @@ class RawImageFolder(datasets.ImageFolder):
         return sample, target, path
 
 def run_evaluation():
-    tumor_model, tumor_classes, alz_model = load_models()
+    gatekeeper_model, tumor_model, tumor_classes, alz_model = load_models()
     
-    if not tumor_model or not alz_model:
-        print("Both models are required for full evaluation.")
+    if not (gatekeeper_model and tumor_model and alz_model):
+        print("All three models are required for full evaluation.")
         return
 
     tumor_tfm = get_tumor_transform()
     alz_tfm = get_alzheimers_transform()
+    gate_tfm = get_gatekeeper_transform()
 
     # Data Containers
     combined_results = []
-    tumor_only_results = []
-    alz_only_results = []
 
     # 1. Evaluate on Tumor Dataset
     print(f"Evaluating on Tumor Dataset ({TUMOR_DATA_DIR})...")
@@ -142,40 +179,31 @@ def run_evaluation():
         for img, label_idx, path in tqdm(tumor_ds):
             true_label = tumor_ds.classes[label_idx]
             
-            # Tumor Prediction
-            t_tensor = tumor_tfm(img).unsqueeze(0).to(DEVICE)
-            t_idx, t_conf = predict(tumor_model, t_tensor)
-            t_pred = tumor_classes[t_idx]
+            # 1. Gatekeeper Routing
+            g_tensor = gate_tfm(img).unsqueeze(0).to(DEVICE)
+            domain, g_conf = predict_gatekeeper(gatekeeper_model, g_tensor)
             
-            tumor_only_results.append({
-                'True': true_label,
-                'Pred': t_pred,
-                'Conf': t_conf,
-                'Correct': true_label == t_pred
-            })
+            final_pred = "Unknown"
+            model_used = "Unknown"
 
-            # Alz Prediction (Cross-domain test)
-            a_tensor = alz_tfm(img).unsqueeze(0).to(DEVICE)
-            a_idx, a_conf = predict(alz_model, a_tensor)
-            a_pred = ALZ_CLASSES[a_idx]
-
-            # Combined Logic
-            if a_conf > t_conf:
-                winner_pred = a_pred
-                winner_conf = a_conf
-                model_used = 'Alzheimer'
+            if domain == "tumor":
+                # Routed Correctly to Tumor Model
+                t_tensor = tumor_tfm(img).unsqueeze(0).to(DEVICE)
+                final_pred, _ = predict_specialized(tumor_model, t_tensor, tumor_classes)
+                model_used = "Tumor"
             else:
-                winner_pred = t_pred
-                winner_conf = t_conf
-                model_used = 'Tumor'
+                # Routed Incorrectly to Alzheimer's Model
+                a_tensor = alz_tfm(img).unsqueeze(0).to(DEVICE)
+                final_pred, _ = predict_specialized(alz_model, a_tensor, ALZ_CLASSES)
+                model_used = "Alzheimer"
             
             combined_results.append({
                 'True': true_label,
-                'Pred': winner_pred,
-                'Conf': winner_conf,
-                'Correct': true_label == winner_pred, # Only correct if it picks the right tumor class
+                'Pred': final_pred,
+                'Correct': true_label == final_pred,
                 'Model': model_used,
-                'Dataset': 'Tumor'
+                'Dataset': 'Tumor',
+                'Routed_To': domain
             })
 
     # 2. Evaluate on Alzheimer Dataset
@@ -193,59 +221,56 @@ def run_evaluation():
         for img, label_idx, path in tqdm(alz_ds):
             true_label = alz_ds.classes[label_idx]
             
-            # Alz Prediction
-            a_tensor = alz_tfm(img).unsqueeze(0).to(DEVICE)
-            a_idx, a_conf = predict(alz_model, a_tensor)
-            a_pred = ALZ_CLASSES[a_idx]
+            # 1. Gatekeeper Routing
+            g_tensor = gate_tfm(img).unsqueeze(0).to(DEVICE)
+            domain, g_conf = predict_gatekeeper(gatekeeper_model, g_tensor)
             
-            alz_only_results.append({
-                'True': true_label,
-                'Pred': a_pred,
-                'Conf': a_conf,
-                'Correct': true_label == a_pred
-            })
+            final_pred = "Unknown"
+            model_used = "Unknown"
 
-            # Tumor Prediction (Cross-domain test)
-            t_tensor = tumor_tfm(img).unsqueeze(0).to(DEVICE)
-            t_idx, t_conf = predict(tumor_model, t_tensor)
-            t_pred = tumor_classes[t_idx]
-
-            # Combined Logic
-            if a_conf > t_conf:
-                winner_pred = a_pred
-                winner_conf = a_conf
-                model_used = 'Alzheimer'
+            if domain == "dementia":
+                # Routed Correctly to Alz Model
+                a_tensor = alz_tfm(img).unsqueeze(0).to(DEVICE)
+                final_pred, _ = predict_specialized(alz_model, a_tensor, ALZ_CLASSES)
+                model_used = "Alzheimer"
             else:
-                winner_pred = t_pred
-                winner_conf = t_conf
-                model_used = 'Tumor'
+                # Routed Incorrectly to Tumor Model
+                t_tensor = tumor_tfm(img).unsqueeze(0).to(DEVICE)
+                final_pred, _ = predict_specialized(tumor_model, t_tensor, tumor_classes)
+                model_used = "Tumor"
             
             combined_results.append({
                 'True': true_label,
-                'Pred': winner_pred,
-                'Conf': winner_conf,
-                'Correct': true_label == winner_pred,
+                'Pred': final_pred,
+                'Correct': true_label == final_pred,
                 'Model': model_used,
-                'Dataset': 'Alzheimer'
+                'Dataset': 'Alzheimer',
+                'Routed_To': domain
             })
 
-    return pd.DataFrame(tumor_only_results), pd.DataFrame(alz_only_results), pd.DataFrame(combined_results), tumor_classes
+    return pd.DataFrame(combined_results), tumor_classes
 
 # --- Visualization ---
 
 def plot_confusion_matrix(df, classes, title, filename):
-    plt.figure(figsize=(10, 8))
-    cm = confusion_matrix(df['True'], df['Pred'], labels=classes)
+    plt.figure(figsize=(12, 10))
+    # Filter classes to only those present in the dataframe + expected classes
+    unique_true = df['True'].unique()
+    unique_pred = df['Pred'].unique()
+    present_classes = sorted(list(set(unique_true) | set(unique_pred) | set(classes)))
+    
+    cm = confusion_matrix(df['True'], df['Pred'], labels=present_classes)
     
     # Normalize to percentages
     with np.errstate(divide='ignore', invalid='ignore'):
         cm_norm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
     cm_norm = np.nan_to_num(cm_norm)
     
-    sns.heatmap(cm_norm, annot=True, fmt='.1%', cmap='Blues', xticklabels=classes, yticklabels=classes)
+    sns.heatmap(cm_norm, annot=True, fmt='.1%', cmap='Blues', xticklabels=present_classes, yticklabels=present_classes)
     plt.title(title)
     plt.ylabel('True Label')
     plt.xlabel('Predicted Label')
+    plt.xticks(rotation=45, ha='right')
     plt.tight_layout()
     plt.savefig(filename)
     plt.close()
@@ -258,53 +283,42 @@ def plot_accuracy_bar(df, title, filename):
     plt.ylabel('Accuracy (%)')
     plt.xlabel('Class')
     plt.ylim(0, 100)
+    plt.xticks(rotation=45)
     plt.tight_layout()
     plt.savefig(filename)
     plt.close()
 
 def main():
-    print("Starting Performance Visualization (20% Subsample)...")
-    df_tumor, df_alz, df_combined, tumor_classes = run_evaluation()
+    print("Starting Hierarchical Performance Visualization (20% Subsample)...")
+    df_combined, tumor_classes = run_evaluation()
     
     output_dir = os.path.dirname(__file__)
     
     # Set style
     sns.set_style("darkgrid")
     
-    # 1. Tumor Model Visualizations
-    if not df_tumor.empty:
-        print("Generating Tumor Model Plots...")
-        plot_confusion_matrix(df_tumor, tumor_classes, "Confusion Matrix: Brain Tumor Model", os.path.join(output_dir, "tumor_confusion_matrix.png"))
-        plot_accuracy_bar(df_tumor, "Accuracy by Class: Brain Tumor Model", os.path.join(output_dir, "tumor_accuracy_bar.png") )
-    
-    # 2. Alzheimer Model Visualizations
-    if not df_alz.empty:
-        print("Generating Alzheimer Model Plots...")
-        plot_confusion_matrix(df_alz, ALZ_CLASSES, "Confusion Matrix: Alzheimer's Model", os.path.join(output_dir, "alz_confusion_matrix.png"))
-        plot_accuracy_bar(df_alz, "Accuracy by Class: Alzheimer's Model", os.path.join(output_dir, "alz_accuracy_bar.png") )
-
-    # 3. Combined Model Visualizations
     if not df_combined.empty:
         print("Generating Combined System Plots...")
         
         # Combined Confusion Matrix (All Classes)
         all_classes = sorted(list(set(tumor_classes + ALZ_CLASSES)))
-        plot_confusion_matrix(df_combined, all_classes, "Confusion Matrix: Combined System (Competitive)", os.path.join(output_dir, "combined_confusion_matrix.png"))
+        plot_confusion_matrix(df_combined, all_classes, "Confusion Matrix: Hierarchical System (Gatekeeper)", os.path.join(output_dir, "hierarchical_confusion_matrix.png"))
         
         # Combined Accuracy
-        plot_accuracy_bar(df_combined, "Accuracy by Class: Combined System", os.path.join(output_dir, "combined_accuracy_bar.png") )
+        plot_accuracy_bar(df_combined, "Accuracy by Class: Hierarchical System", os.path.join(output_dir, "hierarchical_accuracy_bar.png") )
         
         # Overall Accuracy Metric
         overall_acc = df_combined['Correct'].mean() * 100
-        print(f"\nOverall Combined System Accuracy: {overall_acc:.2f}%")
+        print(f"\nOverall Hierarchical System Accuracy: {overall_acc:.2f}%")
         
-        # Model Selection Accuracy
-        df_combined['Correct_Model_Type'] = (
-            ((df_combined['Dataset'] == 'Tumor') & (df_combined['Model'] == 'Tumor')) |
-            ((df_combined['Dataset'] == 'Alzheimer') & (df_combined['Model'] == 'Alzheimer'))
+        # Gatekeeper Routing Accuracy
+        # Correct routing means Tumor dataset -> 'tumor' domain AND Alzheimer dataset -> 'dementia' domain
+        df_combined['Correct_Routing'] = (
+            ((df_combined['Dataset'] == 'Tumor') & (df_combined['Routed_To'] == 'tumor')) |
+            ((df_combined['Dataset'] == 'Alzheimer') & (df_combined['Routed_To'] == 'dementia'))
         )
-        model_selection_acc = df_combined['Correct_Model_Type'].mean() * 100
-        print(f"Model Selection Accuracy (Tumor vs Alz): {model_selection_acc:.2f}%")
+        routing_acc = df_combined['Correct_Routing'].mean() * 100
+        print(f"Gatekeeper Routing Accuracy: {routing_acc:.2f}%")
 
     print("\nVisualization Complete! Check the 'data_visualization' folder for images.")
 
