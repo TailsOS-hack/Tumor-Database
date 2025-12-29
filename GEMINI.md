@@ -193,5 +193,11 @@ This session focused on validating the new hierarchical classification workflow 
 -   **Enhanced Visualization:** Updated `data_visualization/visualize_performance.py` to support the hierarchical architecture. The script now generates `hierarchical_confusion_matrix.png` and `hierarchical_accuracy_bar.png` to provide a clear view of performance across all 8 possible classes (4 tumor types + 4 dementia stages).
 -   **Workflow Confirmation:** The results confirm that the Gatekeeper successfully routes images to the domain-specific models, preventing the "cross-domain confusion" that was observed in the previous competitive classification approach.
 
+### Session Summary: Discontinuation of Web App
 
+This session officially marks the discontinuation of the web-based interface for the project.
 
+**Key Actions:**
+-   **Removed Web App:** The `src/web_app.py` file has been removed from the project (or confirmed as already removed).
+-   **Documentation Update:** Removed references to the web application from `README.md`.
+-   **Status:** The project now focuses exclusively on the Tkinter-based desktop GUI (`radiology_report_gui.py`).

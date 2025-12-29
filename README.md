@@ -18,7 +18,6 @@ This project is an advanced medical imaging analysis tool. It uses deep learning
 
 -   `src/radiology_report_gui.py`: The main application.
 -   `src/gatekeeper_model.py`: Definition of the routing model.
--   `src/web_app.py`: A web-based version (currently tumor-focused).
 -   `data_visualization/`: Performance analysis tools.
 -   `models/`:
     -   `gatekeeper_classifier.pt`: ResNet50 router model.
