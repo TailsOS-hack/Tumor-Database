@@ -26,8 +26,8 @@ TUMOR_MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(
 ALZHEIMERS_MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "models", "alzheimers_classifier.pt")
 
 # Constants for Alzheimer's
-ALZ_CLASSES = ['MildDemented', 'ModerateDemented', 'NonDemented', 'VeryMildDemented']
-ALZ_IMG_SIZE = 160
+ALZ_CLASSES = ['MildDemented', 'ModerateDemented', 'VeryMildDemented']
+ALZ_IMG_SIZE = 224
 
 def build_tumor_model(arch: str, num_classes: int):
     if arch == "efficientnet_b3":
@@ -44,8 +44,7 @@ def get_tumor_transform():
     std = [0.229, 0.224, 0.225]
     return transforms.Compose(
         [
-            transforms.Resize(320, antialias=True),
-            transforms.CenterCrop(300),
+            transforms.Resize((224, 224), antialias=True),
             transforms.ToTensor(),
             transforms.Normalize(mean=mean, std=std),
         ]
@@ -56,7 +55,7 @@ def get_alzheimers_transform():
     mean = [0.485, 0.456, 0.406]
     std = [0.229, 0.224, 0.225]
     return transforms.Compose([
-        transforms.Resize((ALZ_IMG_SIZE, ALZ_IMG_SIZE), antialias=True),
+        transforms.Resize((224, 224), antialias=True),
         transforms.ToTensor(),
         transforms.Normalize(mean=mean, std=std),
     ])
@@ -201,7 +200,7 @@ class App(ttk.Frame):
         # 1. Load Gatekeeper Model
         if os.path.isfile(GATEKEEPER_MODEL_PATH):
             try:
-                model = GatekeeperClassifier(freeze_base=False)
+                model = GatekeeperClassifier(num_classes=3, freeze_base=False)
                 model.load_state_dict(torch.load(GATEKEEPER_MODEL_PATH, map_location=self.device, weights_only=True))
                 model.eval().to(self.device)
                 self.gatekeeper_model = model
@@ -316,6 +315,8 @@ class App(ttk.Frame):
         
         # 1. Gatekeeper Phase (Routing)
         target_domain = "tumor" # Default fallback
+        gate_conf = 0.0
+
         if self.gatekeeper_model:
             # ResNet50 typically uses 224x224
             tensor = self.gate_tfms(img).unsqueeze(0).to(self.device)
@@ -326,15 +327,22 @@ class App(ttk.Frame):
             else:
                 output = self.gatekeeper_model(tensor)
             
-            prob = torch.sigmoid(output).item()
-            
-            # Class 0 = Tumor, Class 1 = Dementia (per train_gatekeeper.py)
-            if prob > 0.5:
-                target_domain = "dementia"
-                print(f"Gatekeeper: Dementia detected (confidence {prob*100:.2f}%)")
-            else:
+            # Multi-class output: [Normal, Tumor, Dementia]
+            probs = torch.softmax(output, dim=1).squeeze(0)
+            top_prob, top_idx = torch.topk(probs, 1)
+            class_idx = top_idx.item()
+            gate_conf = top_prob.item()
+
+            if class_idx == 0:
+                target_domain = "normal"
+                print(f"Gatekeeper: Normal/No Tumor detected (confidence {gate_conf*100:.2f}%)")
+                return "Normal", gate_conf * 100.0, "Gatekeeper Model"
+            elif class_idx == 1:
                 target_domain = "tumor"
-                print(f"Gatekeeper: Tumor scan detected (confidence {(1-prob)*100:.2f}%)")
+                print(f"Gatekeeper: Tumor scan detected (confidence {gate_conf*100:.2f}%)")
+            elif class_idx == 2:
+                target_domain = "dementia"
+                print(f"Gatekeeper: Dementia detected (confidence {gate_conf*100:.2f}%)")
 
         # 2. Specialized Classification Phase
         if target_domain == "dementia" and self.alz_model:
@@ -359,6 +367,10 @@ class App(ttk.Frame):
             top_prob, top_idx = torch.topk(probs, 1)
             return self.tumor_classes[top_idx.item()], top_prob.item() * 100.0, "Brain Tumor Model"
         
+        # Fallback if specific model fails but we have a general prediction or fallback model
+        if target_domain == "normal":
+             return "Normal", gate_conf * 100.0, "Gatekeeper Model"
+
         # Fallback if preferred model isn't loaded but the other is
         if self.tumor_model:
             tensor = self.tumor_tfms(img).unsqueeze(0).to(self.device)
@@ -479,18 +491,29 @@ class App(ttk.Frame):
 
     def _create_llava_prompt(self, prediction, confidence_str, patient_info_formatted, report_date):
         # Determine context based on prediction
-        if prediction in ALZ_CLASSES:
+        if prediction == "Normal" or prediction == "notumor" or prediction == "NonDemented":
+             # No Tumor / Normal Context
+            prompt = (
+                f"You are a radiologist. Classifier: **Normal/No Tumor** ({confidence_str}). "
+                "Write a concise normal report.\n\n"
+                "--- TEMPLATE ---\n"
+                '<div style="text-align: center;"><h1>RADIOLOGY REPORT</h1></div>\n\n'
+                "**Patient Details:**<br>"
+                f"{patient_info_formatted}<br><br>"
+                f"**Date of Report:** {report_date}<br><br>"
+                "**FINDINGS:**<br>"
+                f"- AI Analysis: **Normal/No Tumor** ({confidence_str}).<br>"
+                "- No intracranial mass, atrophy, or acute abnormality.<br><br>"
+                "**IMPRESSION:**<br>"
+                "- Normal MRI brain study."
+            )
+        elif prediction in ALZ_CLASSES:
             # Alzheimer's Context
             cond = prediction
-            if cond == "NonDemented":
-                finding_text = f"The analysis finds features consistent with a **Non-Demented** (normal) brain (Confidence: {confidence_str})."
-                imp_text = "Normal brain MRI study with no significant signs of atrophy or dementia."
-                task = "Verify normal brain volume and absence of significant atrophy."
-            else:
-                formatted_cond = cond.replace("VeryMild", "Very Mild ").replace("Mild", "Mild ").replace("Moderate", "Moderate ")
-                finding_text = f"The analysis identifies patterns consistent with **{formatted_cond}** (Confidence: {confidence_str})."
-                imp_text = f"Findings suggestive of {formatted_cond}."
-                task = "Describe the degree of cortical atrophy and ventricular enlargement visible in the image."
+            formatted_cond = cond.replace("VeryMild", "Very Mild ").replace("Mild", "Mild ").replace("Moderate", "Moderate ")
+            finding_text = f"The analysis identifies patterns consistent with **{formatted_cond}** (Confidence: {confidence_str})."
+            imp_text = f"Findings suggestive of {formatted_cond}."
+            task = "Describe the degree of cortical atrophy and ventricular enlargement visible in the image."
             
             prompt = (
                 f"You are a specialized Neuroradiologist. An AI classifier has identified this scan as **{prediction}** (Confidence: {confidence_str}). "
@@ -508,23 +531,6 @@ class App(ttk.Frame):
                 "- [**DESCRIBE HIPPOCAMPAL/TEMPORAL LOBE APPEARANCE HERE**]<br><br>"
                 "**IMPRESSION:**<br>"
                 f"- {imp_text}"
-            )
-            
-        elif prediction == "notumor":
-            # No Tumor Context
-            prompt = (
-                f"You are a radiologist. Classifier: **No Tumor** ({confidence_str}). "
-                "Write a concise normal report.\n\n"
-                "--- TEMPLATE ---\n"
-                '<div style="text-align: center;"><h1>RADIOLOGY REPORT</h1></div>\n\n'
-                "**Patient Details:**<br>"
-                f"{patient_info_formatted}<br><br>"
-                f"**Date of Report:** {report_date}<br><br>"
-                "**FINDINGS:**<br>"
-                f"- AI Analysis: **No Tumor** ({confidence_str}).<br>"
-                "- No intracranial mass or acute abnormality.<br><br>"
-                "**IMPRESSION:**<br>"
-                "- Normal MRI brain."
             )
         else:
             # Tumor Context

@@ -3,7 +3,7 @@ import torch.nn as nn
 from torchvision import models
 
 class GatekeeperClassifier(nn.Module):
-    def __init__(self, freeze_base=True):
+    def __init__(self, num_classes=3, freeze_base=True):
         super(GatekeeperClassifier, self).__init__()
         
         # Load pretrained ResNet50
@@ -23,13 +23,12 @@ class GatekeeperClassifier(nn.Module):
         # ResNet50 fc layer input features is 2048
         num_ftrs = self.base_model.fc.in_features
         
-        # We replace it with a Sequential block for binary classification
-        # Output is 1 logit (for BCEWithLogitsLoss)
+        # We replace it with a Sequential block for multi-class classification
         self.base_model.fc = nn.Sequential(
             nn.Linear(num_ftrs, 512),
             nn.ReLU(),
             nn.Dropout(0.3),
-            nn.Linear(512, 1) 
+            nn.Linear(512, num_classes) 
         )
 
     def forward(self, x):
