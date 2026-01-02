@@ -5,10 +5,11 @@ This project is an advanced medical imaging analysis tool. It uses deep learning
 ## Features
 
 -   **Hierarchical Classification:** Uses a multi-stage AI pipeline for maximum accuracy:
-    -   **Gatekeeper Model:** A `ResNet50` binary classifier that first determines if an MRI is a tumor scan or a dementia scan.
-    -   **Specialized Classifiers:** Based on the Gatekeeper's routing, the image is sent to either:
-        -   **Brain Tumor Classifier:** `EfficientNet-B3` (PyTorch) for Glioma, Meningioma, Pituitary, or No Tumor.
-        -   **Alzheimer's Classifier:** `MobileNetV3-Large` (PyTorch) for various dementia stages.
+    -   **Gatekeeper Model:** A `ResNet50` 3-way classifier that first determines if an MRI is **Normal**, **Tumor**, or **Dementia**.
+    -   **Specialized Classifiers:**
+        -   **Brain Tumor Classifier:** `EfficientNet-B3` (PyTorch) for specific tumor types (Glioma, Meningioma, Pituitary).
+        -   **Alzheimer's Classifier:** `MobileNetV3-Large` (PyTorch) for dementia stages (Mild, Moderate, Very Mild).
+    -   **Unified Normal Class:** The system intelligently identifies healthy scans from both datasets as a single "Normal" category, generating immediate reports without unnecessary processing.
 -   **Generative AI Reporting:** Uses a local Multimodal LLM (`ollava/llava:7b` via Ollama) to "see" the image and draft a full radiology report.
 -   **PDF Export:** Saves reports as professional PDF documents with the MRI image embedded and optional password encryption.
 -   **User-Friendly GUI:** A modern Tkinter interface for easy patient data entry and analysis.
@@ -17,6 +18,7 @@ This project is an advanced medical imaging analysis tool. It uses deep learning
 ## Project Structure
 
 -   `src/radiology_report_gui.py`: The main application.
+-   `src/train_complete_suite.py`: The master script to train all 3 models sequentially.
 -   `src/gatekeeper_model.py`: Definition of the routing model.
 -   `data_visualization/`: Performance analysis tools.
 -   `models/`:

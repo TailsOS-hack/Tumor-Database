@@ -1,6 +1,8 @@
 import os
 import glob
 import time
+import datetime
+import logging
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -9,10 +11,21 @@ from torchvision import transforms, models
 from PIL import Image
 
 # ==========================================
+# Logging Setup
+# ==========================================
+# Configure logging to display time, level, and message
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] [%(levelname)s] %(message)s',
+    datefmt='%H:%M:%S'
+)
+logger = logging.getLogger()
+
+# ==========================================
 # Configuration
 # ==========================================
 BATCH_SIZE = 32
-NUM_EPOCHS = 5  # Adjust as needed
+NUM_EPOCHS = 5
 LEARNING_RATE = 0.001
 IMG_SIZE = 224
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -43,13 +56,18 @@ class MedicalImageDataset(Dataset):
                 image = self.transform(image)
             return image, torch.tensor(label, dtype=torch.long)
         except Exception as e:
-            print(f"Error loading {path}: {e}")
+            logger.error(f"Error loading image {path}: {e}")
+            # Return a blank image to prevent crashing
             return torch.zeros((3, IMG_SIZE, IMG_SIZE)), torch.tensor(label, dtype=torch.long)
 
 # ==========================================
 # Helper Functions
 # ==========================================
+def format_time(seconds):
+    return str(datetime.timedelta(seconds=int(seconds)))
+
 def get_transforms():
+    logger.info("Initializing data transforms...")
     train_tf = transforms.Compose([
         transforms.Resize((IMG_SIZE, IMG_SIZE)),
         transforms.RandomHorizontalFlip(),
@@ -64,16 +82,21 @@ def get_transforms():
     ])
     return train_tf, val_tf
 
-def train_and_save(model, train_loader, val_loader, save_path, num_classes):
-    print(f"\nStarting training for model, saving to: {save_path}")
+def train_and_save(model, train_loader, val_loader, save_path, num_classes, model_name):
+    logger.info(f"STARTING TRAINING: {model_name}")
+    logger.info(f"Target Device: {DEVICE}")
+    logger.info(f"Saving to: {save_path}")
+    
     model = model.to(DEVICE)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
     best_acc = 0.0
+    total_start_time = time.time()
 
     for epoch in range(NUM_EPOCHS):
-        print(f"Epoch {epoch+1}/{NUM_EPOCHS}")
+        epoch_start_time = time.time()
+        logger.info(f"--- Epoch {epoch+1}/{NUM_EPOCHS} ---")
         
         # Training Phase
         model.train()
@@ -81,7 +104,9 @@ def train_and_save(model, train_loader, val_loader, save_path, num_classes):
         correct = 0
         total = 0
         
-        for inputs, labels in train_loader:
+        num_batches = len(train_loader)
+        
+        for batch_idx, (inputs, labels) in enumerate(train_loader):
             inputs, labels = inputs.to(DEVICE), labels.to(DEVICE)
             optimizer.zero_grad()
             outputs = model(inputs)
@@ -94,10 +119,13 @@ def train_and_save(model, train_loader, val_loader, save_path, num_classes):
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
             
+            # Optional: Log batch progress for very large datasets
+            # if (batch_idx + 1) % 10 == 0:
+            #    logger.info(f"Batch {batch_idx+1}/{num_batches} processed")
+
         epoch_loss = running_loss / len(train_loader.dataset)
         epoch_acc = correct / total
-        print(f"  Train Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}")
-
+        
         # Validation Phase
         model.eval()
         val_correct = 0
@@ -111,20 +139,33 @@ def train_and_save(model, train_loader, val_loader, save_path, num_classes):
                 val_correct += (predicted == labels).sum().item()
         
         val_acc = val_correct / val_total
-        print(f"  Val Acc: {val_acc:.4f}")
+        
+        # Timing and ETA
+        epoch_duration = time.time() - epoch_start_time
+        elapsed_total = time.time() - total_start_time
+        avg_epoch_time = elapsed_total / (epoch + 1)
+        remaining_epochs = NUM_EPOCHS - (epoch + 1)
+        eta_seconds = avg_epoch_time * remaining_epochs
+        
+        logger.info(f"Results: Train Loss={epoch_loss:.4f}, Train Acc={epoch_acc:.4f}, Val Acc={val_acc:.4f}")
+        logger.info(f"Timing: Epoch={format_time(epoch_duration)} | Elapsed={format_time(elapsed_total)} | ETA={format_time(eta_seconds)}")
 
         if val_acc > best_acc:
             best_acc = val_acc
             torch.save(model, save_path)
-            print(f"  New best model saved!")
+            logger.info(f"New best model saved! (Acc: {best_acc:.4f})")
+
+    logger.info(f"COMPLETED TRAINING: {model_name}. Total Time: {format_time(time.time() - total_start_time)}")
 
 # ==========================================
 # Data Gathering Logic
 # ==========================================
 def gather_files():
+    logger.info("Gathering file paths from 'data' directory...")
     # Helper to get files
     def get_files(pattern):
-        return glob.glob(os.path.join(DATA_ROOT, pattern), recursive=True)
+        files = glob.glob(os.path.join(DATA_ROOT, pattern), recursive=True)
+        return files
 
     # Brain Tumor Paths
     bt_train = os.path.join('brain_tumor', 'Training')
@@ -144,6 +185,9 @@ def gather_files():
     moderate = get_files(os.path.join(alz, 'ModerateDemented', '*'))
     very_mild = get_files(os.path.join(alz, 'VeryMildDemented', '*'))
     alz_normal = get_files(os.path.join(alz, 'NonDemented', '*'))
+    
+    logger.info(f"Found {len(glioma)} Glioma, {len(meningioma)} Meningioma, {len(pituitary)} Pituitary, {len(tumor_normal)} Tumor-Normal")
+    logger.info(f"Found {len(mild)} Mild, {len(moderate)} Moderate, {len(very_mild)} VeryMild, {len(alz_normal)} Alz-Normal")
 
     return {
         'glioma': glioma, 'meningioma': meningioma, 'pituitary': pituitary,
@@ -156,16 +200,16 @@ def gather_files():
 # Main Execution
 # ==========================================
 def main():
+    start_time = time.time()
+    logger.info("=== STARTING UNIFIED TRAINING SUITE ===")
+    
     files = gather_files()
     train_tf, val_tf = get_transforms()
 
     # --------------------------------------
     # 1. Train Gatekeeper (Normal vs Tumor vs Dementia)
     # --------------------------------------
-    print("\n=== Preparing Gatekeeper Data ===")
-    # Class 0: Normal (tumor_normal + alz_normal)
-    # Class 1: Tumor (glioma + meningioma + pituitary)
-    # Class 2: Dementia (mild + moderate + very_mild)
+    logger.info("\n=== STAGE 1/3: GATEKEEPER MODEL ===")
     
     gk_paths = []
     gk_labels = []
@@ -185,11 +229,9 @@ def main():
     gk_paths.extend(dementias)
     gk_labels.extend([2] * len(dementias))
     
-    print(f"Gatekeeper Stats: Normal={len(normals)}, Tumor={len(tumors)}, Dementia={len(dementias)}")
+    logger.info(f"Data Prep: Normal={len(normals)}, Tumor={len(tumors)}, Dementia={len(dementias)}")
     
     # Split
-    dataset = MedicalImageDataset(gk_paths, gk_labels, transform=train_tf) # Use train_tf for split, wrap later?
-    # Better: split indices, then create datasets with correct transforms
     indices = list(range(len(gk_paths)))
     train_idx, val_idx = random_split(indices, [int(0.8*len(indices)), len(indices)-int(0.8*len(indices))])
     
@@ -202,20 +244,18 @@ def main():
     val_loader = DataLoader(val_ds, batch_size=BATCH_SIZE, shuffle=False)
 
     # Initialize Gatekeeper Model (ResNet50)
+    logger.info("Initializing Gatekeeper (ResNet50)...")
     from gatekeeper_model import GatekeeperClassifier
     gk_model = GatekeeperClassifier(num_classes=3)
     
     train_and_save(gk_model, train_loader, val_loader, 
-                   os.path.join(MODELS_DIR, 'gatekeeper_classifier.pt'), num_classes=3)
+                   os.path.join(MODELS_DIR, 'gatekeeper_classifier.pt'), num_classes=3, model_name="Gatekeeper")
 
 
     # --------------------------------------
     # 2. Train Tumor Model (Glioma vs Meningioma vs Pituitary)
     # --------------------------------------
-    print("\n=== Preparing Tumor Model Data ===")
-    # Class 0: Glioma
-    # Class 1: Meningioma
-    # Class 2: Pituitary
+    logger.info("\n=== STAGE 2/3: TUMOR SPECIALIST MODEL ===")
     
     tm_paths = []
     tm_labels = []
@@ -229,7 +269,7 @@ def main():
     tm_paths.extend(files['pituitary'])
     tm_labels.extend([2] * len(files['pituitary']))
     
-    print(f"Tumor Stats: Glioma={len(files['glioma'])}, Meningioma={len(files['meningioma'])}, Pituitary={len(files['pituitary'])}")
+    logger.info(f"Data Prep: Glioma={len(files['glioma'])}, Meningioma={len(files['meningioma'])}, Pituitary={len(files['pituitary'])}")
 
     indices = list(range(len(tm_paths)))
     train_idx, val_idx = random_split(indices, [int(0.8*len(indices)), len(indices)-int(0.8*len(indices))])
@@ -243,20 +283,18 @@ def main():
     val_loader = DataLoader(val_ds, batch_size=BATCH_SIZE, shuffle=False)
 
     # Initialize Tumor Model (EfficientNet-B3)
+    logger.info("Initializing Tumor Model (EfficientNet-B3)...")
     tm_model = models.efficientnet_b3(weights=models.EfficientNet_B3_Weights.DEFAULT)
     tm_model.classifier[1] = nn.Linear(tm_model.classifier[1].in_features, 3)
     
     train_and_save(tm_model, train_loader, val_loader, 
-                   os.path.join(MODELS_DIR, 'brain_tumor_classifier.pt'), num_classes=3)
+                   os.path.join(MODELS_DIR, 'brain_tumor_classifier.pt'), num_classes=3, model_name="Tumor Specialist")
 
 
     # --------------------------------------
     # 3. Train Dementia Model (Mild vs Moderate vs VeryMild)
     # --------------------------------------
-    print("\n=== Preparing Dementia Model Data ===")
-    # Class 0: MildDemented
-    # Class 1: ModerateDemented
-    # Class 2: VeryMildDemented
+    logger.info("\n=== STAGE 3/3: DEMENTIA SPECIALIST MODEL ===")
     
     dm_paths = []
     dm_labels = []
@@ -270,7 +308,7 @@ def main():
     dm_paths.extend(files['very_mild'])
     dm_labels.extend([2] * len(files['very_mild']))
     
-    print(f"Dementia Stats: Mild={len(files['mild'])}, Moderate={len(files['moderate'])}, VeryMild={len(files['very_mild'])}")
+    logger.info(f"Data Prep: Mild={len(files['mild'])}, Moderate={len(files['moderate'])}, VeryMild={len(files['very_mild'])}")
 
     indices = list(range(len(dm_paths)))
     train_idx, val_idx = random_split(indices, [int(0.8*len(indices)), len(indices)-int(0.8*len(indices))])
@@ -284,13 +322,14 @@ def main():
     val_loader = DataLoader(val_ds, batch_size=BATCH_SIZE, shuffle=False)
 
     # Initialize Dementia Model (MobileNetV3 Large)
+    logger.info("Initializing Dementia Model (MobileNetV3)...")
     dm_model = models.mobilenet_v3_large(weights=models.MobileNet_V3_Large_Weights.DEFAULT)
     dm_model.classifier[3] = nn.Linear(dm_model.classifier[3].in_features, 3)
     
     train_and_save(dm_model, train_loader, val_loader, 
-                   os.path.join(MODELS_DIR, 'alzheimers_classifier.pt'), num_classes=3)
+                   os.path.join(MODELS_DIR, 'alzheimers_classifier.pt'), num_classes=3, model_name="Dementia Specialist")
 
-    print("\nAll training complete!")
+    logger.info(f"\n=== ALL TRAINING COMPLETE. Total Suite Time: {format_time(time.time() - start_time)} ===")
 
 if __name__ == '__main__':
     main()
