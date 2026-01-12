@@ -86,6 +86,19 @@ Following the architectural refactoring, the unified training suite was executed
     -   `alzheimers_classifier.pt` (Dementia specialists)
 -   **System Ready:** The `radiology_report_gui.py` is now fully operational with the new models and the "Unified Normal" classification logic.
 
+### Session Summary: Radiologist Test Set Creation
+
+Created a randomized test dataset for radiologist evaluation as requested.
+
+**Key Actions:**
+-   **Dataset Creation:** Generated `Test Images/` containing 100 images:
+    -   20 images randomly selected from each of the 4 dementia categories (`NonDemented`, `VeryMildDemented`, `MildDemented`, `ModerateDemented`).
+    -   20 additional random images from the remaining pool.
+-   **Anonymization:** Files were renamed sequentially (`image_001.jpg` to `image_100.jpg`) and shuffled to blind the reviewers.
+-   **Documentation:**
+    -   `Test Images/score_sheet.csv`: A template for radiologists to record their diagnoses.
+    -   `Test Image Answer Key/radiologist_test_key.csv`: A master key mapping filenames to their original ground-truth categories (moved to a separate folder for security).
+
 ### Session Summary: Unified Normal Class & 3-Way Gatekeeper
 
 This session significantly refactored the classification architecture to improve robustness and simplify the "Normal" case handling.
