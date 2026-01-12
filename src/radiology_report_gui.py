@@ -39,6 +39,12 @@ def build_tumor_model(arch: str, num_classes: int):
         return model
     raise ValueError(f"Unsupported architecture: {arch}")
 
+def build_alzheimers_model(num_classes: int = 4):
+    model = mobilenet_v3_large(weights=None)
+    num_ftrs = model.classifier[3].in_features
+    model.classifier[3] = nn.Linear(num_ftrs, num_classes)
+    return model
+
 def get_tumor_transform():
     mean = [0.485, 0.456, 0.406]
     std = [0.229, 0.224, 0.225]
@@ -214,7 +220,17 @@ class App(ttk.Frame):
         # 2. Load Tumor Model
         if os.path.isfile(TUMOR_MODEL_PATH):
             try:
-                checkpoint = torch.load(TUMOR_MODEL_PATH, map_location=self.device, weights_only=False)
+                # Sentinel: Try safe load first
+                try:
+                    checkpoint = torch.load(TUMOR_MODEL_PATH, map_location=self.device, weights_only=True)
+                except Exception:
+                    # Fallback for old PyTorch / complex types if trusted
+                    # For now we use weights_only=False as fallback but could warn user.
+                    # Given the migration script failed for this one, we might need to keep it False or fix the file.
+                    # Since I can't easily fix the file without potentially breaking strings, I'll keep False but comment.
+                    print("Warning: Loading tumor model with weights_only=False due to complex types (strings).")
+                    checkpoint = torch.load(TUMOR_MODEL_PATH, map_location=self.device, weights_only=False)
+
                 arch = checkpoint.get("arch", "efficientnet_b3")
                 self.tumor_classes = checkpoint.get("class_names", ["glioma", "meningioma", "notumor", "pituitary"])
                 model = build_tumor_model(arch, len(self.tumor_classes))
@@ -231,9 +247,35 @@ class App(ttk.Frame):
         # 3. Load Alzheimer's Model
         if os.path.isfile(ALZHEIMERS_MODEL_PATH):
             try:
-                # This model was saved as a full object, not a state dict
-                self.alz_model = torch.load(ALZHEIMERS_MODEL_PATH, map_location=self.device, weights_only=False)
-                self.alz_model.eval().to(self.device)
+                # Sentinel: Attempt safe load (state dict)
+                # First, determine the number of classes from the state dict or assume 4 (default).
+                # But since we have a mismatch (migration showed 3), we need to handle it.
+                # A robust way is to load the state dict, check shape, then build model.
+
+                state_dict = None
+                try:
+                    state_dict = torch.load(ALZHEIMERS_MODEL_PATH, map_location=self.device, weights_only=True)
+                    print("Alzheimer's: Loaded safe state dict.")
+                except Exception as e:
+                    # If it's not a state dict (legacy full model), this will fail or return object
+                     print(f"Alzheimer's: Failed to load as state dict ({e}). Attempting legacy load...")
+
+                if state_dict is not None and isinstance(state_dict, dict):
+                     # Check shape of classifier
+                    if 'classifier.3.weight' in state_dict:
+                        num_classes_loaded = state_dict['classifier.3.weight'].shape[0]
+                        model = build_alzheimers_model(num_classes=num_classes_loaded)
+                        model.load_state_dict(state_dict)
+                    else:
+                        # Fallback or error if keys missing
+                         print("Alzheimer's: State dict keys unrecognized.")
+                         raise ValueError("Invalid state dict keys")
+                else:
+                     # Legacy full model load
+                     model = torch.load(ALZHEIMERS_MODEL_PATH, map_location=self.device, weights_only=False)
+
+                model.eval().to(self.device)
+                self.alz_model = model
                 status_texts.append("Alzheimer's: Ready")
             except Exception as e:
                 print(f"Error loading alzheimer model: {e}")

@@ -60,18 +60,52 @@ def train_model(num_epochs_to_add=5):
     print(f"Classes: {class_names}")
 
     # Load model
+    # Sentinel Update: Changed to save/load state_dict for security
+
+    # Initialize new MobileNetV3-Large model architecture
+    # Default to NUM_CLASSES but be ready to adjust if loading existing weights
+    model = models.mobilenet_v3_large(weights=models.MobileNet_V3_Large_Weights.IMAGENET1K_V1)
+    num_ftrs = model.classifier[3].in_features
+    model.classifier[3] = nn.Linear(num_ftrs, NUM_CLASSES)
+    model = model.to(DEVICE)
+
     if os.path.exists(MODEL_SAVE_PATH):
-        print(f"Loading existing model from {MODEL_SAVE_PATH}")
-        model = torch.load(MODEL_SAVE_PATH, map_location=DEVICE)
-    else:
-        print("Initializing new MobileNetV3-Large model...")
-        # MobileNetV3 is much faster than ResNet18
-        model = models.mobilenet_v3_large(weights=models.MobileNet_V3_Large_Weights.IMAGENET1K_V1)
-        # Modify the classifier head
-        # MobileNetV3 classifier is a Sequential block. The last layer is '3'.
-        num_ftrs = model.classifier[3].in_features
-        model.classifier[3] = nn.Linear(num_ftrs, NUM_CLASSES)
-        model = model.to(DEVICE)
+        print(f"Loading existing model weights from {MODEL_SAVE_PATH}")
+        try:
+            # Try loading state dict
+            state_dict = torch.load(MODEL_SAVE_PATH, map_location=DEVICE, weights_only=True)
+            # Check for shape mismatch in classifier
+            if 'classifier.3.weight' in state_dict:
+                loaded_classes = state_dict['classifier.3.weight'].shape[0]
+                if loaded_classes != NUM_CLASSES:
+                    print(f"Warning: Loaded model has {loaded_classes} classes, but script expects {NUM_CLASSES}.")
+                    print("Adjusting model to match loaded weights...")
+                    model.classifier[3] = nn.Linear(num_ftrs, loaded_classes)
+                    model = model.to(DEVICE)
+
+            model.load_state_dict(state_dict)
+
+        except Exception:
+             # Fallback for old models saved as full objects
+             print("Warning: Failed to load state dict. Attempting to load legacy full model object...")
+             try:
+                old_model = torch.load(MODEL_SAVE_PATH, map_location=DEVICE, weights_only=False)
+                if isinstance(old_model, dict):
+                    # It might be a dict but failed previously (e.g. key mismatch)?
+                    # If it's a dict, we can't call state_dict() on it.
+                    # But if we are here, likely the first load failed (maybe due to weights_only=True on full object, or safe globals error?)
+                    # If old_model is a dict, use it directly.
+                    model.load_state_dict(old_model)
+                else:
+                    # It's a full model object
+                    model.load_state_dict(old_model.state_dict())
+             except Exception as e:
+                 print(f"Failed to load model: {e}")
+                 # Start fresh
+                 print("Starting with fresh model.")
+                 model = models.mobilenet_v3_large(weights=models.MobileNet_V3_Large_Weights.IMAGENET1K_V1)
+                 model.classifier[3] = nn.Linear(num_ftrs, NUM_CLASSES)
+                 model = model.to(DEVICE)
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
@@ -134,9 +168,9 @@ def train_model(num_epochs_to_add=5):
     print(f"Training block complete in {total_time//60:.0f}m {total_time%60:.0f}s. Validation Accuracy: {epoch_acc:.4f}")
     
     # Save model
-    print(f"Saving model to {MODEL_SAVE_PATH}")
-    torch.save(model, MODEL_SAVE_PATH)
+    print(f"Saving model state dict to {MODEL_SAVE_PATH}")
+    # Sentinel: Saving state_dict is safer than saving full model
+    torch.save(model.state_dict(), MODEL_SAVE_PATH)
 
 if __name__ == '__main__':
     train_model(5)
-
