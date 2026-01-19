@@ -53,19 +53,22 @@ python src/train_complete_suite.py
 After training is complete, launch the main GUI application.
 
 ```bash
-python src/radiology_report_gui.py
+python -m src.radiology_report_gui
 ```
 
 **GUI Workflow:**
 1.  Enter the patient's information (Name, DOB, Patient ID).
 2.  The application auto-loads the models.
-3.  Click **"Choose Image..."** to select an MRI scan.
-4.  Click **"Analyze & Generate Report"**.
+3.  Click **"Scan"** to select an MRI scan.
+4.  Navigate to the **"Exam Details"** tab.
+    -   Click **"AI Auto-Detect"** to let the model infer technique/contrast, OR
+    -   Click **"Manual Entry"** to fill them yourself.
+5.  Click **"Analyze & Generate Report"**.
     -   **Stage 1:** Gatekeeper determines if the image is **Normal**, **Tumor**, or **Dementia**.
     -   **Stage 2:** If not Normal, the specific specialized model analyzes the subtype/stage.
-    -   **Stage 3:** The local multimodal LLM generates a detailed report.
-5.  Review the generated report.
-6.  Click **"Save as PDF"** to export.
+    -   **Stage 3:** The local multimodal LLM generates a detailed report following a strict template.
+6.  Review the generated report.
+7.  Click **"Save as PDF"** to export.
 
 ## Development Conventions
 
@@ -129,3 +132,26 @@ This session significantly refactored the classification architecture to improve
 
 ### Session Summary: Final Polishing and Formatting (Previous)
 ... (Previous logs retained)
+
+### Session Summary: GUI Refactoring & Automated Reporting Features
+
+Refined the `radiology_report_gui.py` application to meet professional standards and improve user workflow.
+
+**Key Enhancements:**
+1.  **Strict JSON Templating:** Integrated a robust JSON structure for LLM outputs, ensuring generated reports strictly follow the format of the provided medical sample PDFs.
+2.  **Exam Details Workflow:**
+    -   Added a dedicated **"Exam Details"** tab.
+    -   Implemented **AI Auto-Detect**: The application now uses the local multimodal model to automatically infer imaging technique, contrast usage, and exam reason from the scan itself.
+    -   Added **Manual Entry** fallback.
+    -   **Constraint:** The "Analyze" button is now disabled until exam details are populated, preventing incomplete reports.
+3.  **UI Layout Optimization:**
+    -   Renamed "MRI Scan" to **"Scan"**.
+    -   Moved the **"Scan"** upload button directly under the image area for better usability.
+    -   Ensured the **"Analyze & Generate Report"** button is always visible by anchoring it to the bottom of the control panel.
+4.  **Report Formatting:**
+    -   Updated report header to "Final Report".
+    -   Added a professional footer with **"Printed on: [Timestamp]"** and **"Page X of Y"** numbering in the PDF export.
+5.  **Technical Fixes:**
+    -   Resolved model loading issues related to `weights_only` serialization in PyTorch 2.6+.
+    -   Fixed `ModuleNotFoundError` for local imports.
+    -   Restored missing methods (`_run_cascaded_classification`, etc.) during refactoring.
