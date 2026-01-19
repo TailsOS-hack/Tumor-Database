@@ -1,6 +1,6 @@
 # AI-Powered Neuro-Radiology Report Generator
 
-This project is an advanced medical imaging analysis tool. It uses deep learning to analyze MRI scans for both **Brain Tumors** and **Alzheimer's/Dementia** signs, and then employs a local Large Language Model (LLM) to generate detailed, professional radiology reports.
+This project is an advanced medical imaging analysis tool. It uses deep learning to analyze MRI scans for both **Brain Tumors** and **Alzheimer's/Dementia** signs, and employs a local Large Language Model (LLM) via Ollama to automatically generate detailed, professional radiology reports following strict clinical templates.
 
 ## Features
 
@@ -9,10 +9,11 @@ This project is an advanced medical imaging analysis tool. It uses deep learning
     -   **Specialized Classifiers:**
         -   **Brain Tumor Classifier:** `EfficientNet-B3` (PyTorch) for specific tumor types (Glioma, Meningioma, Pituitary).
         -   **Alzheimer's Classifier:** `MobileNetV3-Large` (PyTorch) for dementia stages (Mild, Moderate, Very Mild).
-    -   **Unified Normal Class:** The system intelligently identifies healthy scans from both datasets as a single "Normal" category, generating immediate reports without unnecessary processing.
--   **Generative AI Reporting:** Uses a local Multimodal LLM (`ollava/llava:7b` via Ollama) to "see" the image and draft a full radiology report.
--   **PDF Export:** Saves reports as professional PDF documents with the MRI image embedded and optional password encryption.
--   **User-Friendly GUI:** A modern Tkinter interface for easy patient data entry and analysis.
+    -   **Unified Normal Class:** The system intelligently identifies healthy scans from both datasets as a single "Normal" category.
+-   **AI Auto-Detect Metadata:** The system uses a multimodal AI model to analyze the scan image and automatically infer technical details (e.g., "Axial T2-weighted", "Contrast/Non-contrast") and the clinical reason for the exam.
+-   **Standardized Reporting:** Generates reports using a strict JSON template to ensure professional consistency (Findings, Impression, Technique, etc.), avoiding common AI formatting errors.
+-   **PDF Export:** Saves reports as professional "Final Report" PDF documents with the MRI image embedded, timestamped footer, page numbering, and optional password encryption.
+-   **User-Friendly GUI:** A modern Tkinter interface with tabs for Patient Info and Exam Details.
 -   **Data Visualization:** Includes a suite to benchmark model performance and generate accuracy heatmaps.
 
 ## Project Structure
@@ -44,17 +45,19 @@ This project is an advanced medical imaging analysis tool. It uses deep learning
 ## How to Run
 
 ### Main GUI Application
-Run the main GUI application:
+Run the main GUI application (using the module flag to ensure imports work correctly):
 
 ```bash
 python -m src.radiology_report_gui
 ```
 
-1.  Enter Patient Name, ID, and Date of Birth.
-2.  Click **"Choose Image..."** to load an MRI scan (Tumor or Alzheimer's).
-3.  Click **"Analyze & Generate Report"**.
-4.  The system will classify the image and generate a report.
-5.  Click **"Save as PDF"** to export.
+1.  **Patient Info:** Enter Patient Name, ID, and Date of Birth.
+2.  **Scan:** Click **"Scan"** to load an MRI image.
+3.  **Exam Details:** Switch to the "Exam Details" tab.
+    -   Click **"AI Auto-Detect"** to let the AI guess the technique and reason from the image.
+    -   Or click **"Manual Entry"** to fill the details yourself.
+4.  **Analyze:** Once details are confirmed, click **"Analyze & Generate Report"**.
+5.  **Export:** Review the generated report and click **"Save as PDF"**.
 
 ### Performance Visualization
 To generate performance graphs and heatmaps for the models:
