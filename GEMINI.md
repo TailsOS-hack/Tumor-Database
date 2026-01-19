@@ -75,6 +75,20 @@ python src/radiology_report_gui.py
 
 ## Development Log
 
+### Session Summary: Sample Report Analysis & Template Standardization
+
+Analyzed a set of anonymized sample radiology reports provided by the user to establish a ground-truth standard for the generated reports.
+
+**Key Findings:**
+-   **Source Material:** Reviewed 4 redacted PDF reports (`CT_ICH_Redacted.pdf`, `MRI_BrainTumor_Redacted.pdf`, etc.) in `Sample Reports/`.
+-   **Structure Identified:** Confirmed a consistent industry-standard format:
+    1.  **Header:** Patient demographics and Exam details.
+    2.  **Clinical History:** Reason for exam/Chief complaint.
+    3.  **Technique:** Imaging protocol details.
+    4.  **Findings:** Comprehensive, anatomical section-by-section analysis.
+    5.  **Impression:** Numbered, concise diagnostic conclusions.
+-   **Action Item:** These templates will serve as the style guide for the LLM prompt engineering to ensure professional-grade output.
+
 ### Session Summary: Training Completion & Verification
 
 Following the architectural refactoring, the unified training suite was executed.
