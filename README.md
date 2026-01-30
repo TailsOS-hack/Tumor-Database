@@ -21,12 +21,17 @@ This project is an advanced medical imaging analysis tool. It uses deep learning
 -   `src/radiology_report_gui.py`: The main application.
 -   `src/train_complete_suite.py`: The master script to train all 3 models sequentially.
 -   `src/gatekeeper_model.py`: Definition of the routing model.
--   `data_visualization/`: Performance analysis tools.
+-   `data_visualization/`:
+    -   `visualize_performance.py`: General model benchmark tools.
+    -   `compare_rad_vs_ai.py`: Script to compare AI accuracy vs human radiologist.
 -   `models/`:
     -   `gatekeeper_classifier.pt`: ResNet50 router model.
     -   `brain_tumor_classifier.pt`: EfficientNet-B3 model.
     -   `alzheimers_classifier.pt`: MobileNetV3 model.
--   `data/`: Directory for datasets (Brain Tumor and Alzheimer's).
+-   `data/`:
+    -   `evaluation/`: Contains test images, ground truth keys, and radiologist/AI results.
+    -   `alzheimers/`: Training data for dementia.
+    -   `brain_tumor/`: Training data for tumors.
 
 ## Setup
 

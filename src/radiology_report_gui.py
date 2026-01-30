@@ -324,7 +324,7 @@ class App(ttk.Frame):
         path = filedialog.askopenfilename(
             title="Select MRI Image",
             filetypes=[["Image files", "*.jpg;*.jpeg;*.png;*.bmp"]],
-            initialdir=os.path.abspath("data"),
+            initialdir=os.path.abspath(os.path.join("data", "evaluation", "images")),
         )
         if path:
             self.image_path = path

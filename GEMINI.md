@@ -133,6 +133,26 @@ This session significantly refactored the classification architecture to improve
 ### Session Summary: Final Polishing and Formatting (Previous)
 ... (Previous logs retained)
 
+### Session Summary: Radiologist vs. AI Analysis & Repo Organization
+
+Performed a comprehensive comparison between the trained AI models and a human radiologist using a 100-image test set.
+
+**Key Results:**
+-   **AI Accuracy:** 83.00%
+-   **Radiologist Accuracy:** 37.00%
+-   **Outcome:** The AI significantly outperformed the radiologist in classifying early-stage dementia patterns.
+-   **Visualizations:** Generated accuracy charts, confusion matrices, and sensitivity plots in `data_visualization/comparison/`.
+
+**Repository Organization:**
+Restructured the project for better clarity and scalability:
+-   **`data/evaluation/`**: Centralized all evaluation assets.
+    -   `images/`: The 100 test images.
+    -   `ground_truth/`: The master key (`radiologist_test_key.csv`).
+    -   `radiologist_results/`: The radiologist's score sheet.
+    -   `model_results/`: The AI's raw predictions.
+-   **`Sample Reports/generated_examples/`**: Moved generated PDF examples here.
+-   **`data_visualization/compare_rad_vs_ai.py`**: Renamed and moved the analysis script (formerly `analyze_radiologist_vs_model.py`).
+
 ### Session Summary: GUI Refactoring & Automated Reporting Features
 
 Refined the `radiology_report_gui.py` application to meet professional standards and improve user workflow.
