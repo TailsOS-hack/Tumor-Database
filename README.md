@@ -33,19 +33,88 @@ This project is an advanced medical imaging analysis tool. It uses deep learning
     -   `alzheimers/`: Training data for dementia.
     -   `brain_tumor/`: Training data for tumors.
 
-## Setup
+## Installation Guide
 
-1.  **Install Dependencies:**
+### Prerequisites
+- **Python 3.10+**
+- **Ollama** (for local AI report generation)
+
+### 🐧 Linux (Ubuntu/Debian)
+
+1.  **Install System Dependencies**
+    The GUI requires Tkinter, and the PDF generator (`WeasyPrint`) needs specific system libraries.
+    ```bash
+    sudo apt update
+    sudo apt install python3-tk libpango-1.0-0 libharfbuzz0b libpangoft2-1.0-0
+    ```
+
+2.  **Install Python Dependencies**
+    ```bash
+    pip install -r requirements.txt --break-system-packages
+    ```
+    *(Note: Using a virtual environment `venv` is recommended if you prefer not to install system-wide.)*
+
+3.  **Install & Setup Ollama**
+    -   Install Ollama:
+        ```bash
+        curl -fsSL https://ollama.com/install.sh | sh
+        ```
+    -   Start the Ollama server:
+        ```bash
+        ollama serve
+        ```
+    -   In a new terminal, pull the required multimodal model:
+        ```bash
+        ollama pull llava:7b
+        ```
+
+### 🍎 macOS
+
+1.  **Install System Dependencies (via Homebrew)**
+    You need Homebrew installed first.
+    ```bash
+    brew install python-tk pango libffi
+    ```
+
+2.  **Install Python Dependencies**
+    ```bash
+    pip3 install -r requirements.txt
+    ```
+
+3.  **Install & Setup Ollama**
+    -   Download and install Ollama from [ollama.com/download/mac](https://ollama.com/download/mac).
+    -   Open the Ollama application.
+    -   Run the following in your terminal to download the model:
+        ```bash
+        ollama pull llava:7b
+        ```
+
+### 🪟 Windows
+
+1.  **Install Python**
+    Download and install Python 3.10+ from [python.org](https://www.python.org/downloads/). Ensure you check **"Add Python to PATH"** during installation.
+
+2.  **Install GTK3 Runtime (Crucial for PDF Export)**
+    The PDF generation library (`WeasyPrint`) requires the GTK3 runtime.
+    -   Download and install the [GTK3 Installer for Windows](https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases).
+    -   *Alternative (via MSYS2):*
+        1.  Install MSYS2 from [msys2.org](https://www.msys2.org/).
+        2.  Run `pacman -S mingw-w64-x86_64-gtk3` in the MSYS2 terminal.
+        3.  Add `C:\msys64\mingw64\bin` to your System PATH environment variable.
+
+3.  **Install Python Dependencies**
+    Open Command Prompt (cmd) or PowerShell and run:
     ```bash
     pip install -r requirements.txt
     ```
-2.  **Install Ollama:**
-    Ensure [Ollama](https://ollama.com/) is installed and the `llava:7b` model is pulled:
-    ```bash
-    ollama pull llava:7b
-    ```
-3.  **GTK3 (Windows only):**
-    For PDF generation, you may need GTK3 installed via MSYS2 (see `WeasyPrint` docs).
+
+4.  **Install & Setup Ollama**
+    -   Download the Windows installer from [ollama.com/download/windows](https://ollama.com/download/windows).
+    -   Run the installer.
+    -   Open PowerShell or Command Prompt and run:
+        ```bash
+        ollama pull llava:7b
+        ```
 
 ## How to Run
 

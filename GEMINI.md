@@ -153,25 +153,26 @@ Restructured the project for better clarity and scalability:
 -   **`Sample Reports/generated_examples/`**: Moved generated PDF examples here.
 -   **`data_visualization/compare_rad_vs_ai.py`**: Renamed and moved the analysis script (formerly `analyze_radiologist_vs_model.py`).
 
-### Session Summary: GUI Refactoring & Automated Reporting Features
+### Session Summary: Linux Environment Setup & Documentation Update
 
-Refined the `radiology_report_gui.py` application to meet professional standards and improve user workflow.
+Successfully configured the development environment on Ubuntu 24.04 and updated project documentation.
 
-**Key Enhancements:**
-1.  **Strict JSON Templating:** Integrated a robust JSON structure for LLM outputs, ensuring generated reports strictly follow the format of the provided medical sample PDFs.
-2.  **Exam Details Workflow:**
-    -   Added a dedicated **"Exam Details"** tab.
-    -   Implemented **AI Auto-Detect**: The application now uses the local multimodal model to automatically infer imaging technique, contrast usage, and exam reason from the scan itself.
-    -   Added **Manual Entry** fallback.
-    -   **Constraint:** The "Analyze" button is now disabled until exam details are populated, preventing incomplete reports.
-3.  **UI Layout Optimization:**
-    -   Renamed "MRI Scan" to **"Scan"**.
-    -   Moved the **"Scan"** upload button directly under the image area for better usability.
-    -   Ensured the **"Analyze & Generate Report"** button is always visible by anchoring it to the bottom of the control panel.
-4.  **Report Formatting:**
-    -   Updated report header to "Final Report".
-    -   Added a professional footer with **"Printed on: [Timestamp]"** and **"Page X of Y"** numbering in the PDF export.
-5.  **Technical Fixes:**
-    -   Resolved model loading issues related to `weights_only` serialization in PyTorch 2.6+.
-    -   Fixed `ModuleNotFoundError` for local imports.
-    -   Restored missing methods (`_run_cascaded_classification`, etc.) during refactoring.
+**Key Actions:**
+1.  **System Setup:**
+    -   Verified Python 3.12 and pip installation.
+    -   Installed `git` and `python3-tk` (required for the GUI).
+    -   Installed project dependencies from `requirements.txt` system-wide (`--break-system-packages`).
+2.  **Ollama Configuration:**
+    -   Installed and set up the `ollama` service.
+    -   Pulled the **`llava:7b`** multimodal model required for the "AI Auto-Detect" and report generation features.
+    -   Installed **Open WebUI** (`open-webui`) for a standalone local AI interface.
+3.  **Documentation:**
+    -   Updated `README.md` with a comprehensive "Installation Guide" covering Linux (apt/pip), macOS (Homebrew), and Windows (MSYS2/Installer).
+4.  **Repository Management:**
+    -   Ensured `.gitignore` is empty as per user preference.
+    -   Installed `git` to enable version control operations.
+
+**System Status:**
+-   **GUI:** Ready to launch (`python3 -m src.radiology_report_gui`).
+-   **AI Backend:** Ollama is ready with `llava:7b`.
+-   **Web UI:** Open WebUI installed (launch with `open-webui serve`).
