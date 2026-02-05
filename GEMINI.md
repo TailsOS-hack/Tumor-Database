@@ -155,24 +155,86 @@ Restructured the project for better clarity and scalability:
 
 ### Session Summary: Linux Environment Setup & Documentation Update
 
+
+
 Successfully configured the development environment on Ubuntu 24.04 and updated project documentation.
 
+
+
 **Key Actions:**
+
 1.  **System Setup:**
+
     -   Verified Python 3.12 and pip installation.
+
     -   Installed `git` and `python3-tk` (required for the GUI).
+
     -   Installed project dependencies from `requirements.txt` system-wide (`--break-system-packages`).
+
 2.  **Ollama Configuration:**
+
     -   Installed and set up the `ollama` service.
+
     -   Pulled the **`llava:7b`** multimodal model required for the "AI Auto-Detect" and report generation features.
+
     -   Installed **Open WebUI** (`open-webui`) for a standalone local AI interface.
+
 3.  **Documentation:**
+
     -   Updated `README.md` with a comprehensive "Installation Guide" covering Linux (apt/pip), macOS (Homebrew), and Windows (MSYS2/Installer).
+
 4.  **Repository Management:**
+
     -   Ensured `.gitignore` is empty as per user preference.
+
     -   Installed `git` to enable version control operations.
 
+
+
 **System Status:**
+
 -   **GUI:** Ready to launch (`python3 -m src.radiology_report_gui`).
+
 -   **AI Backend:** Ollama is ready with `llava:7b`.
+
 -   **Web UI:** Open WebUI installed (launch with `open-webui serve`).
+
+
+
+### Session Summary: Multi-Radiologist Comparative Analysis
+
+
+
+Conducted an expanded comparative analysis between the AI model and a panel of three independent radiologists using a 100-image test set.
+
+
+
+**Key Results:**
+
+-   **AI Model Accuracy:** **83.00%**
+
+-   **Radiologist Panel (Individual):**
+
+    -   **Kanekar:** 44.00%
+
+    -   **Thamburaj:** 38.00%
+
+    -   **Kalapos:** 37.00%
+
+-   **Aggregate Metrics:**
+
+    -   **Top 2 Average:** 41.00%
+
+    -   **Overall Mean:** 39.67%
+
+-   **Outcome:** The AI significantly outperforms the human radiologist panel, particularly in early-stage dementia classification where human accuracy remains below 50%.
+
+
+
+**Technical Improvements:**
+
+-   **Data Consolidation:** All radiologist score sheets are now centralized in `data/evaluation/radiologist_results/`.
+
+-   **Robust Analysis Script:** Updated `data_visualization/compare_rad_vs_ai.py` to handle multi-sheet Excel files, label variations (e.g., trailing spaces), and aggregate performance metrics (Mean/Median/Top-2).
+
+-   **Updated Visualizations:** Replaced existing charts in `data_visualization/comparison/` with new multi-participant comparisons, including individual confusion matrices and per-class sensitivity (recall) plots.
