@@ -92,7 +92,7 @@ for fpath in rad_files:
             if r_df is not None:
                 rad_id = sheet # Use sheet name as ID (Kalapos, Thamburaj, Kanekar)
                 
-                # Deduplicate if same ID found in multiple files (use the first one or valid one)
+                # Deduplicate if same ID found in multiple files
                 if rad_id in processed_ids:
                     print(f"Skipping duplicate Rad ID: {rad_id} in {fname}")
                     continue
@@ -122,50 +122,27 @@ if not rad_results:
 # Sort by accuracy descending
 rad_results.sort(key=lambda x: x['accuracy'], reverse=True)
 
-# Top 2
-top_2_rads = rad_results[:2]
-if len(top_2_rads) >= 2:
-    top_2_avg_acc = np.mean([r['accuracy'] for r in top_2_rads])
-    print(f"Top 2 ({[r['id'] for r in top_2_rads]}) Avg Accuracy: {top_2_avg_acc:.4f}")
-else:
-    top_2_avg_acc = rad_results[0]['accuracy']
+best_rad = rad_results[0]
+worst_rad = rad_results[-1]
 
-# All 3
+# Calculate Average (Mean) Accuracy
 all_accs = [r['accuracy'] for r in rad_results]
 mean_all = np.mean(all_accs)
-median_all = np.median(all_accs)
+print(f"Average Radiologist Accuracy: {mean_all:.4f}")
 
-# Skew Check
-skew_diff = abs(mean_all - median_all)
-if skew_diff > 0.05: # > 5% diff
-    final_all_metric = median_all
-    all_metric_name = "All Rads (Median)"
-    print(f"Data skewed (diff {skew_diff:.4f}). Using Median: {median_all:.4f}")
-else:
-    final_all_metric = mean_all
-    all_metric_name = "All Rads (Mean)"
-    print(f"Data not skewed (diff {skew_diff:.4f}). Using Mean: {mean_all:.4f}")
+# --- VISUALIZATION ---
+print("Generating visualizations...")
+sns.set_style("whitegrid")
 
-# 4. Visualization
-# A. Accuracy Comparison Bar Chart
+# 1. Comprehensive Chart
 viz_data = []
-# Individual Rads
 for r in rad_results:
     viz_data.append({'Participant': r['id'], 'Accuracy': r['accuracy'], 'Type': 'Individual'})
-
-# Aggregates
-if len(rad_results) > 1:
-    viz_data.append({'Participant': 'Top 2 Rads (Avg)', 'Accuracy': top_2_avg_acc, 'Type': 'Aggregate'})
-    viz_data.append({'Participant': all_metric_name, 'Accuracy': final_all_metric, 'Type': 'Aggregate'})
-
-# AI
+viz_data.append({'Participant': 'All Rads (Avg)', 'Accuracy': mean_all, 'Type': 'Aggregate'})
 viz_data.append({'Participant': 'AI Model', 'Accuracy': model_acc, 'Type': 'AI'})
-
 viz_df = pd.DataFrame(viz_data)
 
 plt.figure(figsize=(12, 7))
-sns.set_style("whitegrid")
-# Palette: Rads=Blues, Agg=Greens, AI=Red
 palette = {}
 for i, row in viz_df.iterrows():
     if row['Type'] == 'Individual': palette[row['Participant']] = '#3498db'
@@ -173,24 +150,102 @@ for i, row in viz_df.iterrows():
     elif row['Type'] == 'AI': palette[row['Participant']] = '#e74c3c'
 
 ax = sns.barplot(x='Participant', y='Accuracy', data=viz_df, palette=palette)
-plt.title('Diagnostic Accuracy Comparison: Radiologists vs AI', fontsize=16, fontweight='bold', pad=20)
+plt.title('Diagnostic Accuracy Comparison: Radiologists vs AI (Comprehensive)', fontsize=16, fontweight='bold', pad=20)
 plt.ylabel('Accuracy', fontsize=12)
 plt.ylim(0, 1.1)
 plt.xticks(rotation=15)
-
 for p in ax.patches:
     height = p.get_height()
     if height > 0:
         ax.annotate(f'{height:.1%}', (p.get_x() + p.get_width() / 2., height),
-                    ha='center', va='bottom', fontsize=12, fontweight='bold', xytext=(0, 5),
-                    textcoords='offset points')
-
+                    ha='center', va='bottom', fontsize=12, fontweight='bold', xytext=(0, 5), textcoords='offset points')
 plt.tight_layout()
-plt.savefig(f"{OUTPUT_DIR}/accuracy_comparison.png", dpi=300)
+plt.savefig(f"{OUTPUT_DIR}/accuracy_comparison_comprehensive.png", dpi=300)
 plt.close()
 
-# B. Confusion Matrices
-# We assume up to 4 plots (3 Rads + 1 AI)
+# 2. Average Radiologists vs AI
+avg_data = [
+    {'Participant': 'Average Radiologist', 'Accuracy': mean_all},
+    {'Participant': 'AI Model', 'Accuracy': model_acc}
+]
+avg_df = pd.DataFrame(avg_data)
+
+plt.figure(figsize=(8, 6))
+ax = sns.barplot(x='Participant', y='Accuracy', data=avg_df, palette={'Average Radiologist': '#2ecc71', 'AI Model': '#e74c3c'})
+plt.title('Average Radiologist vs AI Model', fontsize=16, fontweight='bold')
+plt.ylabel('Accuracy', fontsize=12)
+plt.ylim(0, 1.1)
+for p in ax.patches:
+    height = p.get_height()
+    if height > 0:
+        ax.annotate(f'{height:.1%}', (p.get_x() + p.get_width() / 2., height),
+                    ha='center', va='bottom', fontsize=12, fontweight='bold', xytext=(0, 5), textcoords='offset points')
+plt.tight_layout()
+plt.savefig(f"{OUTPUT_DIR}/accuracy_avg_vs_ai.png", dpi=300)
+plt.close()
+
+# 3. Best Rad vs Worst Rad vs AI
+range_data = [
+    {'Participant': f"Best Rad ({best_rad['id']})", 'Accuracy': best_rad['accuracy']},
+    {'Participant': f"Worst Rad ({worst_rad['id']})", 'Accuracy': worst_rad['accuracy']},
+    {'Participant': 'AI Model', 'Accuracy': model_acc}
+]
+range_df = pd.DataFrame(range_data)
+
+plt.figure(figsize=(10, 6))
+ax = sns.barplot(x='Participant', y='Accuracy', data=range_df, palette={
+    f"Best Rad ({best_rad['id']})": '#3498db',
+    f"Worst Rad ({worst_rad['id']})": '#95a5a6',
+    'AI Model': '#e74c3c'
+})
+plt.title('Performance Range: Best & Worst Radiologist vs AI', fontsize=16, fontweight='bold')
+plt.ylabel('Accuracy', fontsize=12)
+plt.ylim(0, 1.1)
+for p in ax.patches:
+    height = p.get_height()
+    if height > 0:
+        ax.annotate(f'{height:.1%}', (p.get_x() + p.get_width() / 2., height),
+                    ha='center', va='bottom', fontsize=12, fontweight='bold', xytext=(0, 5), textcoords='offset points')
+plt.tight_layout()
+plt.savefig(f"{OUTPUT_DIR}/accuracy_range_comparison.png", dpi=300)
+plt.close()
+
+# 4. Per-Class Sensitivity (All 4 Participants)
+recall_ai = recall_score(main_df['TrueCategory'], main_df['ModelPrediction'], labels=classes, average=None)
+
+per_class_data = []
+for i, cls in enumerate(class_names_short):
+    per_class_data.append({'Class': cls, 'Recall': recall_ai[i], 'Participant': 'AI Model'})
+
+for r in rad_results:
+    temp_df = main_df.merge(r['df'], on="FileName", how="left")
+    temp_df['RadPrediction_Mapped'] = temp_df['RadPrediction_Mapped'].fillna("Unknown")
+    rec = recall_score(temp_df['TrueCategory'], temp_df['RadPrediction_Mapped'], labels=classes, average=None)
+    for i, cls in enumerate(class_names_short):
+        per_class_data.append({'Class': cls, 'Recall': rec[i], 'Participant': r['id']})
+
+pc_df = pd.DataFrame(per_class_data)
+
+plt.figure(figsize=(14, 7))
+palette_pc = {'AI Model': '#e74c3c'}
+rad_colors = ['#3498db', '#2ecc71', '#f1c40f']
+for i, r in enumerate(rad_results):
+    palette_pc[r['id']] = rad_colors[i % len(rad_colors)]
+
+ax = sns.barplot(x='Class', y='Recall', hue='Participant', data=pc_df, palette=palette_pc)
+plt.title('Per-Class Sensitivity (Recall): Detailed Comparison', fontsize=16, fontweight='bold')
+plt.ylabel('Sensitivity', fontsize=12)
+plt.ylim(0, 1.15)
+plt.legend(bbox_to_anchor=(1.01, 1), loc='upper left')
+
+for container in ax.containers:
+    ax.bar_label(container, fmt='%.2f', padding=3)
+
+plt.tight_layout()
+plt.savefig(f"{OUTPUT_DIR}/per_class_sensitivity_detailed.png", dpi=300)
+plt.close()
+
+# 5. Confusion Matrices
 num_rads = len(rad_results)
 total_plots = num_rads + 1
 cols = 2
@@ -199,80 +254,23 @@ rows = (total_plots + 1) // 2
 fig, axes = plt.subplots(rows, cols, figsize=(16, 7 * rows))
 axes = axes.flatten()
 
-# Plot Rads
 for i, r in enumerate(rad_results):
     temp_df = main_df.merge(r['df'], on="FileName", how="left")
     temp_df['RadPrediction_Mapped'] = temp_df['RadPrediction_Mapped'].fillna("Unknown")
-    
-    # We only plot confusion for valid classes. Unknowns will be ignored by sklearn if not in labels.
-    # To see them, we'd need to add 'Unknown' to labels, but standard CM is usually strictly on classes.
-    # Accuracy score reflects the penalty.
     cm = confusion_matrix(temp_df['TrueCategory'], temp_df['RadPrediction_Mapped'], labels=classes)
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
-                xticklabels=class_names_short, yticklabels=class_names_short, ax=axes[i], cbar=False,
-                annot_kws={"size": 14})
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=class_names_short, yticklabels=class_names_short, ax=axes[i], cbar=False)
     axes[i].set_title(f"{r['id']}\nAccuracy: {r['accuracy']:.1%}", fontsize=14, fontweight='bold')
-    axes[i].set_ylabel('True Label')
-    axes[i].set_xlabel('Predicted Label')
 
-# Plot AI (Next slot)
 ai_idx = num_rads
 cm_model = confusion_matrix(main_df['TrueCategory'], main_df['ModelPrediction'], labels=classes)
-sns.heatmap(cm_model, annot=True, fmt='d', cmap='Reds',
-            xticklabels=class_names_short, yticklabels=class_names_short, ax=axes[ai_idx], cbar=False,
-            annot_kws={"size": 14})
+sns.heatmap(cm_model, annot=True, fmt='d', cmap='Reds', xticklabels=class_names_short, yticklabels=class_names_short, ax=axes[ai_idx], cbar=False)
 axes[ai_idx].set_title(f"AI Model\nAccuracy: {model_acc:.1%}", fontsize=14, fontweight='bold')
-axes[ai_idx].set_ylabel('True Label')
-axes[ai_idx].set_xlabel('Predicted Label')
 
-# Hide unused subplots
 for j in range(ai_idx + 1, len(axes)):
     axes[j].axis('off')
 
-plt.suptitle("Confusion Matrix Comparison", fontsize=18)
 plt.tight_layout()
 plt.savefig(f"{OUTPUT_DIR}/confusion_matrix_comparison.png", dpi=300)
 plt.close()
 
-# C. Per-Class Sensitivity (Recall)
-# Compare: AI, Best Rad, Avg Rad
-recall_ai = recall_score(main_df['TrueCategory'], main_df['ModelPrediction'], labels=classes, average=None)
-
-# Best Rad
-best_rad = rad_results[0]
-temp_best = main_df.merge(best_rad['df'], on="FileName", how="left")
-temp_best['RadPrediction_Mapped'] = temp_best['RadPrediction_Mapped'].fillna("Unknown")
-recall_best = recall_score(temp_best['TrueCategory'], temp_best['RadPrediction_Mapped'], labels=classes, average=None)
-
-# Avg Rad
-all_recalls = []
-for r in rad_results:
-    t = main_df.merge(r['df'], on="FileName", how="left")
-    t['RadPrediction_Mapped'] = t['RadPrediction_Mapped'].fillna("Unknown")
-    rec = recall_score(t['TrueCategory'], t['RadPrediction_Mapped'], labels=classes, average=None)
-    all_recalls.append(rec)
-avg_recall_rad = np.mean(all_recalls, axis=0)
-
-per_class_data = []
-for i, cls in enumerate(class_names_short):
-    per_class_data.append({'Class': cls, 'Recall': recall_ai[i], 'Predictor': 'AI Model'})
-    per_class_data.append({'Class': cls, 'Recall': recall_best[i], 'Predictor': f"Best Rad ({best_rad['id']})"})
-    per_class_data.append({'Class': cls, 'Recall': avg_recall_rad[i], 'Predictor': 'Avg Radiologist'})
-
-pc_df = pd.DataFrame(per_class_data)
-
-plt.figure(figsize=(12, 6))
-sns.barplot(x='Class', y='Recall', hue='Predictor', data=pc_df, palette=['#e74c3c', '#3498db', '#95a5a6'])
-plt.title('Per-Class Sensitivity (Recall): AI vs Radiologists', fontsize=16, fontweight='bold')
-plt.ylabel('Sensitivity', fontsize=12)
-plt.ylim(0, 1.1)
-plt.legend(loc='lower right')
-
-for container in plt.gca().containers:
-    plt.gca().bar_label(container, fmt='%.2f')
-
-plt.tight_layout()
-plt.savefig(f"{OUTPUT_DIR}/per_class_sensitivity.png", dpi=300)
-plt.close()
-
-print("Analysis Complete. Charts updated.")
+print("All charts generated successfully.")

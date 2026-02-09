@@ -201,40 +201,26 @@ Successfully configured the development environment on Ubuntu 24.04 and updated 
 
 
 
-### Session Summary: Multi-Radiologist Comparative Analysis
+### Session Summary: Enhanced Comparative Analysis & Visualization
 
+Refined the comparison between the AI model and the radiologist panel to provide deeper insights.
 
+**Key Updates:**
+-   **Enhanced Visualization Script:** Updated `data_visualization/compare_rad_vs_ai.py` to generate a comprehensive suite of comparison charts.
+-   **New Metrics & Charts:**
+    -   **Average Radiologist vs. AI:** Direct comparison of the AI (83%) against the mean radiologist performance (39.67%).
+    -   **Performance Range:** Visualized the gap between the Best Radiologist (44%), Worst Radiologist (37%), and the AI.
+    -   **Per-Class Sensitivity (Detailed):** A breakdown of sensitivity (recall) for *each* participant (AI + 3 Radiologists) across all 4 dementia categories (Normal, Very Mild, Mild, Moderate).
+-   **Model Restoration:** Reverted to the high-performing backup models (`models/backup/`) after an experimental fine-tuning session, ensuring the AI accuracy returned to the optimal ~83% baseline for final reporting.
 
-Conducted an expanded comparative analysis between the AI model and a panel of three independent radiologists using a 100-image test set.
-
-
-
-**Key Results:**
-
+**Current Evaluation Results:**
 -   **AI Model Accuracy:** **83.00%**
+-   **Radiologist Panel Average:** **39.67%**
+-   **Best Human Performance:** **44.00%** (Kanekar)
 
--   **Radiologist Panel (Individual):**
-
-    -   **Kanekar:** 44.00%
-
-    -   **Thamburaj:** 38.00%
-
-    -   **Kalapos:** 37.00%
-
--   **Aggregate Metrics:**
-
-    -   **Top 2 Average:** 41.00%
-
-    -   **Overall Mean:** 39.67%
-
--   **Outcome:** The AI significantly outperforms the human radiologist panel, particularly in early-stage dementia classification where human accuracy remains below 50%.
-
-
-
-**Technical Improvements:**
-
--   **Data Consolidation:** All radiologist score sheets are now centralized in `data/evaluation/radiologist_results/`.
-
--   **Robust Analysis Script:** Updated `data_visualization/compare_rad_vs_ai.py` to handle multi-sheet Excel files, label variations (e.g., trailing spaces), and aggregate performance metrics (Mean/Median/Top-2).
-
--   **Updated Visualizations:** Replaced existing charts in `data_visualization/comparison/` with new multi-participant comparisons, including individual confusion matrices and per-class sensitivity (recall) plots.
+**Generated Assets:**
+-   `data_visualization/comparison/accuracy_comparison_comprehensive.png`
+-   `data_visualization/comparison/accuracy_avg_vs_ai.png`
+-   `data_visualization/comparison/accuracy_range_comparison.png`
+-   `data_visualization/comparison/per_class_sensitivity_detailed.png`
+-   `data_visualization/comparison/confusion_matrix_comparison.png`
