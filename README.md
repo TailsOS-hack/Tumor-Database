@@ -24,6 +24,7 @@ This project is an advanced medical imaging analysis tool. It uses deep learning
 -   `data_visualization/`:
     -   `visualize_performance.py`: General model benchmark tools.
     -   `compare_rad_vs_ai.py`: Script to compare AI accuracy vs human radiologist.
+    -   `evaluate_tumor_only.py`: Dedicated evaluation script for the Brain Tumor classifier.
 -   `models/`:
     -   `gatekeeper_classifier.pt`: ResNet50 router model.
     -   `brain_tumor_classifier.pt`: EfficientNet-B3 model.
@@ -140,3 +141,8 @@ To generate performance graphs and heatmaps for the models:
 python data_visualization/visualize_performance.py
 ```
 This will run a subset of the data through both models and generate `.png` plots in the `data_visualization` folder showing accuracy and confusion matrices.
+
+To run the dedicated Brain Tumor model evaluation (producing detailed metrics and ROC curves):
+```bash
+python data_visualization/evaluate_tumor_only.py
+```
