@@ -227,17 +227,17 @@ Refined the comparison between the AI model and the radiologist panel to provide
 
 ### Session Summary: Tumor Model Independent Evaluation
 
-Performed a dedicated evaluation of the Brain Tumor Classifier (`efficientnet_b3`) on the test dataset (`data/brain_tumor/Testing`) to verify its standalone performance.
+Performed a dedicated evaluation of the Brain Tumor Classifier (`efficientnet_b3`) on the test dataset (`data/brain_tumor/Testing`) to verify its standalone performance in predicting tumor sizes.
 
 **Key Results:**
 -   **Overall Accuracy:** **98.57%** (906 Test Images)
--   **Performance:**
+-   **Performance by Size Category:**
     -   **Glioma:** 99.0% Precision / 99.0% Recall
     -   **Meningioma:** 98.0% Precision / 98.0% Recall
     -   **Pituitary:** 98.7% Precision / 98.7% Recall
 
 **Generated Visualizations (`data_visualization/`):**
--   `tumor_confusion_matrix.png`: Heatmap of true vs predicted labels.
--   `tumor_accuracy_bar.png`: Per-class accuracy comparison.
--   `tumor_detailed_metrics.png`: Grouped bar chart for Precision, Recall, and F1-Score.
--   `tumor_roc_curves.png`: One-vs-Rest ROC curves showing near-perfect Area Under Curve (AUC).
+-   `tumor_confusion_matrix.png`: Heatmap of true vs predicted tumor sizes.
+-   `tumor_accuracy_bar.png`: Per-size accuracy comparison.
+-   `tumor_detailed_metrics.png`: Performance metrics by tumor size.
+-   `tumor_roc_curves.png`: ROC curves for tumor size prediction.
