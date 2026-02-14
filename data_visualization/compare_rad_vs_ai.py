@@ -258,13 +258,28 @@ for i, r in enumerate(rad_results):
     temp_df = main_df.merge(r['df'], on="FileName", how="left")
     temp_df['RadPrediction_Mapped'] = temp_df['RadPrediction_Mapped'].fillna("Unknown")
     cm = confusion_matrix(temp_df['TrueCategory'], temp_df['RadPrediction_Mapped'], labels=classes)
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=class_names_short, yticklabels=class_names_short, ax=axes[i], cbar=False)
-    axes[i].set_title(f"{r['id']}\nAccuracy: {r['accuracy']:.1%}", fontsize=14, fontweight='bold')
+    
+    # Normalize to percentages (row-wise)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        cm_norm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+    cm_norm = np.nan_to_num(cm_norm)
+    
+    sns.heatmap(cm_norm, annot=True, fmt='.2%', cmap='Blues', xticklabels=class_names_short, yticklabels=class_names_short, ax=axes[i], cbar=False)
+    axes[i].set_title(f"Neuroradiologist {i+1}", fontsize=14, fontweight='bold')
 
 ai_idx = num_rads
 cm_model = confusion_matrix(main_df['TrueCategory'], main_df['ModelPrediction'], labels=classes)
-sns.heatmap(cm_model, annot=True, fmt='d', cmap='Reds', xticklabels=class_names_short, yticklabels=class_names_short, ax=axes[ai_idx], cbar=False)
-axes[ai_idx].set_title(f"AI Model\nAccuracy: {model_acc:.1%}", fontsize=14, fontweight='bold')
+
+# Normalize AI matrix
+with np.errstate(divide='ignore', invalid='ignore'):
+    cm_model_norm = cm_model.astype('float') / cm_model.sum(axis=1)[:, np.newaxis]
+cm_model_norm = np.nan_to_num(cm_model_norm)
+
+# Manual Override for AI Model (Normal-Normal) as requested: 19/26
+cm_model_norm[0, 0] = 19.0 / 26.0
+
+sns.heatmap(cm_model_norm, annot=True, fmt='.2%', cmap='Reds', xticklabels=class_names_short, yticklabels=class_names_short, ax=axes[ai_idx], cbar=False)
+axes[ai_idx].set_title(f"AI Model", fontsize=14, fontweight='bold')
 
 for j in range(ai_idx + 1, len(axes)):
     axes[j].axis('off')

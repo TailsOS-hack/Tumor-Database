@@ -133,11 +133,14 @@ def evaluate():
     
     # 1. Confusion Matrix
     cm = confusion_matrix(y_true, y_pred)
+    # Calculate row-normalized percentages
+    cm_norm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+    
     plt.figure(figsize=(8, 6))
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=TARGET_CLASSES, yticklabels=TARGET_CLASSES)
-    plt.title('Confusion Matrix: Tumor Size Classification')
-    plt.ylabel('True Size')
-    plt.xlabel('Predicted Size')
+    sns.heatmap(cm_norm, annot=True, fmt='.2%', cmap='Blues', xticklabels=TARGET_CLASSES, yticklabels=TARGET_CLASSES)
+    plt.title('Confusion Matrix: Tumor Size Classification', fontweight='bold')
+    plt.ylabel('True Size', fontweight='bold')
+    plt.xlabel('Predicted Size', fontweight='bold')
     plt.tight_layout()
     cm_path = os.path.join(OUTPUT_DIR, 'tumor_confusion_matrix.png')
     plt.savefig(cm_path)
@@ -206,10 +209,10 @@ def evaluate():
     plt.plot([0, 1], [0, 1], 'k--', lw=2)
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.05])
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.title('ROC Curves - Tumor Size Prediction')
-    plt.legend(loc="lower right")
+    plt.xlabel('False Positive Rate', fontweight='bold', fontsize=12)
+    plt.ylabel('True Positive Rate', fontweight='bold', fontsize=12)
+    plt.title('ROC Curves - Tumor Size Prediction', fontweight='bold', fontsize=14)
+    plt.legend(loc="lower right", fontsize=16)
     plt.tight_layout()
     roc_path = os.path.join(OUTPUT_DIR, 'tumor_roc_curves.png')
     plt.savefig(roc_path)
