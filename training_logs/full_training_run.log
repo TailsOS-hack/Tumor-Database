@@ -1,0 +1,13 @@
+[21:21:54] [INFO] === STARTING UNIFIED TRAINING SUITE ===
+[21:21:54] [INFO] Gathering file paths from 'data' directory...
+[21:21:54] [INFO] Found 1621 Glioma, 1645 Meningioma, 1757 Pituitary, 2000 Tumor-Normal
+[21:21:54] [INFO] Found 10000 Mild, 10000 Moderate, 11200 VeryMild, 12800 Alz-Normal
+[21:21:54] [INFO] Initializing data transforms...
+[21:21:54] [INFO] 
+=== STAGE 1/3: GATEKEEPER MODEL ===
+[21:21:54] [INFO] Data Prep: Normal=14800, Tumor=5023, Dementia=31200
+[21:21:54] [INFO] Initializing Gatekeeper (ResNet50)...
+[21:21:55] [INFO] STARTING TRAINING: Gatekeeper
+[21:21:55] [INFO] Target Device: cpu
+[21:21:55] [INFO] Saving to: models/gatekeeper_classifier.pt
+[21:21:55] [INFO] --- Epoch 1/5 ---

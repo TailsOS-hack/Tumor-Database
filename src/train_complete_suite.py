@@ -3,9 +3,11 @@ import glob
 import time
 import datetime
 import logging
+import json
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader, random_split
 from torchvision import transforms, models
 from PIL import Image
@@ -33,7 +35,9 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # Paths
 DATA_ROOT = 'data'
 MODELS_DIR = 'models'
+LOGS_DIR = 'training_logs'
 os.makedirs(MODELS_DIR, exist_ok=True)
+os.makedirs(LOGS_DIR, exist_ok=True)
 
 # ==========================================
 # Dataset Class
@@ -82,6 +86,39 @@ def get_transforms():
     ])
     return train_tf, val_tf
 
+def plot_training_history(history, model_name):
+    """
+    Plots training and validation loss/accuracy from the history dictionary.
+    Saves the plots to the LOGS_DIR.
+    """
+    epochs = range(1, len(history['train_loss']) + 1)
+    
+    # Plot Loss
+    plt.figure(figsize=(10, 5))
+    plt.plot(epochs, history['train_loss'], label='Training Loss')
+    plt.plot(epochs, history['val_loss'], label='Validation Loss')
+    plt.title(f'{model_name} - Loss')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.legend()
+    loss_plot_path = os.path.join(LOGS_DIR, f'{model_name.replace(" ", "_")}_loss.png')
+    plt.savefig(loss_plot_path)
+    plt.close()
+    logger.info(f"Saved Loss Graph to: {loss_plot_path}")
+
+    # Plot Accuracy
+    plt.figure(figsize=(10, 5))
+    plt.plot(epochs, history['train_acc'], label='Training Accuracy')
+    plt.plot(epochs, history['val_acc'], label='Validation Accuracy')
+    plt.title(f'{model_name} - Accuracy')
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
+    plt.legend()
+    acc_plot_path = os.path.join(LOGS_DIR, f'{model_name.replace(" ", "_")}_accuracy.png')
+    plt.savefig(acc_plot_path)
+    plt.close()
+    logger.info(f"Saved Accuracy Graph to: {acc_plot_path}")
+
 def train_and_save(model, train_loader, val_loader, save_path, num_classes, model_name):
     logger.info(f"STARTING TRAINING: {model_name}")
     logger.info(f"Target Device: {DEVICE}")
@@ -93,6 +130,14 @@ def train_and_save(model, train_loader, val_loader, save_path, num_classes, mode
 
     best_acc = 0.0
     total_start_time = time.time()
+    
+    # Initialize history dictionary
+    history = {
+        'train_loss': [],
+        'train_acc': [],
+        'val_loss': [],
+        'val_acc': []
+    }
 
     for epoch in range(NUM_EPOCHS):
         epoch_start_time = time.time()
@@ -103,8 +148,6 @@ def train_and_save(model, train_loader, val_loader, save_path, num_classes, mode
         running_loss = 0.0
         correct = 0
         total = 0
-        
-        num_batches = len(train_loader)
         
         for batch_idx, (inputs, labels) in enumerate(train_loader):
             inputs, labels = inputs.to(DEVICE), labels.to(DEVICE)
@@ -118,27 +161,34 @@ def train_and_save(model, train_loader, val_loader, save_path, num_classes, mode
             _, predicted = torch.max(outputs, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
-            
-            # Optional: Log batch progress for very large datasets
-            # if (batch_idx + 1) % 10 == 0:
-            #    logger.info(f"Batch {batch_idx+1}/{num_batches} processed")
 
         epoch_loss = running_loss / len(train_loader.dataset)
         epoch_acc = correct / total
         
         # Validation Phase
         model.eval()
+        val_running_loss = 0.0
         val_correct = 0
         val_total = 0
         with torch.no_grad():
             for inputs, labels in val_loader:
                 inputs, labels = inputs.to(DEVICE), labels.to(DEVICE)
                 outputs = model(inputs)
+                loss = criterion(outputs, labels)
+                
+                val_running_loss += loss.item() * inputs.size(0)
                 _, predicted = torch.max(outputs, 1)
                 val_total += labels.size(0)
                 val_correct += (predicted == labels).sum().item()
         
+        val_loss = val_running_loss / len(val_loader.dataset)
         val_acc = val_correct / val_total
+        
+        # Update history
+        history['train_loss'].append(epoch_loss)
+        history['train_acc'].append(epoch_acc)
+        history['val_loss'].append(val_loss)
+        history['val_acc'].append(val_acc)
         
         # Timing and ETA
         epoch_duration = time.time() - epoch_start_time
@@ -147,13 +197,22 @@ def train_and_save(model, train_loader, val_loader, save_path, num_classes, mode
         remaining_epochs = NUM_EPOCHS - (epoch + 1)
         eta_seconds = avg_epoch_time * remaining_epochs
         
-        logger.info(f"Results: Train Loss={epoch_loss:.4f}, Train Acc={epoch_acc:.4f}, Val Acc={val_acc:.4f}")
+        logger.info(f"Results: Train Loss={epoch_loss:.4f}, Train Acc={epoch_acc:.4f} | Val Loss={val_loss:.4f}, Val Acc={val_acc:.4f}")
         logger.info(f"Timing: Epoch={format_time(epoch_duration)} | Elapsed={format_time(elapsed_total)} | ETA={format_time(eta_seconds)}")
 
         if val_acc > best_acc:
             best_acc = val_acc
             torch.save(model, save_path)
             logger.info(f"New best model saved! (Acc: {best_acc:.4f})")
+
+    # Save History to JSON
+    history_path = os.path.join(LOGS_DIR, f'{model_name.replace(" ", "_")}_history.json')
+    with open(history_path, 'w') as f:
+        json.dump(history, f, indent=4)
+    logger.info(f"Saved training history to: {history_path}")
+    
+    # Generate Plots
+    plot_training_history(history, model_name)
 
     logger.info(f"COMPLETED TRAINING: {model_name}. Total Time: {format_time(time.time() - total_start_time)}")
 

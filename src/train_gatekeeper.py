@@ -12,7 +12,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from src.data_loader import load_data
 from src.gatekeeper_model import GatekeeperClassifier
 
-def train_model(num_epochs=10, batch_size=32, learning_rate=0.001, smoke_test=False):
+def train_model(num_epochs=15, batch_size=32, learning_rate=0.05, smoke_test=False):
     # Device configuration
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Using device: {device}")
