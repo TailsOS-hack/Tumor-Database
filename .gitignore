@@ -1,1 +1,6 @@
 
+
+# Large Data and Models
+models/Collab_Train/Train_Config/data.zip
+models/*.pt
+!models/backup*/*.pt

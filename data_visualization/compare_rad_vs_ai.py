@@ -275,8 +275,7 @@ with np.errstate(divide='ignore', invalid='ignore'):
     cm_model_norm = cm_model.astype('float') / cm_model.sum(axis=1)[:, np.newaxis]
 cm_model_norm = np.nan_to_num(cm_model_norm)
 
-# Manual Override for AI Model (Normal-Normal) as requested: 19/26
-cm_model_norm[0, 0] = 19.0 / 26.0
+# (Manual override removed)
 
 sns.heatmap(cm_model_norm, annot=True, fmt='.2%', cmap='Reds', xticklabels=class_names_short, yticklabels=class_names_short, ax=axes[ai_idx], cbar=False)
 axes[ai_idx].set_title(f"AI Model", fontsize=14, fontweight='bold')

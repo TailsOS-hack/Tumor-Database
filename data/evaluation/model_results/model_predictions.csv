@@ -8,7 +8,7 @@ image_006.jpg,NonDemented
 image_007.jpg,MildDemented
 image_008.jpg,MildDemented
 image_009.jpg,VeryMildDemented
-image_010.jpg,NonDemented
+image_010.jpg,MildDemented
 image_011.jpg,ModerateDemented
 image_012.jpg,VeryMildDemented
 image_013.jpg,VeryMildDemented
@@ -20,7 +20,7 @@ image_018.jpg,ModerateDemented
 image_019.jpg,VeryMildDemented
 image_020.jpg,MildDemented
 image_021.jpg,VeryMildDemented
-image_022.jpg,NonDemented
+image_022.jpg,VeryMildDemented
 image_023.jpg,MildDemented
 image_024.jpg,MildDemented
 image_025.jpg,VeryMildDemented
@@ -41,8 +41,8 @@ image_039.jpg,NonDemented
 image_040.jpg,NonDemented
 image_041.jpg,ModerateDemented
 image_042.jpg,NonDemented
-image_043.jpg,VeryMildDemented
-image_044.jpg,VeryMildDemented
+image_043.jpg,NonDemented
+image_044.jpg,MildDemented
 image_045.jpg,ModerateDemented
 image_046.jpg,VeryMildDemented
 image_047.jpg,ModerateDemented
@@ -62,11 +62,11 @@ image_060.jpg,VeryMildDemented
 image_061.jpg,VeryMildDemented
 image_062.jpg,ModerateDemented
 image_063.jpg,ModerateDemented
-image_064.jpg,VeryMildDemented
+image_064.jpg,MildDemented
 image_065.jpg,NonDemented
 image_066.jpg,VeryMildDemented
 image_067.jpg,MildDemented
-image_068.jpg,MildDemented
+image_068.jpg,NonDemented
 image_069.jpg,MildDemented
 image_070.jpg,VeryMildDemented
 image_071.jpg,VeryMildDemented
@@ -78,7 +78,7 @@ image_076.jpg,ModerateDemented
 image_077.jpg,NonDemented
 image_078.jpg,MildDemented
 image_079.jpg,VeryMildDemented
-image_080.jpg,NonDemented
+image_080.jpg,VeryMildDemented
 image_081.jpg,VeryMildDemented
 image_082.jpg,VeryMildDemented
 image_083.jpg,ModerateDemented
