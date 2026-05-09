@@ -7,6 +7,12 @@ import torch.nn as nn
 from torchvision.models import efficientnet_b3, mobilenet_v3_large
 from torchvision import transforms
 from src.gatekeeper_model import GatekeeperClassifier
+try:
+    from src.experiment_pipeline import build_model as build_pipeline_model
+    from src.experiment_pipeline import build_transforms as build_pipeline_transforms
+except Exception:
+    build_pipeline_model = None
+    build_pipeline_transforms = None
 import ollama
 import threading
 import queue
@@ -25,12 +31,17 @@ import src.gatekeeper_model
 sys.modules['gatekeeper_model'] = src.gatekeeper_model
 
 APP_TITLE = "Radiology Report Generator"
+BINARY_ROUTER_MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "models", "binary_router.pt")
 GATEKEEPER_MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "models", "gatekeeper_classifier.pt")
 TUMOR_MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "models", "brain_tumor_classifier.pt")
 ALZHEIMERS_MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "models", "alzheimers_classifier.pt")
 
 # Constants for Alzheimer's
-ALZ_CLASSES = ['MildDemented', 'ModerateDemented', 'VeryMildDemented']
+ALZ_CLASSES_3 = ['MildDemented', 'ModerateDemented', 'VeryMildDemented']
+ALZ_CLASSES_4 = ['MildDemented', 'ModerateDemented', 'NonDemented', 'VeryMildDemented']
+ALZ_CLASSES = ALZ_CLASSES_4
+TUMOR_CLASSES_3 = ["glioma", "meningioma", "pituitary"]
+TUMOR_CLASSES_4 = ["glioma", "meningioma", "notumor", "pituitary"]
 ALZ_IMG_SIZE = 224
 
 def build_tumor_model(arch: str, num_classes: int):
@@ -42,6 +53,20 @@ def build_tumor_model(arch: str, num_classes: int):
         )
         return model
     raise ValueError(f"Unsupported architecture: {arch}")
+
+def build_alzheimers_model(arch: str, num_classes: int):
+    if arch == "mobilenet_v3_large":
+        model = mobilenet_v3_large(weights=None)
+        in_features = model.classifier[3].in_features
+        model.classifier[3] = nn.Linear(in_features, num_classes)
+        return model
+    raise ValueError(f"Unsupported architecture: {arch}")
+
+def infer_linear_outputs(model, fallback):
+    for module in reversed(list(model.modules())):
+        if isinstance(module, nn.Linear):
+            return module.out_features
+    return fallback
 
 def get_tumor_transform():
     mean = [0.485, 0.456, 0.406]
@@ -92,10 +117,12 @@ class App(ttk.Frame):
 
         # Models
         self.gatekeeper_model = None
+        self.gatekeeper_mode = "legacy_3way"
+        self.gatekeeper_classes = ["Normal", "tumor", "dementia"]
         self.tumor_model = None
         self.tumor_classes = []
         self.alz_model = None
-        self.alz_classes = ALZ_CLASSES
+        self.alz_classes = ALZ_CLASSES_4
 
         self.image_path = None
         self.tk_image = None
@@ -245,8 +272,39 @@ class App(ttk.Frame):
     def load_models(self):
         status_texts = []
         
-        # 1. Load Gatekeeper Model
-        if os.path.isfile(GATEKEEPER_MODEL_PATH):
+        # 1. Load Binary Router if present, otherwise fall back to legacy 3-way gatekeeper.
+        self.gatekeeper_model = None
+        self.gatekeeper_mode = "legacy_3way"
+        self.gatekeeper_classes = ["Normal", "tumor", "dementia"]
+
+        if os.path.isfile(BINARY_ROUTER_MODEL_PATH) and build_pipeline_model:
+            try:
+                checkpoint = torch.load(BINARY_ROUTER_MODEL_PATH, map_location=self.device, weights_only=False)
+                if not isinstance(checkpoint, dict) or "model_state" not in checkpoint:
+                    raise ValueError("binary_router.pt is missing pipeline checkpoint metadata")
+
+                self.gatekeeper_classes = checkpoint.get("class_names", ["tumor", "dementia"])
+                model = build_pipeline_model(
+                    checkpoint.get("arch", "resnet50"),
+                    len(self.gatekeeper_classes),
+                    pretrained=False,
+                )
+                model.load_state_dict(checkpoint["model_state"])
+                model.eval().to(self.device)
+                self.gatekeeper_model = model
+                self.gatekeeper_mode = "binary"
+
+                if build_pipeline_transforms:
+                    self.gate_tfms = build_pipeline_transforms(
+                        train=False,
+                        image_size=int(checkpoint.get("image_size", 224)),
+                    )
+                status_texts.append("Binary Router: Ready")
+            except Exception as e:
+                print(f"Error loading binary router model: {e}")
+                status_texts.append("Binary Router: Error")
+
+        elif os.path.isfile(GATEKEEPER_MODEL_PATH):
             try:
                 # Load the file first
                 loaded_obj = torch.load(GATEKEEPER_MODEL_PATH, map_location=self.device, weights_only=False)
@@ -266,7 +324,7 @@ class App(ttk.Frame):
                 print(f"Error loading gatekeeper model: {e}")
                 status_texts.append("Gatekeeper: Error")
         else:
-            status_texts.append("Gatekeeper: Not Found")
+            status_texts.append("Binary Router/Gatekeeper: Not Found")
 
         # 2. Load Tumor Model
         if os.path.isfile(TUMOR_MODEL_PATH):
@@ -284,13 +342,13 @@ class App(ttk.Frame):
                     # If it's a state dict, we need to know the arch. If it's a full model, just use it.
                     if isinstance(checkpoint, nn.Module):
                         model = checkpoint
-                        # Try to infer classes or use default
-                        self.tumor_classes = ["glioma", "meningioma", "notumor", "pituitary"]
+                        output_count = infer_linear_outputs(model, 4)
+                        self.tumor_classes = TUMOR_CLASSES_3 if output_count == 3 else TUMOR_CLASSES_4
                     else:
                         # Fallback for state dict only
                         model = build_tumor_model("efficientnet_b3", 4)
                         model.load_state_dict(checkpoint)
-                        self.tumor_classes = ["glioma", "meningioma", "notumor", "pituitary"]
+                        self.tumor_classes = TUMOR_CLASSES_4
 
                 model.eval().to(self.device)
                 self.tumor_model = model
@@ -304,8 +362,17 @@ class App(ttk.Frame):
         # 3. Load Alzheimer's Model
         if os.path.isfile(ALZHEIMERS_MODEL_PATH):
             try:
-                # This model was saved as a full object, not a state dict
-                self.alz_model = torch.load(ALZHEIMERS_MODEL_PATH, map_location=self.device, weights_only=False)
+                checkpoint = torch.load(ALZHEIMERS_MODEL_PATH, map_location=self.device, weights_only=False)
+                if isinstance(checkpoint, dict) and "model_state" in checkpoint:
+                    arch = checkpoint.get("arch", "mobilenet_v3_large")
+                    self.alz_classes = checkpoint.get("class_names", ALZ_CLASSES_4)
+                    self.alz_model = build_alzheimers_model(arch, len(self.alz_classes))
+                    self.alz_model.load_state_dict(checkpoint["model_state"])
+                else:
+                    # Older training scripts saved the full model object.
+                    self.alz_model = checkpoint
+                    output_count = infer_linear_outputs(self.alz_model, 4)
+                    self.alz_classes = ALZ_CLASSES_3 if output_count == 3 else ALZ_CLASSES_4
                 self.alz_model.eval().to(self.device)
                 status_texts.append("Alzheimer's: Ready")
             except Exception as e:
@@ -503,23 +570,31 @@ class App(ttk.Frame):
                     output = self.gatekeeper_model(tensor)
             else:
                 output = self.gatekeeper_model(tensor)
-            
-            # Multi-class output: [Normal, Tumor, Dementia]
-            probs = torch.softmax(output, dim=1).squeeze(0)
-            top_prob, top_idx = torch.topk(probs, 1)
-            class_idx = top_idx.item()
-            gate_conf = top_prob.item()
 
-            if class_idx == 0:
-                target_domain = "normal"
-                print(f"Gatekeeper: Normal/No Tumor detected (confidence {gate_conf*100:.2f}%)")
-                return "Normal", gate_conf * 100.0, "Gatekeeper Model"
-            elif class_idx == 1:
-                target_domain = "tumor"
-                print(f"Gatekeeper: Tumor scan detected (confidence {gate_conf*100:.2f}%)")
-            elif class_idx == 2:
-                target_domain = "dementia"
-                print(f"Gatekeeper: Dementia detected (confidence {gate_conf*100:.2f}%)")
+            if self.gatekeeper_mode == "binary":
+                probs = torch.softmax(output, dim=1).squeeze(0)
+                top_prob, top_idx = torch.topk(probs, 1)
+                class_idx = top_idx.item()
+                gate_conf = top_prob.item()
+                target_domain = self.gatekeeper_classes[class_idx].lower()
+                print(f"Binary router: {target_domain} scan detected (confidence {gate_conf*100:.2f}%)")
+            else:
+                # Legacy multi-class output: [Normal, Tumor, Dementia]
+                probs = torch.softmax(output, dim=1).squeeze(0)
+                top_prob, top_idx = torch.topk(probs, 1)
+                class_idx = top_idx.item()
+                gate_conf = top_prob.item()
+
+                if class_idx == 0:
+                    target_domain = "normal"
+                    print(f"Gatekeeper: Normal/No Tumor detected (confidence {gate_conf*100:.2f}%)")
+                    return "Normal", gate_conf * 100.0, "Gatekeeper Model"
+                elif class_idx == 1:
+                    target_domain = "tumor"
+                    print(f"Gatekeeper: Tumor scan detected (confidence {gate_conf*100:.2f}%)")
+                elif class_idx == 2:
+                    target_domain = "dementia"
+                    print(f"Gatekeeper: Dementia detected (confidence {gate_conf*100:.2f}%)")
 
         # 2. Specialized Classification Phase
         if target_domain == "dementia" and self.alz_model:

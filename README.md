@@ -119,6 +119,22 @@ This project is an advanced medical imaging analysis tool. It uses deep learning
 
 ## How to Run
 
+### Clean Research Training Flow
+For strict tumor-vs-dementia retraining, hierarchical evaluation, the single 8-class baseline, and Colab multimodal/LoRA work, use the execution guide:
+
+```bash
+python -m src.experiment_pipeline create-manifest
+python -m src.experiment_pipeline train --task binary --epochs 30 --batch-size 32 --pretrained
+python -m src.experiment_pipeline train --task tumor --epochs 30 --batch-size 32 --pretrained
+python -m src.experiment_pipeline train --task dementia --epochs 30 --batch-size 32 --pretrained
+python -m src.experiment_pipeline evaluate-hierarchical --split test
+python -m src.experiment_pipeline train --task eight_class --epochs 30 --batch-size 32 --pretrained
+```
+
+See `docs/ML_EXECUTION_FLOW.md` and `docs/PUBLICATION_NOTES.md` for the full task order, leakage controls, Colab plan, and publication tables.
+
+For cloud execution, dispatch the **ML Experiment Suite** GitHub Actions workflow in `smoke` mode for validation or `full` mode on a CUDA/GPU runner. For multimodal LLM benchmarking and LoRA fine-tuning, open `notebooks/multimodal_llm_lora_colab.ipynb` in Google Colab.
+
 ### Main GUI Application
 Run the main GUI application (using the module flag to ensure imports work correctly):
 

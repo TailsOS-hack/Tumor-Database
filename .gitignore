@@ -4,3 +4,6 @@
 models/Collab_Train/Train_Config/data.zip
 models/*.pt
 !models/backup*/*.pt
+training_logs/experiments/
+training_logs/splits/
+notebooks/.ipynb_checkpoints/

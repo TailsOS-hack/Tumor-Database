@@ -1,0 +1,100 @@
+name: ML Experiment Suite
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: manifest, smoke, or full
+        required: true
+        default: smoke
+        type: choice
+        options:
+          - manifest
+          - smoke
+          - full
+      runner:
+        description: JSON runs-on value. Use "\"ubuntu-latest\"" for smoke or a self-hosted GPU label array for full.
+        required: true
+        default: '"ubuntu-latest"'
+        type: string
+      epochs:
+        description: Epochs for full runs
+        required: true
+        default: "30"
+        type: string
+      batch_size:
+        description: Batch size for full runs
+        required: true
+        default: "32"
+        type: string
+      allow_cpu_full:
+        description: Allow full mode without CUDA. This is very slow.
+        required: true
+        default: false
+        type: boolean
+  push:
+    paths:
+      - ".github/workflows/ml-experiment-suite.yml"
+      - "src/experiment_pipeline.py"
+      - "src/hierarchical_inference.py"
+      - "scripts/run_experiment_suite.py"
+      - "scripts/collect_publication_results.py"
+      - "docs/ML_EXECUTION_FLOW.md"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: ml-experiment-suite-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: false
+
+jobs:
+  run-suite:
+    name: Run ML experiment suite
+    runs-on: ${{ fromJSON(inputs.runner || '"ubuntu-latest"') }}
+    timeout-minutes: 360
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Run experiment suite
+        env:
+          EXPERIMENT_MODE: ${{ inputs.mode || 'smoke' }}
+          EXPERIMENT_EPOCHS: ${{ inputs.epochs || '1' }}
+          EXPERIMENT_BATCH_SIZE: ${{ inputs.batch_size || '4' }}
+        run: |
+          EXTRA_ARGS=""
+          if [ "${{ inputs.allow_cpu_full && 'true' || 'false' }}" = "true" ]; then
+            EXTRA_ARGS="--allow-cpu-full"
+          fi
+          python scripts/run_experiment_suite.py $EXTRA_ARGS
+
+      - name: Upload experiment artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tumor-database-ml-experiment-${{ github.run_id }}
+          path: |
+            training_logs/splits/strict_manifest.csv
+            training_logs/experiments/**
+            models/binary_router.pt
+            models/brain_tumor_classifier.pt
+            models/alzheimers_classifier.pt
+            models/single_8class_classifier.pt
+          if-no-files-found: warn
+          retention-days: 14
