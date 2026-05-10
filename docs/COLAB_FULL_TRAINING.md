@@ -18,6 +18,11 @@ urllib.request.urlretrieve(
 )
 result = subprocess.run([sys.executable, script, "--epochs", "30", "--batch-size", "32"])
 if result.returncode:
+    from pathlib import Path
+
+    log = Path("/content/tumor_database_colab_console.log")
+    if log.exists():
+        print("\n".join(log.read_text(errors="replace").splitlines()[-160:]))
     raise SystemExit(
         "Training failed. Scroll up to the FAILED banner, or send back the downloaded failure zip."
     )

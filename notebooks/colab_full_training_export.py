@@ -374,6 +374,20 @@ def package_failure(args: argparse.Namespace, error: BaseException) -> Path:
     return archive_path
 
 
+def print_console_tail(line_count: int = 160) -> None:
+    path = console_log_path()
+    if not path or not path.exists():
+        print("No console log was found to print.", flush=True)
+        return
+
+    lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+    print("\n" + "=" * 80, flush=True)
+    print(f"Last {min(line_count, len(lines))} lines from {path}", flush=True)
+    print("=" * 80, flush=True)
+    for line in lines[-line_count:]:
+        print(line, flush=True)
+
+
 def cleanup_colab_clone(repo_root: Path, archive_path: Path, enabled: bool) -> None:
     if not enabled:
         return
@@ -473,6 +487,7 @@ def main() -> None:
     except Exception as exc:
         log_progress(args, "Colab full training export", "FAILED", f"{type(exc).__name__}: {exc}")
         package_failure(args, exc)
+        print_console_tail()
         print(
             "\nRun failed. If this was a GPU/CUDA error, set Colab to Runtime > Change runtime type > GPU "
             "and rerun the same cell. Otherwise send me the downloaded failure zip.",
