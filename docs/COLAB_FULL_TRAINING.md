@@ -36,6 +36,21 @@ What it does:
 7. Starts a browser download of the same zip.
 8. Deletes the temporary Colab repo clone after packaging.
 
+## Progress Updates
+
+The Colab output prints large `START`, `DONE`, and `FAILED` banners for each major stage:
+
+- mount Drive
+- clone repo
+- install dependencies
+- check GPU
+- run strict training suite
+- package models and metrics
+- start browser download
+- delete temporary clone
+
+Inside the training stage, each model task prints its own command and epoch progress. The export zip also includes `colab_run_progress.jsonl` with the progress events that were recorded before packaging.
+
 The exported zip should include:
 
 - `models/binary_router.pt`
@@ -45,6 +60,7 @@ The exported zip should include:
 - `training_logs/splits/strict_manifest.csv`
 - `training_logs/experiments/**`
 - `colab_export_manifest.json`
+- `colab_run_progress.jsonl`
 
 ## Local Import After Download
 

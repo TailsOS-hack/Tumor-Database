@@ -22,6 +22,13 @@ def run(args: list[str]) -> None:
     subprocess.run(command, cwd=PROJECT_ROOT, check=True)
 
 
+def announce(message: str) -> None:
+    timestamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    print("\n" + "-" * 80, flush=True)
+    print(f"[{timestamp}] {message}", flush=True)
+    print("-" * 80, flush=True)
+
+
 def cuda_available() -> bool:
     try:
         import torch
@@ -50,7 +57,9 @@ def collect_results(output_dir: Path) -> None:
 
 
 def run_manifest() -> None:
+    announce("Creating strict train/val/test manifest")
     run(["create-manifest"])
+    announce("Summarizing strict manifest")
     run(["summary"])
 
 
@@ -71,8 +80,10 @@ def run_smoke(output_dir: Path) -> None:
         str(output_dir),
     ]
     for task in ["binary", "tumor", "dementia"]:
+        announce(f"Smoke training {task} model")
         run(["train", "--task", task, *common])
 
+    announce("Smoke evaluating hierarchical pipeline")
     run(
         [
             "evaluate-hierarchical",
@@ -87,7 +98,9 @@ def run_smoke(output_dir: Path) -> None:
             str(output_dir),
         ]
     )
+    announce("Smoke training single 8-class baseline")
     run(["train", "--task", "eight_class", *common])
+    announce("Collecting smoke publication summary")
     collect_results(output_dir)
 
 
@@ -111,10 +124,14 @@ def run_full(output_dir: Path, epochs: int, batch_size: int, num_workers: int, a
         "--pretrained",
     ]
     for task in ["binary", "tumor", "dementia"]:
+        announce(f"Full training {task} model")
         run(["train", "--task", task, *common])
 
+    announce("Evaluating full hierarchical pipeline on strict test split")
     run(["evaluate-hierarchical", "--num-workers", str(num_workers), "--output-dir", str(output_dir)])
+    announce("Full training single 8-class baseline")
     run(["train", "--task", "eight_class", *common])
+    announce("Collecting full publication summary")
     collect_results(output_dir)
 
 

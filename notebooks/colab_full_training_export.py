@@ -21,7 +21,9 @@ import shutil
 import shlex
 import subprocess
 import sys
+import time
 import zipfile
+from contextlib import contextmanager
 from pathlib import Path
 
 
@@ -43,6 +45,7 @@ ARTIFACT_DIRS = [
     "training_logs/splits",
     "training_logs/experiments",
 ]
+ARCHIVE_PROGRESS_LOG = "colab_run_progress.jsonl"
 
 
 def quote_command(command: list[str | Path]) -> str:
@@ -51,7 +54,53 @@ def quote_command(command: list[str | Path]) -> str:
 
 def run(command: list[str | Path], *, cwd: Path | None = None) -> None:
     print(f"$ {quote_command(command)}", flush=True)
-    subprocess.run([str(part) for part in command], cwd=str(cwd) if cwd else None, check=True)
+    env = os.environ.copy()
+    env.setdefault("PYTHONUNBUFFERED", "1")
+    subprocess.run([str(part) for part in command], cwd=str(cwd) if cwd else None, check=True, env=env)
+
+
+def progress_log_path(args: argparse.Namespace) -> Path:
+    return Path(args.progress_log)
+
+
+def log_progress(args: argparse.Namespace, step: str, status: str, detail: str = "") -> None:
+    timestamp = dt.datetime.now(dt.UTC).isoformat(timespec="seconds")
+    message = f"[{timestamp}] {status}: {step}"
+    if detail:
+        message += f" ({detail})"
+    print("\n" + "=" * 80, flush=True)
+    print(message, flush=True)
+    print("=" * 80, flush=True)
+
+    path = progress_log_path(args)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(
+            json.dumps(
+                {
+                    "created_utc": timestamp,
+                    "step": step,
+                    "status": status,
+                    "detail": detail,
+                }
+            )
+            + "\n"
+        )
+
+
+@contextmanager
+def progress_step(args: argparse.Namespace, step: str):
+    started = time.monotonic()
+    log_progress(args, step, "START")
+    try:
+        yield
+    except Exception as exc:
+        elapsed = f"{time.monotonic() - started:.1f}s"
+        log_progress(args, step, "FAILED", f"{type(exc).__name__}: {exc}; elapsed={elapsed}")
+        raise
+    else:
+        elapsed = f"{time.monotonic() - started:.1f}s"
+        log_progress(args, step, "DONE", f"elapsed={elapsed}")
 
 
 def in_colab() -> bool:
@@ -214,6 +263,7 @@ def package_artifacts(repo_root: Path, args: argparse.Namespace) -> Path:
         "epochs": args.epochs,
         "batch_size": args.batch_size,
         "num_workers": args.num_workers,
+        "progress_log": ARCHIVE_PROGRESS_LOG,
         "model_files": collect_model_metadata(repo_root),
         "archive_name": archive_path.name,
     }
@@ -221,6 +271,9 @@ def package_artifacts(repo_root: Path, args: argparse.Namespace) -> Path:
     files = iter_artifact_files(repo_root)
     with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as archive:
         archive.writestr("colab_export_manifest.json", json.dumps(manifest, indent=2))
+        progress_path = progress_log_path(args)
+        if progress_path.exists():
+            archive.write(progress_path, ARCHIVE_PROGRESS_LOG)
         for path in files:
             archive.write(path, path.relative_to(repo_root).as_posix())
 
@@ -262,6 +315,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Drive folder used for durable Colab exports.",
     )
     parser.add_argument("--export-root", default=os.environ.get("TUMOR_DB_EXPORT_ROOT", ""))
+    parser.add_argument("--progress-log", default=os.environ.get("TUMOR_DB_PROGRESS_LOG", ""))
     parser.add_argument("--mode", choices=["smoke", "full"], default=os.environ.get("EXPERIMENT_MODE", "full"))
     parser.add_argument("--epochs", type=int, default=int(os.environ.get("EXPERIMENT_EPOCHS", "30")))
     parser.add_argument("--batch-size", type=int, default=int(os.environ.get("EXPERIMENT_BATCH_SIZE", "32")))
@@ -281,22 +335,49 @@ def main() -> None:
     args = build_parser().parse_args()
     if not args.export_root:
         args.export_root = str(Path(args.drive_root) / "exports")
+    if not args.progress_log:
+        args.progress_log = str(Path(args.work_dir).parent / "tumor_database_colab_progress.jsonl")
 
-    if not args.skip_drive_mount:
-        mount_drive()
+    progress_path = progress_log_path(args)
+    if progress_path.exists():
+        progress_path.unlink()
 
-    repo_root = clone_repo(args)
-    if not args.skip_install:
-        install_dependencies(repo_root)
+    log_progress(args, "Colab full training export", "START", f"mode={args.mode}, epochs={args.epochs}")
 
-    show_gpu()
-    run_training_suite(repo_root, args)
-    archive_path = package_artifacts(repo_root, args)
+    with progress_step(args, "1/8 Mount Google Drive"):
+        if not args.skip_drive_mount:
+            mount_drive()
+        else:
+            print("Skipping Drive mount because --skip-drive-mount was provided.", flush=True)
 
-    if args.download:
-        download_archive(archive_path)
+    with progress_step(args, "2/8 Fresh clone Tumor-Database"):
+        repo_root = clone_repo(args)
 
-    cleanup_colab_clone(repo_root, archive_path, args.cleanup_clone)
+    with progress_step(args, "3/8 Install training dependencies"):
+        if not args.skip_install:
+            install_dependencies(repo_root)
+        else:
+            print("Skipping dependency install because --skip-install was provided.", flush=True)
+
+    with progress_step(args, "4/8 Check GPU"):
+        show_gpu()
+
+    with progress_step(args, "5/8 Run strict training suite"):
+        run_training_suite(repo_root, args)
+
+    with progress_step(args, "6/8 Package models and metrics"):
+        archive_path = package_artifacts(repo_root, args)
+
+    with progress_step(args, "7/8 Start browser download"):
+        if args.download:
+            download_archive(archive_path)
+        else:
+            print("Skipping browser download because --no-download was provided.", flush=True)
+
+    with progress_step(args, "8/8 Delete temporary Colab clone"):
+        cleanup_colab_clone(repo_root, archive_path, args.cleanup_clone)
+
+    log_progress(args, "Colab full training export", "DONE", f"archive={archive_path}")
     print("Done. Send the downloaded zip back to the local machine for import.", flush=True)
 
 
