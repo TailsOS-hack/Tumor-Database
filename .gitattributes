@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Store trained PyTorch checkpoints with Git LFS.
+models/*.pt filter=lfs diff=lfs merge=lfs -text

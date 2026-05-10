@@ -3,6 +3,10 @@
 # Large Data and Models
 models/Collab_Train/Train_Config/data.zip
 models/*.pt
+!models/binary_router.pt
+!models/brain_tumor_classifier.pt
+!models/alzheimers_classifier.pt
+!models/single_8class_classifier.pt
 !models/backup*/*.pt
 training_logs/experiments/
 training_logs/splits/

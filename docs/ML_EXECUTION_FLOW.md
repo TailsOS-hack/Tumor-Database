@@ -21,6 +21,8 @@ This is the clean restart plan for the tumor/dementia project. Training and larg
 
    The GitHub Actions workflow `.github/workflows/ml-experiment-suite.yml` runs the manifest, binary router, tumor specialist, dementia specialist, hierarchical evaluation, single 8-class baseline, and publication-summary collection. Use `smoke` on `ubuntu-latest`; use `full` on a CUDA/GPU runner.
 
+   For a one-shot Google Colab run that trains and then downloads a single artifact zip, use `docs/COLAB_FULL_TRAINING.md`.
+
    Recommended full-run dispatch settings:
 
    - `mode`: `full`
@@ -102,6 +104,7 @@ This is the clean restart plan for the tumor/dementia project. Training and larg
 - Model checkpoints: `models/binary_router.pt`, `models/brain_tumor_classifier.pt`, `models/alzheimers_classifier.pt`, `models/single_8class_classifier.pt`
 - Metrics: `training_logs/experiments/<task>/<run>/test/`
 - End-to-end metrics: `training_logs/experiments/hierarchical/test_evaluation/`
+- Colab export bundle: `MyDrive/Tumor-Database/exports/tumor_database_colab_artifacts_*.zip`
 
 ## Multimodal Candidate References
 
