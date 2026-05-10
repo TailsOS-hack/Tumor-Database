@@ -46,17 +46,48 @@ ARTIFACT_DIRS = [
     "training_logs/experiments",
 ]
 ARCHIVE_PROGRESS_LOG = "colab_run_progress.jsonl"
+ARCHIVE_CONSOLE_LOG = "colab_console.log"
 
 
 def quote_command(command: list[str | Path]) -> str:
     return " ".join(shlex.quote(str(part)) for part in command)
 
 
+def console_log_path() -> Path | None:
+    value = os.environ.get("TUMOR_DB_CONSOLE_LOG", "")
+    return Path(value) if value else None
+
+
+def append_console_log(text: str) -> None:
+    path = console_log_path()
+    if not path:
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(text)
+
+
 def run(command: list[str | Path], *, cwd: Path | None = None) -> None:
     print(f"$ {quote_command(command)}", flush=True)
+    append_console_log(f"$ {quote_command(command)}\n")
     env = os.environ.copy()
     env.setdefault("PYTHONUNBUFFERED", "1")
-    subprocess.run([str(part) for part in command], cwd=str(cwd) if cwd else None, check=True, env=env)
+    process = subprocess.Popen(
+        [str(part) for part in command],
+        cwd=str(cwd) if cwd else None,
+        env=env,
+        stderr=subprocess.STDOUT,
+        stdout=subprocess.PIPE,
+        text=True,
+        bufsize=1,
+    )
+    assert process.stdout is not None
+    for line in process.stdout:
+        print(line, end="", flush=True)
+        append_console_log(line)
+    return_code = process.wait()
+    if return_code:
+        raise subprocess.CalledProcessError(return_code, [str(part) for part in command])
 
 
 def progress_log_path(args: argparse.Namespace) -> Path:
@@ -71,6 +102,9 @@ def log_progress(args: argparse.Namespace, step: str, status: str, detail: str =
     print("\n" + "=" * 80, flush=True)
     print(message, flush=True)
     print("=" * 80, flush=True)
+    append_console_log("\n" + "=" * 80 + "\n")
+    append_console_log(message + "\n")
+    append_console_log("=" * 80 + "\n")
 
     path = progress_log_path(args)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -264,6 +298,7 @@ def package_artifacts(repo_root: Path, args: argparse.Namespace) -> Path:
         "batch_size": args.batch_size,
         "num_workers": args.num_workers,
         "progress_log": ARCHIVE_PROGRESS_LOG,
+        "console_log": ARCHIVE_CONSOLE_LOG,
         "model_files": collect_model_metadata(repo_root),
         "archive_name": archive_path.name,
     }
@@ -274,6 +309,9 @@ def package_artifacts(repo_root: Path, args: argparse.Namespace) -> Path:
         progress_path = progress_log_path(args)
         if progress_path.exists():
             archive.write(progress_path, ARCHIVE_PROGRESS_LOG)
+        console_path = console_log_path()
+        if console_path and console_path.exists():
+            archive.write(console_path, ARCHIVE_CONSOLE_LOG)
         for path in files:
             archive.write(path, path.relative_to(repo_root).as_posix())
 
@@ -289,6 +327,51 @@ def download_archive(archive_path: Path) -> None:
 
     print("Starting browser download. Keep this tab open until the download starts.", flush=True)
     files.download(str(archive_path))
+
+
+def package_failure(args: argparse.Namespace, error: BaseException) -> Path:
+    timestamp = dt.datetime.now(dt.UTC).strftime("%Y%m%d_%H%M%S")
+    archive_path = Path("/content") / f"tumor_database_colab_failure_{timestamp}.zip"
+    failure_payload = {
+        "created_utc": dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
+        "error_type": type(error).__name__,
+        "error": str(error),
+        "mode": args.mode,
+        "epochs": args.epochs,
+        "batch_size": args.batch_size,
+        "num_workers": args.num_workers,
+        "next_steps": [
+            "Scroll above to the FAILED banner and the command output immediately before it.",
+            "If the error says CUDA/GPU is unavailable, switch Colab to Runtime > Change runtime type > GPU and rerun.",
+            "Send this failure zip or the last 120 console-log lines back for diagnosis.",
+        ],
+    }
+
+    with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as archive:
+        archive.writestr("colab_failure.json", json.dumps(failure_payload, indent=2))
+        progress_path = progress_log_path(args)
+        if progress_path.exists():
+            archive.write(progress_path, ARCHIVE_PROGRESS_LOG)
+        console_path = console_log_path()
+        if console_path and console_path.exists():
+            archive.write(console_path, ARCHIVE_CONSOLE_LOG)
+
+    try:
+        export_root = Path(args.export_root)
+        export_root.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(archive_path, export_root / archive_path.name)
+    except Exception as copy_error:
+        print(f"Could not copy failure zip to Drive/export folder: {copy_error}", flush=True)
+
+    print(f"Failure bundle ready: {archive_path}", flush=True)
+    if in_colab():
+        try:
+            from google.colab import files  # type: ignore
+
+            files.download(str(archive_path))
+        except Exception as download_error:
+            print(f"Could not start failure-bundle browser download: {download_error}", flush=True)
+    return archive_path
 
 
 def cleanup_colab_clone(repo_root: Path, archive_path: Path, enabled: bool) -> None:
@@ -316,6 +399,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--export-root", default=os.environ.get("TUMOR_DB_EXPORT_ROOT", ""))
     parser.add_argument("--progress-log", default=os.environ.get("TUMOR_DB_PROGRESS_LOG", ""))
+    parser.add_argument("--console-log", default=os.environ.get("TUMOR_DB_CONSOLE_LOG", ""))
     parser.add_argument("--mode", choices=["smoke", "full"], default=os.environ.get("EXPERIMENT_MODE", "full"))
     parser.add_argument("--epochs", type=int, default=int(os.environ.get("EXPERIMENT_EPOCHS", "30")))
     parser.add_argument("--batch-size", type=int, default=int(os.environ.get("EXPERIMENT_BATCH_SIZE", "32")))
@@ -337,48 +421,64 @@ def main() -> None:
         args.export_root = str(Path(args.drive_root) / "exports")
     if not args.progress_log:
         args.progress_log = str(Path(args.work_dir).parent / "tumor_database_colab_progress.jsonl")
+    if not args.console_log:
+        args.console_log = str(Path(args.work_dir).parent / "tumor_database_colab_console.log")
+    os.environ["TUMOR_DB_CONSOLE_LOG"] = args.console_log
 
     progress_path = progress_log_path(args)
     if progress_path.exists():
         progress_path.unlink()
+    console_path = console_log_path()
+    if console_path and console_path.exists():
+        console_path.unlink()
 
     log_progress(args, "Colab full training export", "START", f"mode={args.mode}, epochs={args.epochs}")
 
-    with progress_step(args, "1/8 Mount Google Drive"):
-        if not args.skip_drive_mount:
-            mount_drive()
-        else:
-            print("Skipping Drive mount because --skip-drive-mount was provided.", flush=True)
+    try:
+        with progress_step(args, "1/8 Mount Google Drive"):
+            if not args.skip_drive_mount:
+                mount_drive()
+            else:
+                print("Skipping Drive mount because --skip-drive-mount was provided.", flush=True)
 
-    with progress_step(args, "2/8 Fresh clone Tumor-Database"):
-        repo_root = clone_repo(args)
+        with progress_step(args, "2/8 Fresh clone Tumor-Database"):
+            repo_root = clone_repo(args)
 
-    with progress_step(args, "3/8 Install training dependencies"):
-        if not args.skip_install:
-            install_dependencies(repo_root)
-        else:
-            print("Skipping dependency install because --skip-install was provided.", flush=True)
+        with progress_step(args, "3/8 Install training dependencies"):
+            if not args.skip_install:
+                install_dependencies(repo_root)
+            else:
+                print("Skipping dependency install because --skip-install was provided.", flush=True)
 
-    with progress_step(args, "4/8 Check GPU"):
-        show_gpu()
+        with progress_step(args, "4/8 Check GPU"):
+            show_gpu()
 
-    with progress_step(args, "5/8 Run strict training suite"):
-        run_training_suite(repo_root, args)
+        with progress_step(args, "5/8 Run strict training suite"):
+            run_training_suite(repo_root, args)
 
-    with progress_step(args, "6/8 Package models and metrics"):
-        archive_path = package_artifacts(repo_root, args)
+        with progress_step(args, "6/8 Package models and metrics"):
+            archive_path = package_artifacts(repo_root, args)
 
-    with progress_step(args, "7/8 Start browser download"):
-        if args.download:
-            download_archive(archive_path)
-        else:
-            print("Skipping browser download because --no-download was provided.", flush=True)
+        with progress_step(args, "7/8 Start browser download"):
+            if args.download:
+                download_archive(archive_path)
+            else:
+                print("Skipping browser download because --no-download was provided.", flush=True)
 
-    with progress_step(args, "8/8 Delete temporary Colab clone"):
-        cleanup_colab_clone(repo_root, archive_path, args.cleanup_clone)
+        with progress_step(args, "8/8 Delete temporary Colab clone"):
+            cleanup_colab_clone(repo_root, archive_path, args.cleanup_clone)
 
-    log_progress(args, "Colab full training export", "DONE", f"archive={archive_path}")
-    print("Done. Send the downloaded zip back to the local machine for import.", flush=True)
+        log_progress(args, "Colab full training export", "DONE", f"archive={archive_path}")
+        print("Done. Send the downloaded zip back to the local machine for import.", flush=True)
+    except Exception as exc:
+        log_progress(args, "Colab full training export", "FAILED", f"{type(exc).__name__}: {exc}")
+        package_failure(args, exc)
+        print(
+            "\nRun failed. If this was a GPU/CUDA error, set Colab to Runtime > Change runtime type > GPU "
+            "and rerun the same cell. Otherwise send me the downloaded failure zip.",
+            flush=True,
+        )
+        raise
 
 
 if __name__ == "__main__":

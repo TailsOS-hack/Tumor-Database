@@ -16,7 +16,11 @@ urllib.request.urlretrieve(
     "https://raw.githubusercontent.com/TailsOS-hack/Tumor-Database/main/notebooks/colab_full_training_export.py",
     script,
 )
-subprocess.check_call([sys.executable, script, "--epochs", "30", "--batch-size", "32"])
+result = subprocess.run([sys.executable, script, "--epochs", "30", "--batch-size", "32"])
+if result.returncode:
+    raise SystemExit(
+        "Training failed. Scroll up to the FAILED banner, or send back the downloaded failure zip."
+    )
 ```
 
 What it does:
@@ -49,7 +53,9 @@ The Colab output prints large `START`, `DONE`, and `FAILED` banners for each maj
 - start browser download
 - delete temporary clone
 
-Inside the training stage, each model task prints its own command and epoch progress. The export zip also includes `colab_run_progress.jsonl` with the progress events that were recorded before packaging.
+Inside the training stage, each model task prints its own command and epoch progress. The export zip also includes `colab_run_progress.jsonl` and `colab_console.log` with the progress events and command output that were recorded before packaging.
+
+If the cell ends with `CalledProcessError`, scroll up to the nearest `FAILED` banner. The runner will also try to download a `tumor_database_colab_failure_*.zip` file that contains `colab_failure.json`, `colab_run_progress.jsonl`, and `colab_console.log`.
 
 The exported zip should include:
 
@@ -61,6 +67,7 @@ The exported zip should include:
 - `training_logs/experiments/**`
 - `colab_export_manifest.json`
 - `colab_run_progress.jsonl`
+- `colab_console.log`
 
 ## Local Import After Download
 
