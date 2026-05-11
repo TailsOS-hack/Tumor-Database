@@ -1,0 +1,77 @@
+{
+  "rows": 51023,
+  "counts": {
+    "test::dementia_MildDemented": {
+      "count": 2000
+    },
+    "test::dementia_ModerateDemented": {
+      "count": 2000
+    },
+    "test::dementia_NonDemented": {
+      "count": 2560
+    },
+    "test::dementia_VeryMildDemented": {
+      "count": 2240
+    },
+    "test::tumor_glioma": {
+      "count": 300
+    },
+    "test::tumor_meningioma": {
+      "count": 306
+    },
+    "test::tumor_notumor": {
+      "count": 405
+    },
+    "test::tumor_pituitary": {
+      "count": 300
+    },
+    "train::dementia_MildDemented": {
+      "count": 7000
+    },
+    "train::dementia_ModerateDemented": {
+      "count": 7000
+    },
+    "train::dementia_NonDemented": {
+      "count": 8960
+    },
+    "train::dementia_VeryMildDemented": {
+      "count": 7840
+    },
+    "train::tumor_glioma": {
+      "count": 1189
+    },
+    "train::tumor_meningioma": {
+      "count": 1205
+    },
+    "train::tumor_notumor": {
+      "count": 1435
+    },
+    "train::tumor_pituitary": {
+      "count": 1311
+    },
+    "val::dementia_MildDemented": {
+      "count": 1000
+    },
+    "val::dementia_ModerateDemented": {
+      "count": 1000
+    },
+    "val::dementia_NonDemented": {
+      "count": 1280
+    },
+    "val::dementia_VeryMildDemented": {
+      "count": 1120
+    },
+    "val::tumor_glioma": {
+      "count": 132
+    },
+    "val::tumor_meningioma": {
+      "count": 134
+    },
+    "val::tumor_notumor": {
+      "count": 160
+    },
+    "val::tumor_pituitary": {
+      "count": 146
+    }
+  }
+}

@@ -86,15 +86,23 @@ Per-domain LoRA accuracy on the balanced 96-image sample:
 
 The multimodal VLMs produced strict JSON reliably, but their MRI label accuracy was weak. Batch 2 LoRA improved over zero-shot prompting but still showed label collapse. This supports keeping the CNN classifier suite as the primary image classifier and treating multimodal models as experimental report/metadata helpers unless the task is redesigned.
 
-## Batch 3 Configuration
+## Batch 3 Hierarchical Diagnostic
 
-Batch 3 is a targeted hierarchical diagnostic instead of another flat 8-class LoRA run.
+Batch 3 was a targeted hierarchical diagnostic instead of another flat 8-class LoRA run.
 
 - Kernel: `armankazi/tumor-multimodal-qwen-kaggle`
+- Kernel version: 5
+- Run date: 2026-05-11
 - Script: `notebooks/kaggle_multimodal_qwen_kernel.py`
-- Models: `Qwen/Qwen2.5-VL-3B-Instruct` and, if enough GPU memory is assigned, `Qwen/Qwen2.5-VL-7B-Instruct`
+- GPU: two Tesla T4 GPUs, 29.12 GB aggregate memory
+- Local artifact path: `training_logs/multimodal/kaggle_qwen_batch3/`
 - Method: ask tumor-vs-dementia first, then ask the matching 4-way subtype prompt
 - Metrics: domain accuracy, routed hierarchical 8-class accuracy, oracle-domain subtype accuracy, JSON rates, confusion matrices, prediction counts
 - LoRA: disabled for this batch so the run isolates prompt/task structure from adapter training
+
+| Candidate | Test Sample | Domain Accuracy | Routed 8-Class Accuracy | Oracle-Domain Subtype Accuracy | JSON Rate | Main Failure Mode |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Qwen/Qwen2.5-VL-3B-Instruct | 80 | 0.6375 | 0.1125 | 0.2375 | 1.0000 | Routed many tumor examples into dementia; subtype predictions collapsed |
+| Qwen/Qwen2.5-VL-7B-Instruct | 40 | 0.8750 | 0.2250 | 0.2500 | 1.0000 | Stronger broad-domain routing, but subtypes collapsed to `tumor_notumor` and `dementia_NonDemented` |
 
 The recommended next multimodal direction is not another blind 8-class VLM classifier run. Instead, use the trained CNN image classifiers for diagnosis labels and evaluate the VLM as a report explainer or metadata generator conditioned on classifier probabilities, or continue redesigning multimodal training into smaller hierarchical tasks.

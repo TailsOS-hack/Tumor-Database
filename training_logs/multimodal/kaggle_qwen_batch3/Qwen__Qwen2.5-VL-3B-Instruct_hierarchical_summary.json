@@ -1,0 +1,271 @@
+{
+  "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
+  "status": "completed",
+  "mode": "hierarchical",
+  "notes": "Batch 3 primary hierarchical diagnostic on the best free-tier Qwen model.",
+  "n": 80,
+  "domain_accuracy": 0.6375,
+  "accuracy": 0.1125,
+  "hierarchical_accuracy": 0.1125,
+  "oracle_domain_accuracy": 0.2375,
+  "domain_strict_json_rate": 1.0,
+  "subtype_strict_json_rate": 1.0,
+  "oracle_subtype_strict_json_rate": 1.0,
+  "seconds": 1219.66,
+  "domain_pred_counts": {
+    "dementia": 69,
+    "tumor": 11
+  },
+  "pred_counts": {
+    "dementia_NonDemented": 30,
+    "tumor_notumor": 10,
+    "dementia_ModerateDemented": 4,
+    "tumor_glioma": 1,
+    "dementia_VeryMildDemented": 35
+  },
+  "oracle_pred_counts": {
+    "tumor_notumor": 39,
+    "tumor_glioma": 1,
+    "dementia_VeryMildDemented": 34,
+    "dementia_NonDemented": 5,
+    "dementia_ModerateDemented": 1
+  },
+  "domain_classification_report": "                  precision    recall  f1-score   support\n\n           tumor       1.00      0.28      0.43        40\n        dementia       0.58      1.00      0.73        40\nINVALID_OR_PARSE       0.00      0.00      0.00         0\n\n        accuracy                           0.64        80\n       macro avg       0.53      0.42      0.39        80\n    weighted avg       0.79      0.64      0.58        80\n",
+  "classification_report": "                           precision    recall  f1-score   support\n\n             tumor_glioma       0.00      0.00      0.00        10\n         tumor_meningioma       0.00      0.00      0.00        10\n            tumor_notumor       0.00      0.00      0.00        10\n          tumor_pituitary       0.00      0.00      0.00        10\n    dementia_MildDemented       0.00      0.00      0.00        10\ndementia_ModerateDemented       0.00      0.00      0.00        10\n     dementia_NonDemented       0.07      0.20      0.10        10\ndementia_VeryMildDemented       0.20      0.70      0.31        10\n         INVALID_OR_PARSE       0.00      0.00      0.00         0\n\n                 accuracy                           0.11        80\n                macro avg       0.03      0.10      0.05        80\n             weighted avg       0.03      0.11      0.05        80\n",
+  "oracle_domain_classification_report": "                           precision    recall  f1-score   support\n\n             tumor_glioma       0.00      0.00      0.00        10\n         tumor_meningioma       0.00      0.00      0.00        10\n            tumor_notumor       0.26      1.00      0.41        10\n          tumor_pituitary       0.00      0.00      0.00        10\n    dementia_MildDemented       0.00      0.00      0.00        10\ndementia_ModerateDemented       0.00      0.00      0.00        10\n     dementia_NonDemented       0.40      0.20      0.27        10\ndementia_VeryMildDemented       0.21      0.70      0.32        10\n         INVALID_OR_PARSE       0.00      0.00      0.00         0\n\n                 accuracy                           0.24        80\n                macro avg       0.10      0.21      0.11        80\n             weighted avg       0.11      0.24      0.12        80\n",
+  "domain_confusion_matrix_labels": [
+    "tumor",
+    "dementia",
+    "INVALID_OR_PARSE"
+  ],
+  "domain_confusion_matrix": [
+    [
+      11,
+      29,
+      0
+    ],
+    [
+      0,
+      40,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ]
+  ],
+  "confusion_matrix_labels": [
+    "tumor_glioma",
+    "tumor_meningioma",
+    "tumor_notumor",
+    "tumor_pituitary",
+    "dementia_MildDemented",
+    "dementia_ModerateDemented",
+    "dementia_NonDemented",
+    "dementia_VeryMildDemented",
+    "INVALID_OR_PARSE"
+  ],
+  "confusion_matrix": [
+    [
+      0,
+      0,
+      4,
+      0,
+      0,
+      0,
+      6,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      5,
+      0,
+      0,
+      1,
+      3,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      2,
+      7,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      9,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      9,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      10,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      2,
+      8,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      2,
+      7,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "oracle_domain_confusion_matrix": [
+    [
+      0,
+      0,
+      10,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      9,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      10,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      10,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      9,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      10,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      2,
+      8,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      2,
+      7,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ]
+}

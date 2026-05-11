@@ -11,3 +11,5 @@ models/*.pt
 training_logs/experiments/
 training_logs/splits/
 notebooks/.ipynb_checkpoints/
+__pycache__/
+*.py[cod]

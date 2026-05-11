@@ -330,7 +330,7 @@ def select_samples(
     return selected
 
 
-def build_transforms(train: bool, image_size: int):
+def build_transforms(train: bool, image_size: int, random_erasing: float = 0.0):
     from torchvision import transforms
 
     normalize = transforms.Normalize(
@@ -338,16 +338,17 @@ def build_transforms(train: bool, image_size: int):
         std=[0.229, 0.224, 0.225],
     )
     if train:
-        return transforms.Compose(
-            [
-                transforms.Resize((image_size, image_size), antialias=True),
-                transforms.RandomHorizontalFlip(p=0.5),
-                transforms.RandomRotation(degrees=15),
-                transforms.ColorJitter(brightness=0.12, contrast=0.2),
-                transforms.ToTensor(),
-                normalize,
-            ]
-        )
+        steps = [
+            transforms.Resize((image_size, image_size), antialias=True),
+            transforms.RandomHorizontalFlip(p=0.5),
+            transforms.RandomRotation(degrees=15),
+            transforms.ColorJitter(brightness=0.12, contrast=0.2),
+            transforms.ToTensor(),
+            normalize,
+        ]
+        if random_erasing > 0:
+            steps.append(transforms.RandomErasing(p=random_erasing, scale=(0.02, 0.12), ratio=(0.3, 3.3)))
+        return transforms.Compose(steps)
     return transforms.Compose(
         [
             transforms.Resize((image_size, image_size), antialias=True),
@@ -472,11 +473,20 @@ def save_metrics(metrics: dict[str, object], class_names: list[str], output_dir:
     payload = {
         "accuracy": metrics["accuracy"],
         "loss": metrics["loss"],
+        "n": len(y_true),
+        "correct": sum(1 for true, pred in zip(y_true, y_pred) if true == pred),
         "classification_report": report,
+        "confusion_matrix": cm.tolist() if hasattr(cm, "tolist") else cm,
         "class_names": class_names,
         "created_utc": dt.datetime.utcnow().isoformat(timespec="seconds") + "Z",
     }
     (output_dir / "metrics.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+    with (output_dir / "predictions.csv").open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["index", "true_index", "pred_index", "true_label", "pred_label"])
+        for index, (true, pred) in enumerate(zip(y_true, y_pred)):
+            writer.writerow([index, true, pred, class_names[true], class_names[pred]])
 
     with (output_dir / "confusion_matrix.csv").open("w", newline="", encoding="utf-8") as handle:
         writer = csv.writer(handle)
@@ -536,7 +546,10 @@ def train_task(args: argparse.Namespace) -> Path:
     if not train_samples or not val_samples:
         raise SystemExit(f"No train/val samples found for task '{task}'. Check {manifest_path}.")
 
-    train_dataset = ManifestImageDataset(train_samples, build_transforms(train=True, image_size=image_size))
+    train_dataset = ManifestImageDataset(
+        train_samples,
+        build_transforms(train=True, image_size=image_size, random_erasing=args.random_erasing),
+    )
     val_dataset = ManifestImageDataset(val_samples, build_transforms(train=False, image_size=image_size))
     train_loader = DataLoader(
         train_dataset,
@@ -558,12 +571,14 @@ def train_task(args: argparse.Namespace) -> Path:
     model = build_model(arch, len(class_names), pretrained=args.pretrained).to(device)
 
     weights = class_weights(train_samples, len(class_names)).to(device)
-    criterion = nn.CrossEntropyLoss(weight=weights)
+    criterion = nn.CrossEntropyLoss(weight=weights, label_smoothing=args.label_smoothing)
     optimizer = optim.AdamW(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
 
     run_dir = Path(args.output_dir) / task / dt.datetime.utcnow().strftime("%Y%m%d_%H%M%S")
     run_dir.mkdir(parents=True, exist_ok=True)
     best_accuracy = -1.0
+    best_patience_score = -1.0
+    epochs_without_improvement = 0
     best_checkpoint = Path(args.model_out or TASK_DEFAULT_MODEL_PATH[task])
     best_checkpoint.parent.mkdir(parents=True, exist_ok=True)
 
@@ -621,11 +636,34 @@ def train_task(args: argparse.Namespace) -> Path:
                     "image_size": image_size,
                     "model_state": model.state_dict(),
                     "history": history,
+                    "training_config": {
+                        "epochs_requested": args.epochs,
+                        "learning_rate": args.learning_rate,
+                        "weight_decay": args.weight_decay,
+                        "label_smoothing": args.label_smoothing,
+                        "random_erasing": args.random_erasing,
+                        "early_stop_patience": args.early_stop_patience,
+                        "early_stop_min_delta": args.early_stop_min_delta,
+                    },
                     "created_utc": dt.datetime.utcnow().isoformat(timespec="seconds") + "Z",
                 },
                 best_checkpoint,
             )
             print(f"Saved best checkpoint to {best_checkpoint}", flush=True)
+
+        if val_acc > best_patience_score + args.early_stop_min_delta:
+            best_patience_score = val_acc
+            epochs_without_improvement = 0
+        else:
+            epochs_without_improvement += 1
+
+        if args.early_stop_patience and epochs_without_improvement >= args.early_stop_patience:
+            print(
+                f"Early stopping {task} after {epoch + 1} epochs; "
+                f"no validation improvement for {epochs_without_improvement} epochs.",
+                flush=True,
+            )
+            break
 
     (run_dir / "history.json").write_text(json.dumps(history, indent=2), encoding="utf-8")
     test_task(args, checkpoint_path=best_checkpoint, output_dir=run_dir / "test")
@@ -822,6 +860,10 @@ def build_parser() -> argparse.ArgumentParser:
     train.add_argument("--epochs", type=int, default=20)
     train.add_argument("--learning-rate", type=float, default=1e-4)
     train.add_argument("--weight-decay", type=float, default=1e-4)
+    train.add_argument("--label-smoothing", type=float, default=0.0)
+    train.add_argument("--random-erasing", type=float, default=0.0)
+    train.add_argument("--early-stop-patience", type=int, default=0)
+    train.add_argument("--early-stop-min-delta", type=float, default=0.0)
     train.add_argument("--model-out")
     train.add_argument("--pretrained", dest="pretrained", action="store_true", default=True)
     train.add_argument("--no-pretrained", dest="pretrained", action="store_false")
@@ -849,6 +891,10 @@ def build_parser() -> argparse.ArgumentParser:
     suite.add_argument("--epochs", type=int, default=20)
     suite.add_argument("--learning-rate", type=float, default=1e-4)
     suite.add_argument("--weight-decay", type=float, default=1e-4)
+    suite.add_argument("--label-smoothing", type=float, default=0.0)
+    suite.add_argument("--random-erasing", type=float, default=0.0)
+    suite.add_argument("--early-stop-patience", type=int, default=0)
+    suite.add_argument("--early-stop-min-delta", type=float, default=0.0)
     suite.add_argument("--pretrained", dest="pretrained", action="store_true", default=True)
     suite.add_argument("--no-pretrained", dest="pretrained", action="store_false")
     suite.set_defaults(func=command_suite)

@@ -42,7 +42,25 @@ Manifest path: `training_logs/splits/strict_manifest.csv`
 | Qwen/Qwen2.5-VL-7B-Instruct | 7B | Kaggle 2x T4 | 4-bit | 1.0000 | 0.1750 | Best zero-shot in batch 2, still weak |
 | HuggingFaceTB/SmolVLM2-2.2B-Instruct | 2.2B | Kaggle 2x T4 | 4-bit | 0.7292 | 0.0833 | Dependency fixed in batch 2; JSON and accuracy weak |
 | Qwen/Qwen2.5-VL-3B-Instruct + LoRA | 3B | Kaggle 2x T4 | 4-bit LoRA | 1.0000 | 0.3125 | Improved after 256-example LoRA but still collapsed labels |
+| Qwen/Qwen2.5-VL-7B-Instruct hierarchical | 7B | Kaggle 2x T4 | 4-bit | 1.0000 | 0.2250 | Broad tumor-vs-dementia routing improved to 0.8750, but subtype collapse remained |
 | llava-hf/llava-v1.6-34b-hf | 34B | Kaggle 2x T4 | 4-bit | N/A | N/A | Skipped because memory was insufficient |
+
+## CNN Publication Audit
+
+The CNN metrics are strong enough that the paper must proactively address leakage, source bias, and overfitting. The local audit summary currently reports `reviewer_risk_needs_documentation` rather than a blocking failure because the sparse checkout does not contain the full image set or training histories.
+
+Local audit artifact: `training_logs/publication_audit/local_summary/audit_report.md`
+
+Remote audit/retraining script: `notebooks/kaggle_cnn_publication_audit_kernel.py`
+
+Planned remote checks:
+
+- Exact SHA-256 duplicate checks across train/val/test splits.
+- Perceptual dHash duplicate checks across train/val/test splits.
+- Current checkpoint evaluation across train, validation, and test splits.
+- Train/validation gap summaries from recorded training histories.
+- Regularized retraining with label smoothing, random erasing, stronger weight decay, and early stopping.
+- Publication summary for the regularized run before replacing any current checkpoint.
 
 ## Methods Notes
 
@@ -50,6 +68,7 @@ Manifest path: `training_logs/splits/strict_manifest.csv`
 - Include confusion matrices for every classifier and end-to-end hierarchical inference.
 - Keep validation metrics separate from test metrics.
 - Record random seed, epochs, image size, optimizer, learning rate, batch size, GPU type, and checkpoint hash for each run.
+- Treat any accuracy above 0.995 as a reviewer-risk flag that needs leakage/source-bias discussion, not as self-validating evidence.
 - For LoRA, report base model, adapter rank, target modules, quantization, training examples, validation examples, and adapter path.
 - Current multimodal conclusion: VLMs should not replace the CNN classifiers for image labeling; treat them as report/metadata assistants unless a redesigned task produces materially stronger strict-test accuracy.
 

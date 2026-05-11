@@ -75,6 +75,22 @@ This is the clean restart plan for the tumor/dementia project. Training and larg
 
    Run `python scripts/collect_publication_results.py` after the suite, then fill `docs/PUBLICATION_NOTES.md`. Do not report validation-only numbers as final results.
 
+12. Audit the CNN results for leakage and overfitting before manuscript submission.
+
+   Local summary-only audit:
+
+   ```bash
+   python scripts/publication_audit.py --skip-image-hashes --output-dir training_logs/publication_audit/local_summary
+   ```
+
+   Full remote audit and regularized retraining:
+
+   ```bash
+   kaggle kernels push -p <clean-upload-folder> --accelerator NvidiaTeslaT4
+   ```
+
+   The Kaggle script is `notebooks/kaggle_cnn_publication_audit_kernel.py`. It performs image-hash duplicate checks, current checkpoint train/val/test evaluation, and a regularized retraining suite.
+
 ## Leakage Controls
 
 - The manifest is created before augmentation.
@@ -93,10 +109,11 @@ This is the clean restart plan for the tumor/dementia project. Training and larg
 | Retrain subtype models | Tumor and dementia specialists with strict splits | Arman | Automated in GitHub Actions full suite |
 | Validate confusion matrices | Save realistic strict-test metrics and confusion matrices | Arman | Automated: metrics JSON, CSV, PNG outputs |
 | Set up cloud GPU runner | Kaggle free GPU first, Colab as fallback | Arman | Kaggle CLI runner active |
-| Test large multimodal models | LLaVA-34B, Qwen, Phi, Llama/other candidates | Arman | Batch 1 and 2 complete; batch 3 hierarchical diagnostic prepared |
+| Test large multimodal models | LLaVA-34B, Qwen, Phi, Llama/other candidates | Arman | Batch 1, 2, and 3 complete |
 | Implement LoRA fine-tuning | Adapter-based training | Arman | Batch 2 Qwen2.5-VL-3B adapter saved |
 | Compare architectures | Binary+specialist vs single 8-class | Arman | Automated in GitHub Actions full suite |
-| Prepare publication notes | Model comparisons and rationale | Arman / Mina | Template plus result collector added |
+| Prepare publication notes | Model comparisons and rationale | Arman / Mina | Results plus audit workflow added |
+| Audit overfitting/leakage | Hash overlap checks, train/val/test gaps, regularized CNN rerun | Arman | Local summary added; Kaggle full audit prepared |
 
 ## Output Locations
 
@@ -108,6 +125,8 @@ This is the clean restart plan for the tumor/dementia project. Training and larg
 - Kaggle multimodal batch 1: `training_logs/multimodal/kaggle_qwen_batch1/`
 - Kaggle multimodal batch 2: `training_logs/multimodal/kaggle_qwen_batch2/`
 - Kaggle multimodal batch 3: `training_logs/multimodal/kaggle_qwen_batch3/` after artifact import
+- Local publication audit: `training_logs/publication_audit/local_summary/`
+- Kaggle CNN audit output after import: `training_logs/publication_audit/regularized/`, `training_logs/experiments_regularized/`
 - Current Kaggle LoRA adapter: `models/multimodal/qwen25vl_3b_mri_lora/`
 
 ## Multimodal Candidate References

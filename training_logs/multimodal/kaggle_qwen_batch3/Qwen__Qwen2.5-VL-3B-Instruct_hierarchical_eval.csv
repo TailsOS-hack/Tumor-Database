@@ -1,0 +1,483 @@
+model_id,idx,path,true_domain,true_label,pred_domain,pred_label,oracle_domain_pred_label,domain_correct,hierarchical_correct,oracle_domain_correct,domain_confidence,subtype_confidence,oracle_subtype_confidence,routed_subtype,oracle_subtype,domain_strict_json,subtype_strict_json,oracle_subtype_strict_json,domain_rationale,subtype_rationale,domain_raw_text,subtype_raw_text,oracle_subtype_raw_text
+Qwen/Qwen2.5-VL-3B-Instruct,1,data/brain_tumor/Testing/glioma/Te-glTr_0000.jpg,tumor,tumor_glioma,dementia,dementia_NonDemented,tumor_notumor,False,False,False,0.8,0.95,0.9,NonDemented,notumor,True,True,True,"The image shows signs of atrophy and abnormal signal intensity in the brain, which are characteristic of Alzheimer's disease.",图像显示脑部结构正常，没有明显的萎缩或异常信号，通常与非痴呆状态相关。,"```json
+{
+  ""domain"": ""dementia"",
+  ""confidence"": 0.8,
+  ""rationale"": ""The image shows signs of atrophy and abnormal signal intensity in the brain, which are characteristic of Alzheimer's disease.""
+}
+```","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示脑部结构正常，没有明显的萎缩或异常信号，通常与非痴呆状态相关。""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, such as mass lesions or abnormal enhancement.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,2,data/brain_tumor/Testing/glioma/Te-glTr_0001.jpg,tumor,tumor_glioma,dementia,dementia_NonDemented,tumor_notumor,False,False,False,0.8,0.95,0.9,NonDemented,notumor,True,True,True,"The image shows symmetrical atrophy of the cerebral cortex, which is characteristic of Alzheimer's disease.",图像显示脑部结构正常，没有明显的萎缩或异常信号，通常与非痴呆状态相关。,"```json
+{
+  ""domain"": ""dementia"",
+  ""confidence"": 0.8,
+  ""rationale"": ""The image shows symmetrical atrophy of the cerebral cortex, which is characteristic of Alzheimer's disease.""
+}
+```","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示脑部结构正常，没有明显的萎缩或异常信号，通常与非痴呆状态相关。""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, including no abnormal masses or lesions.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,3,data/brain_tumor/Testing/glioma/Te-glTr_0002.jpg,tumor,tumor_glioma,dementia,dementia_NonDemented,tumor_notumor,False,False,False,0.8,0.95,0.9,NonDemented,notumor,True,True,True,"The image shows symmetrical atrophy of the cerebral cortex, which is characteristic of Alzheimer's disease.",图像显示脑部结构正常，没有明显的萎缩或异常信号，通常与非痴呆状态相关。,"```json
+{
+  ""domain"": ""dementia"",
+  ""confidence"": 0.8,
+  ""rationale"": ""The image shows symmetrical atrophy of the cerebral cortex, which is characteristic of Alzheimer's disease.""
+}
+```","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示脑部结构正常，没有明显的萎缩或异常信号，通常与非痴呆状态相关。""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, such as mass effect, enhancement, or abnormal signal intensity.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,4,data/brain_tumor/Testing/glioma/Te-glTr_0003.jpg,tumor,tumor_glioma,tumor,tumor_notumor,tumor_notumor,True,False,False,0.75,0.9,0.9,notumor,notumor,True,True,True,"The image shows an abnormal mass in the brain, which is indicative of a tumor.","The image shows no signs of a tumor, as the structures appear normal and there are no visible masses or abnormalities.","{""domain"":""tumor"",""confidence"":0.75,""rationale"":""The image shows an abnormal mass in the brain, which is indicative of a tumor.""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, as the structures appear normal and there are no visible masses or abnormalities.""
+}
+```","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, as the structures appear normal and there are no visible masses or abnormalities.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,5,data/brain_tumor/Testing/glioma/Te-glTr_0004.jpg,tumor,tumor_glioma,dementia,dementia_NonDemented,tumor_notumor,False,False,False,0.85,0.95,0.9,NonDemented,notumor,True,True,True,"The image shows signs of atrophy and asymmetry in the brain, which are common indicators of dementia.",图像显示脑组织结构正常，没有明显的萎缩或异常信号，因此判断为非痴呆状态。,"{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The image shows signs of atrophy and asymmetry in the brain, which are common indicators of dementia.""}","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示脑组织结构正常，没有明显的萎缩或异常信号，因此判断为非痴呆状态。""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, such as mass effect, enhancement, or abnormal signal intensity.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,6,data/brain_tumor/Testing/glioma/Te-glTr_0005.jpg,tumor,tumor_glioma,dementia,dementia_NonDemented,tumor_notumor,False,False,False,0.85,0.95,0.9,NonDemented,notumor,True,True,True,"The image shows symmetrical atrophy of the cerebral cortex, which is characteristic of Alzheimer's disease, a form of dementia.",图像显示大脑结构正常，没有明显的萎缩或异常信号，因此判断为非痴呆状态。,"{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The image shows symmetrical atrophy of the cerebral cortex, which is characteristic of Alzheimer's disease, a form of dementia.""}","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示大脑结构正常，没有明显的萎缩或异常信号，因此判断为非痴呆状态。""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor such as mass effect, enhancement, or abnormal signal intensity that would typically be associated with glioma or meningioma.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,7,data/brain_tumor/Testing/glioma/Te-glTr_0006.jpg,tumor,tumor_glioma,tumor,tumor_notumor,tumor_notumor,True,False,False,0.75,0.9,0.9,notumor,notumor,True,True,True,"The image shows an abnormal mass with increased signal intensity, which is characteristic of a tumor.","The image shows no signs of a tumor, including no abnormal masses or lesions.","{""domain"":""tumor"",""confidence"":0.75,""rationale"":""The image shows an abnormal mass with increased signal intensity, which is characteristic of a tumor.""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, including no abnormal masses or lesions.""
+}
+```","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, including no abnormal masses or lesions.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,8,data/brain_tumor/Testing/glioma/Te-glTr_0007.jpg,tumor,tumor_glioma,tumor,tumor_notumor,tumor_notumor,True,False,False,0.75,0.9,0.9,notumor,notumor,True,True,True,"The image shows an abnormal mass with irregular borders and heterogeneous intensity, which is characteristic of a tumor.","The image shows no signs of a tumor, such as mass effect, enhancement, or abnormal signal intensity.","```json
+{
+  ""domain"": ""tumor"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The image shows an abnormal mass with irregular borders and heterogeneous intensity, which is characteristic of a tumor.""
+}
+```","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, such as mass effect, enhancement, or abnormal signal intensity.""
+}
+```","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, such as mass effect, enhancement, or abnormal signal intensity.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,9,data/brain_tumor/Testing/glioma/Te-glTr_0008.jpg,tumor,tumor_glioma,dementia,dementia_NonDemented,tumor_notumor,False,False,False,0.85,0.95,0.9,NonDemented,notumor,True,True,True,"The image shows signs of atrophy and fluid accumulation, which are common in dementia. The lack of visible tumors makes the diagnosis more likely to be dementia.",图像显示脑部结构正常，没有明显的萎缩或异常信号，通常与非痴呆状态相关。,"{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The image shows signs of atrophy and fluid accumulation, which are common in dementia. The lack of visible tumors makes the diagnosis more likely to be dementia.""}","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示脑部结构正常，没有明显的萎缩或异常信号，通常与非痴呆状态相关。""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, such as mass effect, enhancement, or abnormal signal intensity.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,10,data/brain_tumor/Testing/glioma/Te-glTr_0009.jpg,tumor,tumor_glioma,tumor,tumor_notumor,tumor_notumor,True,False,False,0.75,0.9,0.9,notumor,notumor,True,True,True,"The image shows an abnormality in the brain tissue, which could indicate a tumor.","The image shows no signs of a tumor, such as mass effect, enhancement, or abnormal signal intensity.","```json
+{
+  ""domain"": ""tumor"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The image shows an abnormality in the brain tissue, which could indicate a tumor.""
+}
+```","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, such as mass effect, enhancement, or abnormal signal intensity.""
+}
+```","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, such as mass effect, enhancement, or abnormal signal intensity.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,11,data/brain_tumor/Testing/meningioma/Te-meTr_0000.jpg,tumor,tumor_meningioma,tumor,tumor_notumor,tumor_notumor,True,False,False,0.75,0.9,0.9,notumor,notumor,True,True,True,"The image shows an abnormal mass within the brain, which is indicative of a tumor.","The image shows no signs of a tumor, including no visible masses or abnormalities in the brain structures.","```json
+{
+  ""domain"": ""tumor"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The image shows an abnormal mass within the brain, which is indicative of a tumor.""
+}
+```","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, including no visible masses or abnormalities in the brain structures.""
+}
+```","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, including no visible masses or abnormalities in the brain structures.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,12,data/brain_tumor/Testing/meningioma/Te-meTr_0001.jpg,tumor,tumor_meningioma,tumor,tumor_notumor,tumor_notumor,True,False,False,0.75,0.9,0.9,notumor,notumor,True,True,True,"The image shows an abnormal mass with heterogeneous intensity, which is characteristic of a tumor.","The image shows no clear signs of a tumor such as mass effect, enhancement, or abnormal signal intensity that would typically be associated with glioma or meningioma.","{""domain"":""tumor"",""confidence"":0.75,""rationale"":""The image shows an abnormal mass with heterogeneous intensity, which is characteristic of a tumor.""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no clear signs of a tumor such as mass effect, enhancement, or abnormal signal intensity that would typically be associated with glioma or meningioma.""
+}
+```","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no clear signs of a tumor such as mass effect, enhancement, or abnormal signal intensity that would typically be associated with glioma or meningioma.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,13,data/brain_tumor/Testing/meningioma/Te-meTr_0002.jpg,tumor,tumor_meningioma,tumor,tumor_notumor,tumor_notumor,True,False,False,0.75,0.9,0.9,notumor,notumor,True,True,True,"The image shows an abnormal mass in the brain, which is indicative of a tumor.","The image shows no signs of a tumor, including no visible masses or abnormal growths.","{""domain"":""tumor"",""confidence"":0.75,""rationale"":""The image shows an abnormal mass in the brain, which is indicative of a tumor.""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, including no visible masses or abnormal growths.""
+}
+```","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, including no visible masses or abnormal growths.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,14,data/brain_tumor/Testing/meningioma/Te-meTr_0003.jpg,tumor,tumor_meningioma,tumor,tumor_notumor,tumor_notumor,True,False,False,0.75,0.9,0.9,notumor,notumor,True,True,True,"The image shows an abnormal mass within the brain, which is indicative of a tumor.","The image shows no signs of a tumor, as there are no visible masses or abnormalities that would suggest a glioma or meningioma.","{""domain"":""tumor"",""confidence"":0.75,""rationale"":""The image shows an abnormal mass within the brain, which is indicative of a tumor.""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, as there are no visible masses or abnormalities that would suggest a glioma or meningioma.""
+}
+```","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, as there are no visible masses or abnormalities that would suggest a glioma or meningioma.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,15,data/brain_tumor/Testing/meningioma/Te-meTr_0004.jpg,tumor,tumor_meningioma,dementia,dementia_ModerateDemented,tumor_notumor,False,False,False,0.8,0.8,0.9,ModerateDemented,notumor,True,True,True,"The image shows signs of atrophy and white matter changes, which are common in dementia.","The image shows significant atrophy and hyperintensities in the white matter, which are characteristic of moderate dementia.","```json
+{
+  ""domain"": ""dementia"",
+  ""confidence"": 0.8,
+  ""rationale"": ""The image shows signs of atrophy and white matter changes, which are common in dementia.""
+}
+```","{""subtype"":""ModerateDemented"",""confidence"":0.8,""rationale"":""The image shows significant atrophy and hyperintensities in the white matter, which are characteristic of moderate dementia.""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, such as mass effect, enhancement, or abnormal signal intensity.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,16,data/brain_tumor/Testing/meningioma/Te-meTr_0005.jpg,tumor,tumor_meningioma,dementia,dementia_NonDemented,tumor_notumor,False,False,False,0.85,0.95,0.9,NonDemented,notumor,True,True,True,"The image shows signs of atrophy and abnormal signal intensity in the brain, which are characteristic of dementia.",图像显示脑部结构正常，没有明显的萎缩或异常信号，通常与非痴呆状态相关。,"{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The image shows signs of atrophy and abnormal signal intensity in the brain, which are characteristic of dementia.""}","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示脑部结构正常，没有明显的萎缩或异常信号，通常与非痴呆状态相关。""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, such as mass effect, enhancement, or abnormal signal intensity.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,17,data/brain_tumor/Testing/meningioma/Te-meTr_0006.jpg,tumor,tumor_meningioma,dementia,dementia_NonDemented,tumor_notumor,False,False,False,0.8,0.95,0.9,NonDemented,notumor,True,True,True,"The image shows signs of atrophy and white matter changes, which are common in dementia. The lack of visible tumors makes it more likely to be dementia-related.",图像显示没有明显的脑萎缩或异常信号，通常与非痴呆状态相关。,"{""domain"":""dementia"",""confidence"":0.8,""rationale"":""The image shows signs of atrophy and white matter changes, which are common in dementia. The lack of visible tumors makes it more likely to be dementia-related.""}","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示没有明显的脑萎缩或异常信号，通常与非痴呆状态相关。""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, such as mass effect, enhancement, or abnormal signal intensity.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,18,data/brain_tumor/Testing/meningioma/Te-meTr_0007.jpg,tumor,tumor_meningioma,tumor,tumor_glioma,tumor_glioma,True,False,False,0.75,0.75,0.75,glioma,glioma,True,True,True,"The image shows an abnormal mass with high signal intensity, which is characteristic of a tumor.","The image shows a mass with characteristics consistent with glioma, which is a type of brain tumor.","{""domain"":""tumor"",""confidence"":0.75,""rationale"":""The image shows an abnormal mass with high signal intensity, which is characteristic of a tumor.""}","```json
+{
+  ""subtype"": ""glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The image shows a mass with characteristics consistent with glioma, which is a type of brain tumor.""
+}
+```","```json
+{
+  ""subtype"": ""glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The image shows a mass with characteristics consistent with glioma, which is a type of brain tumor.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,19,data/brain_tumor/Testing/meningioma/Te-meTr_0008.jpg,tumor,tumor_meningioma,tumor,tumor_notumor,tumor_notumor,True,False,False,0.75,0.9,0.9,notumor,notumor,True,True,True,"The image shows a large, bright area consistent with a mass effect, which is commonly associated with tumors in brain imaging.","The image shows a clear demarcation between the tumor and surrounding normal tissue, which is characteristic of meningiomas rather than gliomas.","{""domain"":""tumor"",""confidence"":0.75,""rationale"":""The image shows a large, bright area consistent with a mass effect, which is commonly associated with tumors in brain imaging.""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows a clear demarcation between the tumor and surrounding normal tissue, which is characteristic of meningiomas rather than gliomas.""
+}
+```","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows a clear demarcation between the tumor and surrounding normal tissue, which is characteristic of meningiomas rather than gliomas.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,20,data/brain_tumor/Testing/meningioma/Te-meTr_0009.jpg,tumor,tumor_meningioma,dementia,dementia_NonDemented,tumor_notumor,False,False,False,0.8,0.95,0.9,NonDemented,notumor,True,True,True,"The image shows symmetrical atrophy of the cerebral cortex, which is characteristic of Alzheimer's disease.",图像显示脑组织结构正常，没有明显的萎缩或异常信号，因此判断为非痴呆状态。,"```json
+{
+  ""domain"": ""dementia"",
+  ""confidence"": 0.8,
+  ""rationale"": ""The image shows symmetrical atrophy of the cerebral cortex, which is characteristic of Alzheimer's disease.""
+}
+```","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示脑组织结构正常，没有明显的萎缩或异常信号，因此判断为非痴呆状态。""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor such as mass effect, enhancement, or abnormal signal intensity.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,21,data/brain_tumor/Testing/notumor/Te-noTr_0000.jpg,tumor,tumor_notumor,dementia,dementia_NonDemented,tumor_notumor,False,False,True,0.8,0.95,0.95,NonDemented,notumor,True,True,True,"The image shows signs of atrophy and white matter changes, which are common in dementia. The lack of clear mass effect or enhancement suggests it's not a tumor.",图像显示没有明显的脑萎缩或异常，符合非痴呆状态。,"{""domain"":""dementia"",""confidence"":0.8,""rationale"":""The image shows signs of atrophy and white matter changes, which are common in dementia. The lack of clear mass effect or enhancement suggests it's not a tumor.""}","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示没有明显的脑萎缩或异常，符合非痴呆状态。""}","{""subtype"":""notumor"",""confidence"":0.95,""rationale"":""图像显示为脑部CT扫描，没有明显的肿瘤结构。""}"
+Qwen/Qwen2.5-VL-3B-Instruct,22,data/brain_tumor/Testing/notumor/Te-noTr_0001.jpg,tumor,tumor_notumor,dementia,dementia_NonDemented,tumor_notumor,False,False,True,0.8,0.95,0.9,NonDemented,notumor,True,True,True,"The image shows signs of atrophy and white matter changes, which are common in dementia. The lack of any obvious mass effect or enhancement suggests it's not a tumor.",图像显示没有明显的脑萎缩或异常信号，通常与非痴呆状态相关。,"{""domain"":""dementia"",""confidence"":0.8,""rationale"":""The image shows signs of atrophy and white matter changes, which are common in dementia. The lack of any obvious mass effect or enhancement suggests it's not a tumor.""}","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示没有明显的脑萎缩或异常信号，通常与非痴呆状态相关。""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, such as mass effect, enhancement, or abnormal signal intensity.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,23,data/brain_tumor/Testing/notumor/Te-noTr_0002.jpg,tumor,tumor_notumor,dementia,dementia_NonDemented,tumor_notumor,False,False,True,0.8,0.95,0.9,NonDemented,notumor,True,True,True,"The image shows symmetrical atrophy of the cerebral cortex, which is characteristic of Alzheimer's disease.",图像显示大脑结构正常，没有明显的萎缩或异常信号。,"```json
+{
+  ""domain"": ""dementia"",
+  ""confidence"": 0.8,
+  ""rationale"": ""The image shows symmetrical atrophy of the cerebral cortex, which is characteristic of Alzheimer's disease.""
+}
+```","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示大脑结构正常，没有明显的萎缩或异常信号。""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor such as mass effect, enhancement, or abnormal signal intensity that would typically be associated with glioma or meningioma.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,24,data/brain_tumor/Testing/notumor/Te-noTr_0003.jpg,tumor,tumor_notumor,dementia,dementia_NonDemented,tumor_notumor,False,False,True,0.8,0.95,0.9,NonDemented,notumor,True,True,True,"The image shows signs of atrophy and white matter changes, which are common in dementia. The lack of clear mass lesions or enhancement suggests it's more likely to be a degenerative process rather than a tumor.",图像显示脑部结构正常，没有明显的萎缩或异常信号，因此判断为非痴呆状态。,"{""domain"":""dementia"",""confidence"":0.8,""rationale"":""The image shows signs of atrophy and white matter changes, which are common in dementia. The lack of clear mass lesions or enhancement suggests it's more likely to be a degenerative process rather than a tumor.""}","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示脑部结构正常，没有明显的萎缩或异常信号，因此判断为非痴呆状态。""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, such as mass effect, enhancement, or abnormal signal intensity.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,25,data/brain_tumor/Testing/notumor/Te-noTr_0004.jpg,tumor,tumor_notumor,dementia,dementia_VeryMildDemented,tumor_notumor,False,False,True,0.8,0.8,0.9,VeryMildDemented,notumor,True,True,True,"The image shows signs of atrophy and asymmetry, which are common in dementia. The lack of clear mass lesions or enhancement suggests it's more likely to be related to cognitive decline rather than a tumor.","The image shows mild atrophy and atrophy of the frontal lobe, which is characteristic of very mild dementia.","{""domain"":""dementia"",""confidence"":0.8,""rationale"":""The image shows signs of atrophy and asymmetry, which are common in dementia. The lack of clear mass lesions or enhancement suggests it's more likely to be related to cognitive decline rather than a tumor.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""The image shows mild atrophy and atrophy of the frontal lobe, which is characteristic of very mild dementia.""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, such as mass effect, enhancement, or abnormal signal intensity.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,26,data/brain_tumor/Testing/notumor/Te-noTr_0005.jpg,tumor,tumor_notumor,dementia,dementia_ModerateDemented,tumor_notumor,False,False,True,0.8,0.8,0.9,ModerateDemented,notumor,True,True,True,"The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.","The image shows significant atrophy and hyperintensities in the white matter, which are characteristic of moderate dementia.","{""domain"":""dementia"",""confidence"":0.8,""rationale"":""The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.""}","{""subtype"":""ModerateDemented"",""confidence"":0.8,""rationale"":""The image shows significant atrophy and hyperintensities in the white matter, which are characteristic of moderate dementia.""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, such as mass effect, enhancement, or abnormal signal intensity.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,27,data/brain_tumor/Testing/notumor/Te-noTr_0006.jpg,tumor,tumor_notumor,dementia,dementia_NonDemented,tumor_notumor,False,False,True,0.85,0.95,0.9,NonDemented,notumor,True,True,True,"The image shows symmetrical atrophy of the cerebral cortex, which is characteristic of Alzheimer's disease, a form of dementia.",图像显示脑部结构正常，没有明显的萎缩或异常信号，通常与非痴呆状态相关。,"{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The image shows symmetrical atrophy of the cerebral cortex, which is characteristic of Alzheimer's disease, a form of dementia.""}","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示脑部结构正常，没有明显的萎缩或异常信号，通常与非痴呆状态相关。""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, such as mass effect, enhancement, or abnormal signal intensity.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,28,data/brain_tumor/Testing/notumor/Te-noTr_0007.jpg,tumor,tumor_notumor,dementia,dementia_NonDemented,tumor_notumor,False,False,True,0.8,0.95,0.9,NonDemented,notumor,True,True,True,"The image shows symmetrical atrophy of the cerebral cortex, which is characteristic of Alzheimer's disease, a form of dementia.",图像显示脑部结构正常，没有明显的萎缩或异常信号，因此判断为非痴呆状态。,"{""domain"":""dementia"",""confidence"":0.8,""rationale"":""The image shows symmetrical atrophy of the cerebral cortex, which is characteristic of Alzheimer's disease, a form of dementia.""}","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示脑部结构正常，没有明显的萎缩或异常信号，因此判断为非痴呆状态。""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, as it appears to be a normal brain scan without any visible abnormalities.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,29,data/brain_tumor/Testing/notumor/Te-noTr_0008.jpg,tumor,tumor_notumor,dementia,dementia_NonDemented,tumor_notumor,False,False,True,0.8,0.95,0.95,NonDemented,notumor,True,True,True,"The image shows signs of atrophy and white matter changes, which are common in dementia. The lack of clear mass lesions or enhancement suggests it's more likely to be a degenerative process rather than a tumor.",图像显示没有明显的脑萎缩或异常信号，符合非痴呆状态。,"{""domain"":""dementia"",""confidence"":0.8,""rationale"":""The image shows signs of atrophy and white matter changes, which are common in dementia. The lack of clear mass lesions or enhancement suggests it's more likely to be a degenerative process rather than a tumor.""}","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示没有明显的脑萎缩或异常信号，符合非痴呆状态。""}","{""subtype"":""notumor"",""confidence"":0.95,""rationale"":""图像显示为脑部MRI，没有明显的肿瘤特征。""}"
+Qwen/Qwen2.5-VL-3B-Instruct,30,data/brain_tumor/Testing/notumor/Te-noTr_0009.jpg,tumor,tumor_notumor,dementia,dementia_ModerateDemented,tumor_notumor,False,False,True,0.8,0.8,0.9,ModerateDemented,notumor,True,True,True,"The image shows signs of atrophy and hypodensity in the frontal lobe, which are common in dementia.","The image shows significant atrophy and hyperintensities in the white matter, which are characteristic of moderate dementia.","{""domain"":""dementia"",""confidence"":0.8,""rationale"":""The image shows signs of atrophy and hypodensity in the frontal lobe, which are common in dementia.""}","{""subtype"":""ModerateDemented"",""confidence"":0.8,""rationale"":""The image shows significant atrophy and hyperintensities in the white matter, which are characteristic of moderate dementia.""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, as the structures appear normal and there are no visible masses or abnormalities.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,31,data/brain_tumor/Testing/pituitary/Te-piTr_0000.jpg,tumor,tumor_pituitary,dementia,dementia_NonDemented,tumor_notumor,False,False,False,0.85,0.95,0.9,NonDemented,notumor,True,True,True,"The image shows symmetrical atrophy of the cerebral cortex, which is characteristic of Alzheimer's disease, a form of dementia.",图像显示脑部结构正常，没有明显的萎缩或异常信号，通常与非痴呆状态相关。,"{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The image shows symmetrical atrophy of the cerebral cortex, which is characteristic of Alzheimer's disease, a form of dementia.""}","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示脑部结构正常，没有明显的萎缩或异常信号，通常与非痴呆状态相关。""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, including no abnormal masses or lesions.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,32,data/brain_tumor/Testing/pituitary/Te-piTr_0001.jpg,tumor,tumor_pituitary,dementia,dementia_NonDemented,tumor_notumor,False,False,False,0.8,0.95,0.9,NonDemented,notumor,True,True,True,"The image shows signs of atrophy and abnormal signal intensity in the white matter, which are common in dementia.",图像显示脑部结构正常，没有明显的萎缩或异常信号，通常与非痴呆状态相关。,"```json
+{
+  ""domain"": ""dementia"",
+  ""confidence"": 0.8,
+  ""rationale"": ""The image shows signs of atrophy and abnormal signal intensity in the white matter, which are common in dementia.""
+}
+```","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示脑部结构正常，没有明显的萎缩或异常信号，通常与非痴呆状态相关。""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, such as mass effect, enhancement, or abnormal signal intensity.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,33,data/brain_tumor/Testing/pituitary/Te-piTr_0002.jpg,tumor,tumor_pituitary,dementia,dementia_NonDemented,tumor_notumor,False,False,False,0.8,0.95,0.9,NonDemented,notumor,True,True,True,"The image shows symmetrical atrophy of the cerebral cortex, which is characteristic of Alzheimer's disease.",图像显示脑部结构正常，没有明显的萎缩或异常信号，通常与非痴呆状态相关。,"```json
+{
+  ""domain"": ""dementia"",
+  ""confidence"": 0.8,
+  ""rationale"": ""The image shows symmetrical atrophy of the cerebral cortex, which is characteristic of Alzheimer's disease.""
+}
+```","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示脑部结构正常，没有明显的萎缩或异常信号，通常与非痴呆状态相关。""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, including no visible masses or abnormal growths.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,34,data/brain_tumor/Testing/pituitary/Te-piTr_0003.jpg,tumor,tumor_pituitary,dementia,dementia_NonDemented,tumor_notumor,False,False,False,0.8,0.95,0.9,NonDemented,notumor,True,True,True,"The image shows signs of atrophy and abnormal signal intensity in the brain, which are characteristic of Alzheimer's disease, a form of dementia.",图像显示没有明显的脑萎缩或异常信号，通常与非痴呆状态相关。,"```json
+{
+  ""domain"": ""dementia"",
+  ""confidence"": 0.8,
+  ""rationale"": ""The image shows signs of atrophy and abnormal signal intensity in the brain, which are characteristic of Alzheimer's disease, a form of dementia.""
+}
+```","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示没有明显的脑萎缩或异常信号，通常与非痴呆状态相关。""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, including no masses or abnormal enhancements.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,35,data/brain_tumor/Testing/pituitary/Te-piTr_0004.jpg,tumor,tumor_pituitary,dementia,dementia_NonDemented,tumor_notumor,False,False,False,0.8,0.95,0.9,NonDemented,notumor,True,True,True,"The image shows signs of atrophy and white matter changes, which are common in dementia.",图像显示脑部结构正常，没有明显的萎缩或异常信号，通常与非痴呆状态相关。,"```json
+{
+  ""domain"": ""dementia"",
+  ""confidence"": 0.8,
+  ""rationale"": ""The image shows signs of atrophy and white matter changes, which are common in dementia.""
+}
+```","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示脑部结构正常，没有明显的萎缩或异常信号，通常与非痴呆状态相关。""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, such as mass effect, enhancement, or abnormal signal intensity.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,36,data/brain_tumor/Testing/pituitary/Te-piTr_0005.jpg,tumor,tumor_pituitary,dementia,dementia_NonDemented,tumor_notumor,False,False,False,0.8,0.95,0.9,NonDemented,notumor,True,True,True,"The image shows signs of atrophy and abnormal signal intensity in the brain, which are characteristic of Alzheimer's disease, a form of dementia.",图像显示脑部结构正常，没有明显的萎缩或异常信号，通常与非痴呆状态相关。,"```json
+{
+  ""domain"": ""dementia"",
+  ""confidence"": 0.8,
+  ""rationale"": ""The image shows signs of atrophy and abnormal signal intensity in the brain, which are characteristic of Alzheimer's disease, a form of dementia.""
+}
+```","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示脑部结构正常，没有明显的萎缩或异常信号，通常与非痴呆状态相关。""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor such as mass effect, enhancement, or abnormal signal intensity that would typically be associated with glioma or meningioma.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,37,data/brain_tumor/Testing/pituitary/Te-piTr_0006.jpg,tumor,tumor_pituitary,dementia,dementia_NonDemented,tumor_notumor,False,False,False,0.8,0.95,0.9,NonDemented,notumor,True,True,True,"The image shows signs of atrophy and abnormal signal intensity in the brain, which are characteristic of Alzheimer's disease.",图像显示大脑结构正常，没有明显的萎缩或异常信号，不符合任何类型的痴呆。,"```json
+{
+  ""domain"": ""dementia"",
+  ""confidence"": 0.8,
+  ""rationale"": ""The image shows signs of atrophy and abnormal signal intensity in the brain, which are characteristic of Alzheimer's disease.""
+}
+```","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示大脑结构正常，没有明显的萎缩或异常信号，不符合任何类型的痴呆。""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, such as mass effect, enhancement, or abnormal signal intensity.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,38,data/brain_tumor/Testing/pituitary/Te-piTr_0007.jpg,tumor,tumor_pituitary,tumor,tumor_notumor,tumor_notumor,True,False,False,0.75,0.9,0.9,notumor,notumor,True,True,True,"The image shows an abnormal mass in the brain, which is indicative of a tumor.","The image shows no signs of a tumor, such as mass effect, enhancement, or abnormal signal intensity.","```json
+{
+  ""domain"": ""tumor"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The image shows an abnormal mass in the brain, which is indicative of a tumor.""
+}
+```","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, such as mass effect, enhancement, or abnormal signal intensity.""
+}
+```","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, such as mass effect, enhancement, or abnormal signal intensity.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,39,data/brain_tumor/Testing/pituitary/Te-piTr_0008.jpg,tumor,tumor_pituitary,dementia,dementia_NonDemented,tumor_notumor,False,False,False,0.8,0.95,0.9,NonDemented,notumor,True,True,True,"The image shows signs of atrophy and abnormal signal intensity in the brain, which are characteristic of Alzheimer's disease.",图像显示大脑结构清晰，没有明显的萎缩或异常信号，符合非痴呆状态。,"```json
+{
+  ""domain"": ""dementia"",
+  ""confidence"": 0.8,
+  ""rationale"": ""The image shows signs of atrophy and abnormal signal intensity in the brain, which are characteristic of Alzheimer's disease.""
+}
+```","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示大脑结构清晰，没有明显的萎缩或异常信号，符合非痴呆状态。""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor such as mass effect, enhancement, or abnormal signal intensity that would typically be associated with glioma or meningioma.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,40,data/brain_tumor/Testing/pituitary/Te-piTr_0009.jpg,tumor,tumor_pituitary,dementia,dementia_NonDemented,tumor_notumor,False,False,False,0.8,0.95,0.9,NonDemented,notumor,True,True,True,"The image shows symmetrical atrophy of the cerebral cortex, which is characteristic of Alzheimer's disease.",图像显示脑部结构正常，没有明显的萎缩或异常信号，不符合任何类型的痴呆。,"```json
+{
+  ""domain"": ""dementia"",
+  ""confidence"": 0.8,
+  ""rationale"": ""The image shows symmetrical atrophy of the cerebral cortex, which is characteristic of Alzheimer's disease.""
+}
+```","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示脑部结构正常，没有明显的萎缩或异常信号，不符合任何类型的痴呆。""}","```json
+{
+  ""subtype"": ""notumor"",
+  ""confidence"": 0.9,
+  ""rationale"": ""The image shows no signs of a tumor, including no abnormal masses or lesions.""
+}
+```"
+Qwen/Qwen2.5-VL-3B-Instruct,41,data/alzheimers/MildDemented/002cb9c1-b160-4c76-b7e4-5fb2f1b527f7.jpg,dementia,dementia_MildDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,False,False,0.85,0.9,0.9,VeryMildDemented,VeryMildDemented,True,True,True,"The image shows symmetrical atrophy of the cerebral cortex, which is characteristic of Alzheimer's disease, a form of dementia.","The image shows early signs of cognitive decline with subtle atrophy and reduced gray matter volume, which aligns with the very mild stage of dementia.","{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The image shows symmetrical atrophy of the cerebral cortex, which is characteristic of Alzheimer's disease, a form of dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.9,""rationale"":""The image shows early signs of cognitive decline with subtle atrophy and reduced gray matter volume, which aligns with the very mild stage of dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.9,""rationale"":""The image shows early signs of cognitive decline with subtle atrophy and reduced gray matter volume, which aligns with the very mild stage of dementia.""}"
+Qwen/Qwen2.5-VL-3B-Instruct,42,data/alzheimers/MildDemented/00387cfa-b6ce-4eb0-8cc5-9273080c8187.jpg,dementia,dementia_MildDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,False,False,0.85,0.9,0.9,VeryMildDemented,VeryMildDemented,True,True,True,"The symmetrical and symmetric appearance of the brain structures suggests atrophy, which is characteristic of dementia.",图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。,"{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The symmetrical and symmetric appearance of the brain structures suggests atrophy, which is characteristic of dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.9,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}","{""subtype"":""VeryMildDemented"",""confidence"":0.9,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}"
+Qwen/Qwen2.5-VL-3B-Instruct,43,data/alzheimers/MildDemented/00a03a9d-f709-4516-8a50-7d39c8329d37.jpg,dementia,dementia_MildDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,False,False,0.8,0.8,0.8,VeryMildDemented,VeryMildDemented,True,True,True,"The symmetrical and symmetric appearance of the brain structures suggests atrophy, which is commonly associated with dementia rather than tumors.",图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。,"{""domain"":""dementia"",""confidence"":0.8,""rationale"":""The symmetrical and symmetric appearance of the brain structures suggests atrophy, which is commonly associated with dementia rather than tumors.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}"
+Qwen/Qwen2.5-VL-3B-Instruct,44,data/alzheimers/MildDemented/00ddce1c-fd19-4925-9fa6-addc480a012c.jpg,dementia,dementia_MildDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,False,False,0.8,0.9,0.9,VeryMildDemented,VeryMildDemented,True,True,True,"The image shows signs of atrophy and abnormal white matter hyperintensities, which are common in dementia.","The image shows early signs of cognitive decline with subtle changes in the brain structure, which aligns with very mild dementia.","{""domain"":""dementia"",""confidence"":0.8,""rationale"":""The image shows signs of atrophy and abnormal white matter hyperintensities, which are common in dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.9,""rationale"":""The image shows early signs of cognitive decline with subtle changes in the brain structure, which aligns with very mild dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.9,""rationale"":""The image shows early signs of cognitive decline with subtle changes in the brain structure, which aligns with very mild dementia.""}"
+Qwen/Qwen2.5-VL-3B-Instruct,45,data/alzheimers/MildDemented/00eae021-81e5-4fd2-8daa-f16da1feb99a.jpg,dementia,dementia_MildDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,False,False,0.8,0.8,0.8,VeryMildDemented,VeryMildDemented,True,True,True,"The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.","The image shows early signs of cognitive decline with subtle atrophy and reduced volume in the frontal lobes, which is characteristic of very mild dementia.","{""domain"":""dementia"",""confidence"":0.8,""rationale"":""The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""The image shows early signs of cognitive decline with subtle atrophy and reduced volume in the frontal lobes, which is characteristic of very mild dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""The image shows early signs of cognitive decline with subtle atrophy and reduced volume in the frontal lobes, which is characteristic of very mild dementia.""}"
+Qwen/Qwen2.5-VL-3B-Instruct,46,data/alzheimers/MildDemented/013c7086-9972-4193-8544-31c9fbb49072.jpg,dementia,dementia_MildDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,False,False,0.8,0.8,0.8,VeryMildDemented,VeryMildDemented,True,True,True,"The image shows signs of atrophy and asymmetry, which are common in dementia. The lack of clear mass lesions or enhancement suggests it's more likely to be a degenerative process rather than a tumor.",The image shows early signs of cognitive decline with subtle atrophy and asymmetry in the cerebral cortex.,"{""domain"":""dementia"",""confidence"":0.8,""rationale"":""The image shows signs of atrophy and asymmetry, which are common in dementia. The lack of clear mass lesions or enhancement suggests it's more likely to be a degenerative process rather than a tumor.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""The image shows early signs of cognitive decline with subtle atrophy and asymmetry in the cerebral cortex.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""The image shows early signs of cognitive decline with subtle atrophy and asymmetry in the cerebral cortex.""}"
+Qwen/Qwen2.5-VL-3B-Instruct,47,data/alzheimers/MildDemented/0180944c-ab18-4b1b-9d21-cd9858ab1b0c.jpg,dementia,dementia_MildDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,False,False,0.85,0.9,0.9,VeryMildDemented,VeryMildDemented,True,True,True,"The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.",图像显示大脑结构有轻微的异常，可能与非常轻度的认知障碍相关。,"{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.9,""rationale"":""图像显示大脑结构有轻微的异常，可能与非常轻度的认知障碍相关。""}","{""subtype"":""VeryMildDemented"",""confidence"":0.9,""rationale"":""图像显示大脑结构有轻微的异常，可能与非常轻度的认知障碍相关。""}"
+Qwen/Qwen2.5-VL-3B-Instruct,48,data/alzheimers/MildDemented/018bbc21-7957-4714-9466-9f96430249c7.jpg,dementia,dementia_MildDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,False,False,0.8,0.9,0.9,VeryMildDemented,VeryMildDemented,True,True,True,"The symmetrical and symmetric pattern of the brain structures suggests atrophy, which is characteristic of dementia rather than a tumor.","The image shows early signs of cognitive decline with subtle abnormalities in the brain structure, which aligns with very mild dementia.","{""domain"":""dementia"",""confidence"":0.8,""rationale"":""The symmetrical and symmetric pattern of the brain structures suggests atrophy, which is characteristic of dementia rather than a tumor.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.9,""rationale"":""The image shows early signs of cognitive decline with subtle abnormalities in the brain structure, which aligns with very mild dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.9,""rationale"":""The image shows early signs of cognitive decline with subtle abnormalities in the brain structure, which aligns with very mild dementia.""}"
+Qwen/Qwen2.5-VL-3B-Instruct,49,data/alzheimers/MildDemented/01a03d9c-e53b-4ee8-b9e7-9ff29c9cf9df.jpg,dementia,dementia_MildDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,False,False,0.85,0.8,0.8,VeryMildDemented,VeryMildDemented,True,True,True,"The symmetrical and symmetric pattern of the gyri and sulci suggests normal aging changes, which is characteristic of dementia rather than a tumor.",The image shows early signs of cognitive decline with subtle changes in the gyri and sulci patterns.,"{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The symmetrical and symmetric pattern of the gyri and sulci suggests normal aging changes, which is characteristic of dementia rather than a tumor.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""The image shows early signs of cognitive decline with subtle changes in the gyri and sulci patterns.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""The image shows early signs of cognitive decline with subtle changes in the gyri and sulci patterns.""}"
+Qwen/Qwen2.5-VL-3B-Instruct,50,data/alzheimers/MildDemented/01bb5650-386e-4bdd-854e-54e12030a3c0.jpg,dementia,dementia_MildDemented,dementia,dementia_NonDemented,dementia_NonDemented,True,False,False,0.85,0.95,0.95,NonDemented,NonDemented,True,True,True,"The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.",图像显示大脑结构正常，没有明显的萎缩或异常信号。,"{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.""}","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示大脑结构正常，没有明显的萎缩或异常信号。""}","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示大脑结构正常，没有明显的萎缩或异常信号。""}"
+Qwen/Qwen2.5-VL-3B-Instruct,51,data/alzheimers/ModerateDemented/0021740c-fbc2-405c-b0d7-0c7176217933.jpg,dementia,dementia_ModerateDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,False,False,0.8,0.85,0.85,VeryMildDemented,VeryMildDemented,True,True,True,"The image shows symmetrical atrophy of the cerebral cortex, which is characteristic of Alzheimer's disease, a form of dementia.",图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。,"{""domain"":""dementia"",""confidence"":0.8,""rationale"":""The image shows symmetrical atrophy of the cerebral cortex, which is characteristic of Alzheimer's disease, a form of dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.85,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}","{""subtype"":""VeryMildDemented"",""confidence"":0.85,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}"
+Qwen/Qwen2.5-VL-3B-Instruct,52,data/alzheimers/ModerateDemented/00965011-ba74-42f9-bd30-8fdabfd3ae82.jpg,dementia,dementia_ModerateDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,False,False,0.8,0.8,0.8,VeryMildDemented,VeryMildDemented,True,True,True,"The image shows signs of atrophy and abnormal signal intensity, which are characteristic of Alzheimer's disease, a form of dementia.",The image shows early signs of cognitive decline with subtle changes in the gyri and sulci patterns.,"{""domain"":""dementia"",""confidence"":0.8,""rationale"":""The image shows signs of atrophy and abnormal signal intensity, which are characteristic of Alzheimer's disease, a form of dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""The image shows early signs of cognitive decline with subtle changes in the gyri and sulci patterns.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""The image shows early signs of cognitive decline with subtle changes in the gyri and sulci patterns.""}"
+Qwen/Qwen2.5-VL-3B-Instruct,53,data/alzheimers/ModerateDemented/013283d9-eed7-4a53-8701-ca113abdaa97.jpg,dementia,dementia_ModerateDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,False,False,0.85,0.9,0.9,VeryMildDemented,VeryMildDemented,True,True,True,"The symmetrical atrophy and the lack of clear demarcation suggest it's more consistent with Alzheimer's disease, which is commonly associated with dementia.",The image shows early signs of cognitive decline with subtle atrophy and asymmetry in the brain regions typically affected by mild cognitive impairment.,"{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The symmetrical atrophy and the lack of clear demarcation suggest it's more consistent with Alzheimer's disease, which is commonly associated with dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.9,""rationale"":""The image shows early signs of cognitive decline with subtle atrophy and asymmetry in the brain regions typically affected by mild cognitive impairment.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.9,""rationale"":""The image shows early signs of cognitive decline with subtle atrophy and asymmetry in the brain regions typically affected by mild cognitive impairment.""}"
+Qwen/Qwen2.5-VL-3B-Instruct,54,data/alzheimers/ModerateDemented/01593caa-1752-43f5-88b5-144553b5abd3.jpg,dementia,dementia_ModerateDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,False,False,0.85,0.8,0.8,VeryMildDemented,VeryMildDemented,True,True,True,"The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.",图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。,"{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}"
+Qwen/Qwen2.5-VL-3B-Instruct,55,data/alzheimers/ModerateDemented/017d7747-5c1e-44d9-ba00-c14d70defe56.jpg,dementia,dementia_ModerateDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,False,False,0.8,0.9,0.9,VeryMildDemented,VeryMildDemented,True,True,True,"The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.","The image shows early signs of cognitive decline with subtle abnormalities in the brain structure, which aligns with very mild dementia.","{""domain"":""dementia"",""confidence"":0.8,""rationale"":""The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.9,""rationale"":""The image shows early signs of cognitive decline with subtle abnormalities in the brain structure, which aligns with very mild dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.9,""rationale"":""The image shows early signs of cognitive decline with subtle abnormalities in the brain structure, which aligns with very mild dementia.""}"
+Qwen/Qwen2.5-VL-3B-Instruct,56,data/alzheimers/ModerateDemented/01850009-6a02-4307-8092-0e3ab8f1f8b2.jpg,dementia,dementia_ModerateDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,False,False,0.85,0.8,0.8,VeryMildDemented,VeryMildDemented,True,True,True,"The symmetrical atrophy and the lack of clear demarcation suggest it's more consistent with Alzheimer's disease, which is commonly associated with dementia.",图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。,"{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The symmetrical atrophy and the lack of clear demarcation suggest it's more consistent with Alzheimer's disease, which is commonly associated with dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}"
+Qwen/Qwen2.5-VL-3B-Instruct,57,data/alzheimers/ModerateDemented/01e06950-998c-417f-b8a7-fd39962b8d29.jpg,dementia,dementia_ModerateDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,False,False,0.85,0.9,0.9,VeryMildDemented,VeryMildDemented,True,True,True,"The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.",图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。,"{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.9,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}","{""subtype"":""VeryMildDemented"",""confidence"":0.9,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}"
+Qwen/Qwen2.5-VL-3B-Instruct,58,data/alzheimers/ModerateDemented/01e83031-8123-437b-a58d-03d4ee2356a7.jpg,dementia,dementia_ModerateDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,False,False,0.8,0.9,0.9,VeryMildDemented,VeryMildDemented,True,True,True,"The image shows signs of atrophy and abnormal signal intensity, which are common in dementia.",图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。,"{""domain"":""dementia"",""confidence"":0.8,""rationale"":""The image shows signs of atrophy and abnormal signal intensity, which are common in dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.9,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}","{""subtype"":""VeryMildDemented"",""confidence"":0.9,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}"
+Qwen/Qwen2.5-VL-3B-Instruct,59,data/alzheimers/ModerateDemented/021c4803-68cf-49da-92c5-89efa2f0851e.jpg,dementia,dementia_ModerateDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,False,False,0.85,0.8,0.8,VeryMildDemented,VeryMildDemented,True,True,True,"The image shows signs of atrophy and abnormal signal intensity, which are common in dementia. The lack of clear mass lesions or enhancement suggests it's more likely to be a degenerative process rather than a tumor.","The image shows early signs of cognitive decline with subtle abnormalities in the brain structure, which aligns with very mild dementia.","{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The image shows signs of atrophy and abnormal signal intensity, which are common in dementia. The lack of clear mass lesions or enhancement suggests it's more likely to be a degenerative process rather than a tumor.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""The image shows early signs of cognitive decline with subtle abnormalities in the brain structure, which aligns with very mild dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""The image shows early signs of cognitive decline with subtle abnormalities in the brain structure, which aligns with very mild dementia.""}"
+Qwen/Qwen2.5-VL-3B-Instruct,60,data/alzheimers/ModerateDemented/02353181-e358-4277-ad7e-ec969dc88ef1.jpg,dementia,dementia_ModerateDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,False,False,0.85,0.8,0.8,VeryMildDemented,VeryMildDemented,True,True,True,"The image shows signs of atrophy and asymmetry, which are common in dementia. The lack of clear mass lesions or enhancement suggests it's not a tumor.",图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。,"{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The image shows signs of atrophy and asymmetry, which are common in dementia. The lack of clear mass lesions or enhancement suggests it's not a tumor.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}"
+Qwen/Qwen2.5-VL-3B-Instruct,61,data/alzheimers/NonDemented/00190c87-a639-417d-a6d9-bae6a9e68207.jpg,dementia,dementia_NonDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,False,False,0.85,0.8,0.8,VeryMildDemented,VeryMildDemented,True,True,True,"The image shows signs of atrophy and abnormal white matter hyperintensities, which are common in dementia.","The image shows early signs of cognitive decline with subtle atrophy and reduced gyral detail, which aligns with the very mild form of dementia.","{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The image shows signs of atrophy and abnormal white matter hyperintensities, which are common in dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""The image shows early signs of cognitive decline with subtle atrophy and reduced gyral detail, which aligns with the very mild form of dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""The image shows early signs of cognitive decline with subtle atrophy and reduced gyral detail, which aligns with the very mild form of dementia.""}"
+Qwen/Qwen2.5-VL-3B-Instruct,62,data/alzheimers/NonDemented/002a24a5-fce1-47df-9169-0efafbfd6447.jpg,dementia,dementia_NonDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,False,False,0.85,0.8,0.8,VeryMildDemented,VeryMildDemented,True,True,True,"The image shows signs of atrophy and asymmetry, which are common in dementia. The lack of clear mass lesions or enhancement suggests it's more likely to be a degenerative process rather than a tumor.",图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。,"{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The image shows signs of atrophy and asymmetry, which are common in dementia. The lack of clear mass lesions or enhancement suggests it's more likely to be a degenerative process rather than a tumor.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}"
+Qwen/Qwen2.5-VL-3B-Instruct,63,data/alzheimers/NonDemented/003b999c-62d5-4d24-bdfc-1476d3a4355f.jpg,dementia,dementia_NonDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,False,False,0.85,0.8,0.8,VeryMildDemented,VeryMildDemented,True,True,True,"The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.",图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。,"{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}"
+Qwen/Qwen2.5-VL-3B-Instruct,64,data/alzheimers/NonDemented/0048efe4-d51d-453c-acaa-3cd6d3f49e50.jpg,dementia,dementia_NonDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,False,False,0.85,0.9,0.9,VeryMildDemented,VeryMildDemented,True,True,True,"The image shows signs of atrophy and abnormal white matter hyperintensities, which are common in Alzheimer's disease.",图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。,"{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The image shows signs of atrophy and abnormal white matter hyperintensities, which are common in Alzheimer's disease.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.9,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}","{""subtype"":""VeryMildDemented"",""confidence"":0.9,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}"
+Qwen/Qwen2.5-VL-3B-Instruct,65,data/alzheimers/NonDemented/006269e9-710a-4e86-a7c6-b9e0a8b6be53.jpg,dementia,dementia_NonDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,False,False,0.85,0.9,0.9,VeryMildDemented,VeryMildDemented,True,True,True,"The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.","The image shows early signs of cognitive decline with subtle abnormalities in the brain structure, which aligns with very mild dementia.","{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.9,""rationale"":""The image shows early signs of cognitive decline with subtle abnormalities in the brain structure, which aligns with very mild dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.9,""rationale"":""The image shows early signs of cognitive decline with subtle abnormalities in the brain structure, which aligns with very mild dementia.""}"
+Qwen/Qwen2.5-VL-3B-Instruct,66,data/alzheimers/NonDemented/007c2e31-e320-41a8-a5a1-bdb0c5d0bbd5.jpg,dementia,dementia_NonDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,False,False,0.85,0.8,0.8,VeryMildDemented,VeryMildDemented,True,True,True,"The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.","The image shows early signs of cognitive decline with subtle abnormalities in the brain structure, which aligns with very mild dementia.","{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""The image shows early signs of cognitive decline with subtle abnormalities in the brain structure, which aligns with very mild dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""The image shows early signs of cognitive decline with subtle abnormalities in the brain structure, which aligns with very mild dementia.""}"
+Qwen/Qwen2.5-VL-3B-Instruct,67,data/alzheimers/NonDemented/00d381ea-cfb4-4851-bf18-927736dfc385.jpg,dementia,dementia_NonDemented,dementia,dementia_NonDemented,dementia_NonDemented,True,True,True,0.85,0.95,0.95,NonDemented,NonDemented,True,True,True,"The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.",图像显示大脑结构清晰，没有明显的萎缩或异常信号，符合非痴呆状态。,"{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.""}","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示大脑结构清晰，没有明显的萎缩或异常信号，符合非痴呆状态。""}","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示大脑结构清晰，没有明显的萎缩或异常信号，符合非痴呆状态。""}"
+Qwen/Qwen2.5-VL-3B-Instruct,68,data/alzheimers/NonDemented/01099247-2c22-4acf-8036-ed315d073c76.jpg,dementia,dementia_NonDemented,dementia,dementia_NonDemented,dementia_NonDemented,True,True,True,0.85,0.95,0.95,NonDemented,NonDemented,True,True,True,"The symmetrical atrophy and lack of clear demarcation suggest Alzheimer's disease, which is commonly associated with dementia.",图像显示大脑结构清晰，没有明显的萎缩或异常信号，符合非痴呆状态。,"{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The symmetrical atrophy and lack of clear demarcation suggest Alzheimer's disease, which is commonly associated with dementia.""}","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示大脑结构清晰，没有明显的萎缩或异常信号，符合非痴呆状态。""}","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示大脑结构清晰，没有明显的萎缩或异常信号，符合非痴呆状态。""}"
+Qwen/Qwen2.5-VL-3B-Instruct,69,data/alzheimers/NonDemented/010fb270-fd45-4dcc-8f8d-5f4e2201fca5.jpg,dementia,dementia_NonDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,False,False,0.85,0.8,0.8,VeryMildDemented,VeryMildDemented,True,True,True,The symmetrical atrophy and the lack of clear demarcation suggest it's more likely to be dementia rather than a tumor.,图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。,"{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The symmetrical atrophy and the lack of clear demarcation suggest it's more likely to be dementia rather than a tumor.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}"
+Qwen/Qwen2.5-VL-3B-Instruct,70,data/alzheimers/NonDemented/0110404f-dd80-411c-a8b2-73b7215411b6.jpg,dementia,dementia_NonDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,False,False,0.85,0.8,0.8,VeryMildDemented,VeryMildDemented,True,True,True,"The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.",图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。,"{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}"
+Qwen/Qwen2.5-VL-3B-Instruct,71,data/alzheimers/VeryMildDemented/0001b959-d622-4311-acab-84633370c892.jpg,dementia,dementia_VeryMildDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,True,True,0.85,0.9,0.9,VeryMildDemented,VeryMildDemented,True,True,True,"The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.","The image shows early signs of cognitive decline with subtle atrophy and reduced gyral detail, which aligns with the very mild form of dementia.","{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.9,""rationale"":""The image shows early signs of cognitive decline with subtle atrophy and reduced gyral detail, which aligns with the very mild form of dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.9,""rationale"":""The image shows early signs of cognitive decline with subtle atrophy and reduced gyral detail, which aligns with the very mild form of dementia.""}"
+Qwen/Qwen2.5-VL-3B-Instruct,72,data/alzheimers/VeryMildDemented/005ce7f6-f465-4c1f-a641-d5e295aa4be4.jpg,dementia,dementia_VeryMildDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,True,True,0.85,0.8,0.8,VeryMildDemented,VeryMildDemented,True,True,True,"The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.","The image shows early signs of cognitive decline with subtle abnormalities in the brain structure, which aligns with very mild dementia.","{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""The image shows early signs of cognitive decline with subtle abnormalities in the brain structure, which aligns with very mild dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""The image shows early signs of cognitive decline with subtle abnormalities in the brain structure, which aligns with very mild dementia.""}"
+Qwen/Qwen2.5-VL-3B-Instruct,73,data/alzheimers/VeryMildDemented/007a3aa3-6958-478a-8525-bcd7dc955388.jpg,dementia,dementia_VeryMildDemented,dementia,dementia_ModerateDemented,dementia_ModerateDemented,True,False,False,0.85,0.8,0.8,ModerateDemented,ModerateDemented,True,True,True,The symmetrical atrophy and the lack of clear demarcation suggest it's more likely to be related to dementia rather than a tumor.,"The image shows significant atrophy and abnormal signal intensity in the frontal and parietal lobes, which are characteristic of moderate dementia.","{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The symmetrical atrophy and the lack of clear demarcation suggest it's more likely to be related to dementia rather than a tumor.""}","{""subtype"":""ModerateDemented"",""confidence"":0.8,""rationale"":""The image shows significant atrophy and abnormal signal intensity in the frontal and parietal lobes, which are characteristic of moderate dementia.""}","{""subtype"":""ModerateDemented"",""confidence"":0.8,""rationale"":""The image shows significant atrophy and abnormal signal intensity in the frontal and parietal lobes, which are characteristic of moderate dementia.""}"
+Qwen/Qwen2.5-VL-3B-Instruct,74,data/alzheimers/VeryMildDemented/00af4663-62ee-4b3a-81e2-da74a2db5843.jpg,dementia,dementia_VeryMildDemented,dementia,dementia_NonDemented,dementia_NonDemented,True,False,False,0.85,0.95,0.95,NonDemented,NonDemented,True,True,True,"The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.",图像显示大脑结构正常，没有明显的萎缩或异常信号。,"{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.""}","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示大脑结构正常，没有明显的萎缩或异常信号。""}","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示大脑结构正常，没有明显的萎缩或异常信号。""}"
+Qwen/Qwen2.5-VL-3B-Instruct,75,data/alzheimers/VeryMildDemented/00afb057-1ac1-4700-8118-88093dbd420d.jpg,dementia,dementia_VeryMildDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,True,True,0.8,0.85,0.85,VeryMildDemented,VeryMildDemented,True,True,True,"The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.",图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。,"{""domain"":""dementia"",""confidence"":0.8,""rationale"":""The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.85,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}","{""subtype"":""VeryMildDemented"",""confidence"":0.85,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}"
+Qwen/Qwen2.5-VL-3B-Instruct,76,data/alzheimers/VeryMildDemented/00b4979d-ac1c-40e3-90b2-422511918fc0.jpg,dementia,dementia_VeryMildDemented,dementia,dementia_NonDemented,dementia_NonDemented,True,False,False,0.8,0.95,0.95,NonDemented,NonDemented,True,True,True,"The image shows signs of atrophy and abnormal signal intensity, which are common in dementia.",图像显示没有明显的脑萎缩或异常，符合非痴呆状态。,"{""domain"":""dementia"",""confidence"":0.8,""rationale"":""The image shows signs of atrophy and abnormal signal intensity, which are common in dementia.""}","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示没有明显的脑萎缩或异常，符合非痴呆状态。""}","{""subtype"":""NonDemented"",""confidence"":0.95,""rationale"":""图像显示没有明显的脑萎缩或异常，符合非痴呆状态。""}"
+Qwen/Qwen2.5-VL-3B-Instruct,77,data/alzheimers/VeryMildDemented/00e5a988-8407-4f54-a9cb-dc2bb4fb562f.jpg,dementia,dementia_VeryMildDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,True,True,0.8,0.9,0.9,VeryMildDemented,VeryMildDemented,True,True,True,"The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.",图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。,"{""domain"":""dementia"",""confidence"":0.8,""rationale"":""The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.9,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}","{""subtype"":""VeryMildDemented"",""confidence"":0.9,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}"
+Qwen/Qwen2.5-VL-3B-Instruct,78,data/alzheimers/VeryMildDemented/0117900d-9acd-46aa-bbeb-0908684619b9.jpg,dementia,dementia_VeryMildDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,True,True,0.8,0.9,0.9,VeryMildDemented,VeryMildDemented,True,True,True,"The image shows signs of atrophy and abnormal signal intensity, which are common in dementia.",图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。,"{""domain"":""dementia"",""confidence"":0.8,""rationale"":""The image shows signs of atrophy and abnormal signal intensity, which are common in dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.9,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}","{""subtype"":""VeryMildDemented"",""confidence"":0.9,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}"
+Qwen/Qwen2.5-VL-3B-Instruct,79,data/alzheimers/VeryMildDemented/0120d767-2b6e-413a-a1df-37761847df4f.jpg,dementia,dementia_VeryMildDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,True,True,0.85,0.8,0.8,VeryMildDemented,VeryMildDemented,True,True,True,"The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.",图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。,"{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The image shows symmetrical atrophy, which is characteristic of Alzheimer's disease, a form of dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}","{""subtype"":""VeryMildDemented"",""confidence"":0.8,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}"
+Qwen/Qwen2.5-VL-3B-Instruct,80,data/alzheimers/VeryMildDemented/01484c55-0cc7-4f0c-a891-d5d2e1f8684e.jpg,dementia,dementia_VeryMildDemented,dementia,dementia_VeryMildDemented,dementia_VeryMildDemented,True,True,True,0.85,0.85,0.85,VeryMildDemented,VeryMildDemented,True,True,True,"The image shows symmetrical atrophy of the cerebral cortex, which is characteristic of Alzheimer's disease, a form of dementia.",图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。,"{""domain"":""dementia"",""confidence"":0.85,""rationale"":""The image shows symmetrical atrophy of the cerebral cortex, which is characteristic of Alzheimer's disease, a form of dementia.""}","{""subtype"":""VeryMildDemented"",""confidence"":0.85,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}","{""subtype"":""VeryMildDemented"",""confidence"":0.85,""rationale"":""图像显示大脑结构有轻微的异常，可能与轻度认知障碍相关。""}"
