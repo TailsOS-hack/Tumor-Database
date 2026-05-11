@@ -1,0 +1,42 @@
+[
+  {
+    "model": "binary",
+    "status": "complete",
+    "accuracy": 1.0,
+    "macro_f1": 1.0,
+    "weighted_f1": 1.0,
+    "metrics_path": "training_logs/experiments/binary/20260510_204656/test/metrics.json"
+  },
+  {
+    "model": "tumor",
+    "status": "complete",
+    "accuracy": 0.996186117467582,
+    "macro_f1": 0.9959855745916388,
+    "weighted_f1": 0.9961895036092903,
+    "metrics_path": "training_logs/experiments/tumor/20260510_222255/test/metrics.json"
+  },
+  {
+    "model": "dementia",
+    "status": "complete",
+    "accuracy": 0.9985227272727273,
+    "macro_f1": 0.9985854796208935,
+    "weighted_f1": 0.9985230508579356,
+    "metrics_path": "training_logs/experiments/dementia/20260510_224400/test/metrics.json"
+  },
+  {
+    "model": "hierarchical",
+    "status": "complete",
+    "accuracy": 0.9982197606567105,
+    "macro_f1": 0.9972855271062662,
+    "weighted_f1": 0.998220481335339,
+    "metrics_path": "training_logs/experiments/hierarchical/test_evaluation/metrics.json"
+  },
+  {
+    "model": "eight_class",
+    "status": "complete",
+    "accuracy": 0.9993076846998319,
+    "macro_f1": 0.9975284151290794,
+    "weighted_f1": 0.9993082636144662,
+    "metrics_path": "training_logs/experiments/eight_class/20260511_000016/test/metrics.json"
+  }
+]

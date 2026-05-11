@@ -1,0 +1,16 @@
+{
+  "created_utc": "2026-05-11T01:56:39+00:00",
+  "repo_url": "https://github.com/TailsOS-hack/Tumor-Database.git",
+  "branch": "main",
+  "mode": "full",
+  "epochs": 30,
+  "batch_size": 32,
+  "num_workers": 0,
+  "model_files": [
+    "models/binary_router.pt",
+    "models/brain_tumor_classifier.pt",
+    "models/alzheimers_classifier.pt",
+    "models/single_8class_classifier.pt"
+  ],
+  "archive_name": "tumor_database_colab_artifacts_20260511_015639.zip"
+}
