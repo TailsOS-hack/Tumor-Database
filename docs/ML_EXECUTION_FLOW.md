@@ -93,8 +93,8 @@ This is the clean restart plan for the tumor/dementia project. Training and larg
 | Retrain subtype models | Tumor and dementia specialists with strict splits | Arman | Automated in GitHub Actions full suite |
 | Validate confusion matrices | Save realistic strict-test metrics and confusion matrices | Arman | Automated: metrics JSON, CSV, PNG outputs |
 | Set up cloud GPU runner | Kaggle free GPU first, Colab as fallback | Arman | Kaggle CLI runner active |
-| Test large multimodal models | LLaVA-34B, Qwen, Phi, Llama/other candidates | Arman | Batch 1 complete; batch 2 retry planned |
-| Implement LoRA fine-tuning | Adapter-based training | Arman | Batch 1 Qwen2.5-VL-3B adapter saved |
+| Test large multimodal models | LLaVA-34B, Qwen, Phi, Llama/other candidates | Arman | Batch 1 and 2 complete; batch 3 hierarchical diagnostic prepared |
+| Implement LoRA fine-tuning | Adapter-based training | Arman | Batch 2 Qwen2.5-VL-3B adapter saved |
 | Compare architectures | Binary+specialist vs single 8-class | Arman | Automated in GitHub Actions full suite |
 | Prepare publication notes | Model comparisons and rationale | Arman / Mina | Template plus result collector added |
 
@@ -107,6 +107,7 @@ This is the clean restart plan for the tumor/dementia project. Training and larg
 - Colab export bundle: `MyDrive/Tumor-Database/exports/tumor_database_colab_artifacts_*.zip`
 - Kaggle multimodal batch 1: `training_logs/multimodal/kaggle_qwen_batch1/`
 - Kaggle multimodal batch 2: `training_logs/multimodal/kaggle_qwen_batch2/`
+- Kaggle multimodal batch 3: `training_logs/multimodal/kaggle_qwen_batch3/` after artifact import
 - Current Kaggle LoRA adapter: `models/multimodal/qwen25vl_3b_mri_lora/`
 
 ## Multimodal Candidate References

@@ -86,4 +86,15 @@ Per-domain LoRA accuracy on the balanced 96-image sample:
 
 The multimodal VLMs produced strict JSON reliably, but their MRI label accuracy was weak. Batch 2 LoRA improved over zero-shot prompting but still showed label collapse. This supports keeping the CNN classifier suite as the primary image classifier and treating multimodal models as experimental report/metadata helpers unless the task is redesigned.
 
-The recommended next multimodal direction is not another blind 8-class VLM classifier run. Instead, use the trained CNN image classifiers for diagnosis labels and evaluate the VLM as a report explainer or metadata generator conditioned on classifier probabilities, or redesign multimodal training into smaller hierarchical tasks.
+## Batch 3 Configuration
+
+Batch 3 is a targeted hierarchical diagnostic instead of another flat 8-class LoRA run.
+
+- Kernel: `armankazi/tumor-multimodal-qwen-kaggle`
+- Script: `notebooks/kaggle_multimodal_qwen_kernel.py`
+- Models: `Qwen/Qwen2.5-VL-3B-Instruct` and, if enough GPU memory is assigned, `Qwen/Qwen2.5-VL-7B-Instruct`
+- Method: ask tumor-vs-dementia first, then ask the matching 4-way subtype prompt
+- Metrics: domain accuracy, routed hierarchical 8-class accuracy, oracle-domain subtype accuracy, JSON rates, confusion matrices, prediction counts
+- LoRA: disabled for this batch so the run isolates prompt/task structure from adapter training
+
+The recommended next multimodal direction is not another blind 8-class VLM classifier run. Instead, use the trained CNN image classifiers for diagnosis labels and evaluate the VLM as a report explainer or metadata generator conditioned on classifier probabilities, or continue redesigning multimodal training into smaller hierarchical tasks.

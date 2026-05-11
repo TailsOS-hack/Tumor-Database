@@ -4,6 +4,11 @@ This script is designed to run as a Kaggle script kernel. It clones the public
 Tumor-Database repo, rebuilds the strict manifest, benchmarks feasible open
 vision-language models, trains a small Qwen LoRA adapter if resources allow,
 and writes every useful artifact to /kaggle/working.
+
+Current batch mode: hierarchical VLM diagnostic. The earlier flat 8-class and
+LoRA paths are retained for reproducibility, but the next remote run focuses on
+whether a VLM performs better when asked for tumor-vs-dementia first and only
+then for the relevant 4-way subtype.
 """
 
 from __future__ import annotations
@@ -46,9 +51,33 @@ LABELS = [
     "dementia_VeryMildDemented",
 ]
 
+DOMAIN_LABELS = ["tumor", "dementia"]
+TUMOR_SUBTYPES = ["glioma", "meningioma", "notumor", "pituitary"]
+DEMENTIA_SUBTYPES = ["MildDemented", "ModerateDemented", "NonDemented", "VeryMildDemented"]
+
 SYSTEM_PROMPT = (
     "You are classifying brain MRI images for a research benchmark. "
     "This is not clinical diagnosis. Return only strict JSON."
+)
+
+DOMAIN_PROMPT = (
+    "Classify this brain MRI image into exactly one broad domain: tumor or dementia. "
+    'Return only JSON like {"domain":"tumor","confidence":0.75,'
+    '"rationale":"short visual reason"} .'
+)
+
+TUMOR_SUBTYPE_PROMPT = (
+    "The broad domain is tumor. Choose exactly one tumor subtype label: "
+    + ", ".join(TUMOR_SUBTYPES)
+    + '. Return only JSON like {"subtype":"glioma","confidence":0.75,'
+    + '"rationale":"short visual reason"} .'
+)
+
+DEMENTIA_SUBTYPE_PROMPT = (
+    "The broad domain is dementia. Choose exactly one dementia subtype label: "
+    + ", ".join(DEMENTIA_SUBTYPES)
+    + '. Return only JSON like {"subtype":"MildDemented","confidence":0.75,'
+    + '"rationale":"short visual reason"} .'
 )
 
 USER_PROMPT = (
@@ -96,7 +125,26 @@ MODEL_CANDIDATES = [
     },
 ]
 
-RUN_LORA = True
+HIERARCHICAL_MODEL_CANDIDATES = [
+    {
+        "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
+        "trust_remote_code": False,
+        "eval_limit_per_class": 10,
+        "min_gpu_gb": 10,
+        "notes": "Batch 3 primary hierarchical diagnostic on the best free-tier Qwen model.",
+    },
+    {
+        "model_id": "Qwen/Qwen2.5-VL-7B-Instruct",
+        "trust_remote_code": False,
+        "eval_limit_per_class": 5,
+        "min_gpu_gb": 24,
+        "notes": "Batch 3 stronger hierarchical diagnostic if Kaggle assigns two T4 GPUs again.",
+    },
+]
+
+RUN_HIERARCHICAL_DIAGNOSTIC = True
+RUN_FLAT_BENCHMARK = False
+RUN_LORA = False
 LORA_BASE_MODEL_ID = "Qwen/Qwen2.5-VL-3B-Instruct"
 LORA_TRAIN_PER_CLASS = 32
 LORA_VAL_PER_CLASS = 8
@@ -323,11 +371,11 @@ def parse_model_text(value: Any) -> str:
 def parse_prediction(text: str) -> dict[str, Any]:
     match = re.search(r"\{.*?\}", text, flags=re.DOTALL)
     if not match:
-        return {"label": "PARSE_ERROR", "confidence": 0.0, "rationale": text[:300]}
+        return {"label": "PARSE_ERROR", "confidence": 0.0, "rationale": text[:300], "strict_json": False}
     try:
         data = json.loads(match.group(0))
     except json.JSONDecodeError:
-        return {"label": "PARSE_ERROR", "confidence": 0.0, "rationale": text[:300]}
+        return {"label": "PARSE_ERROR", "confidence": 0.0, "rationale": text[:300], "strict_json": False}
     label = str(data.get("label", "INVALID_LABEL"))
     if label not in LABELS:
         label = "INVALID_LABEL"
@@ -339,6 +387,90 @@ def parse_prediction(text: str) -> dict[str, Any]:
         "label": label,
         "confidence": confidence,
         "rationale": str(data.get("rationale", ""))[:500],
+        "strict_json": True,
+    }
+
+
+def parse_json_object(text: str) -> tuple[dict[str, Any] | None, bool]:
+    match = re.search(r"\{.*?\}", text, flags=re.DOTALL)
+    if not match:
+        return None, False
+    try:
+        data = json.loads(match.group(0))
+    except json.JSONDecodeError:
+        return None, False
+    return data, True
+
+
+def parse_confidence(value: Any) -> float:
+    try:
+        return float(value or 0.0)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def parse_domain_prediction(text: str) -> dict[str, Any]:
+    data, strict_json = parse_json_object(text)
+    if not data:
+        return {
+            "domain": "PARSE_ERROR",
+            "confidence": 0.0,
+            "rationale": text[:300],
+            "strict_json": False,
+        }
+    domain = str(data.get("domain", data.get("label", "INVALID_DOMAIN"))).strip().lower()
+    if domain.startswith("tumor"):
+        domain = "tumor"
+    elif domain.startswith("dementia") or domain.startswith("alz"):
+        domain = "dementia"
+    else:
+        domain = "INVALID_DOMAIN"
+    return {
+        "domain": domain,
+        "confidence": parse_confidence(data.get("confidence")),
+        "rationale": str(data.get("rationale", ""))[:500],
+        "strict_json": strict_json,
+    }
+
+
+def normalize_subtype(raw_label: Any, domain: str) -> str:
+    label = str(raw_label or "").strip()
+    if domain == "tumor":
+        label = label.removeprefix("tumor_")
+        label_map = {item.lower(): item for item in TUMOR_SUBTYPES}
+        return label_map.get(label.lower(), "INVALID_SUBTYPE")
+    if domain == "dementia":
+        label = label.removeprefix("dementia_")
+        label_map = {item.lower(): item for item in DEMENTIA_SUBTYPES}
+        return label_map.get(label.lower(), "INVALID_SUBTYPE")
+    return "INVALID_SUBTYPE"
+
+
+def subtype_to_eight_class(subtype: str, domain: str) -> str:
+    if domain == "tumor" and subtype in TUMOR_SUBTYPES:
+        return f"tumor_{subtype}"
+    if domain == "dementia" and subtype in DEMENTIA_SUBTYPES:
+        return f"dementia_{subtype}"
+    return "INVALID_OR_PARSE"
+
+
+def parse_subtype_prediction(text: str, domain: str) -> dict[str, Any]:
+    data, strict_json = parse_json_object(text)
+    if not data:
+        return {
+            "subtype": "PARSE_ERROR",
+            "eight_class": "INVALID_OR_PARSE",
+            "confidence": 0.0,
+            "rationale": text[:300],
+            "strict_json": False,
+        }
+    subtype = normalize_subtype(data.get("subtype", data.get("label", "INVALID_SUBTYPE")), domain)
+    return {
+        "subtype": subtype,
+        "eight_class": subtype_to_eight_class(subtype, domain),
+        "confidence": parse_confidence(data.get("confidence")),
+        "rationale": str(data.get("rationale", ""))[:500],
+        "strict_json": strict_json,
     }
 
 
@@ -350,6 +482,33 @@ def make_messages(image: Any) -> list[dict[str, Any]]:
             "content": [
                 {"type": "image", "image": image},
                 {"type": "text", "text": USER_PROMPT},
+            ],
+        },
+    ]
+
+
+def make_domain_messages(image: Any) -> list[dict[str, Any]]:
+    return [
+        {"role": "system", "content": [{"type": "text", "text": SYSTEM_PROMPT}]},
+        {
+            "role": "user",
+            "content": [
+                {"type": "image", "image": image},
+                {"type": "text", "text": DOMAIN_PROMPT},
+            ],
+        },
+    ]
+
+
+def make_subtype_messages(image: Any, domain: str) -> list[dict[str, Any]]:
+    prompt = TUMOR_SUBTYPE_PROMPT if domain == "tumor" else DEMENTIA_SUBTYPE_PROMPT
+    return [
+        {"role": "system", "content": [{"type": "text", "text": SYSTEM_PROMPT}]},
+        {
+            "role": "user",
+            "content": [
+                {"type": "image", "image": image},
+                {"type": "text", "text": prompt},
             ],
         },
     ]
@@ -467,6 +626,233 @@ def evaluate_candidate(candidate: dict[str, Any], all_rows: list[dict[str, str]]
     write_rows_csv(OUTPUT_DIR / f"{safe_name}_eval.csv", result_rows)
     (OUTPUT_DIR / f"{safe_name}_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     record("model_eval", "completed", model_id=model_id, accuracy=summary["accuracy"], n=summary["n"])
+    return summary
+
+
+def value_counts(values: list[str]) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for value in values:
+        counts[value] = counts.get(value, 0) + 1
+    return counts
+
+
+def evaluate_hierarchical_candidate(
+    candidate: dict[str, Any],
+    all_rows: list[dict[str, str]],
+    gpu: dict[str, Any],
+) -> dict[str, Any]:
+    import torch
+    from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+
+    model_id = candidate["model_id"]
+    safe_name = model_id.replace("/", "__")
+    needed_gb = float(candidate.get("min_gpu_gb", 0))
+    available_gb = float(gpu.get("aggregate_memory_gb") or gpu.get("total_memory_gb", 0.0))
+    if available_gb and available_gb < needed_gb:
+        summary = {
+            "model_id": model_id,
+            "status": "skipped",
+            "reason": f"GPU memory {available_gb} GB is below requested {needed_gb} GB",
+            "notes": candidate.get("notes", ""),
+            "mode": "hierarchical",
+        }
+        (OUTPUT_DIR / f"{safe_name}_hierarchical_summary.json").write_text(
+            json.dumps(summary, indent=2),
+            encoding="utf-8",
+        )
+        record("hierarchical_eval", "skipped", model_id=model_id, reason=summary["reason"])
+        return summary
+
+    print_banner(f"Hierarchical evaluation for {model_id}")
+    rows = balanced_rows(all_rows, "test", int(candidate.get("eval_limit_per_class", 4)))
+    if not rows:
+        raise RuntimeError("No strict test rows available for hierarchical multimodal evaluation")
+
+    pipe = None
+    result_rows: list[dict[str, Any]] = []
+    started = time.time()
+
+    def run_generation(messages: list[dict[str, Any]], max_new_tokens: int = 96) -> str:
+        raw = pipe(text=messages, max_new_tokens=max_new_tokens)
+        generated = raw[0] if isinstance(raw, list) and raw else raw
+        return parse_model_text(generated)
+
+    try:
+        pipe = load_vlm_pipeline(candidate)
+        for idx, row in enumerate(rows, start=1):
+            image_path = REPO_DIR / row["path"]
+            image = load_image(image_path)
+            true_domain = row.get("domain") or ("tumor" if row["eight_class"].startswith("tumor_") else "dementia")
+
+            domain_text = run_generation(make_domain_messages(image), max_new_tokens=80)
+            domain_parsed = parse_domain_prediction(domain_text)
+            pred_domain = domain_parsed["domain"]
+
+            routed_subtype_text = ""
+            routed_subtype = "INVALID_SUBTYPE"
+            pred_eight_class = "INVALID_OR_PARSE"
+            subtype_confidence = 0.0
+            subtype_rationale = ""
+            subtype_strict_json = False
+            if pred_domain in DOMAIN_LABELS:
+                routed_subtype_text = run_generation(make_subtype_messages(image, pred_domain), max_new_tokens=96)
+                routed_subtype_parsed = parse_subtype_prediction(routed_subtype_text, pred_domain)
+                routed_subtype = routed_subtype_parsed["subtype"]
+                pred_eight_class = routed_subtype_parsed["eight_class"]
+                subtype_confidence = routed_subtype_parsed["confidence"]
+                subtype_rationale = routed_subtype_parsed["rationale"]
+                subtype_strict_json = bool(routed_subtype_parsed["strict_json"])
+
+            if pred_domain == true_domain and pred_eight_class in LABELS:
+                oracle_subtype_text = routed_subtype_text
+                oracle_subtype = routed_subtype
+                oracle_eight_class = pred_eight_class
+                oracle_subtype_confidence = subtype_confidence
+                oracle_subtype_strict_json = subtype_strict_json
+            else:
+                oracle_subtype_text = run_generation(make_subtype_messages(image, true_domain), max_new_tokens=96)
+                oracle_subtype_parsed = parse_subtype_prediction(oracle_subtype_text, true_domain)
+                oracle_subtype = oracle_subtype_parsed["subtype"]
+                oracle_eight_class = oracle_subtype_parsed["eight_class"]
+                oracle_subtype_confidence = oracle_subtype_parsed["confidence"]
+                oracle_subtype_strict_json = bool(oracle_subtype_parsed["strict_json"])
+
+            result = {
+                "model_id": model_id,
+                "idx": idx,
+                "path": row["path"],
+                "true_domain": true_domain,
+                "true_label": row["eight_class"],
+                "pred_domain": pred_domain,
+                "pred_label": pred_eight_class,
+                "oracle_domain_pred_label": oracle_eight_class,
+                "domain_correct": pred_domain == true_domain,
+                "hierarchical_correct": pred_eight_class == row["eight_class"],
+                "oracle_domain_correct": oracle_eight_class == row["eight_class"],
+                "domain_confidence": domain_parsed["confidence"],
+                "subtype_confidence": subtype_confidence,
+                "oracle_subtype_confidence": oracle_subtype_confidence,
+                "routed_subtype": routed_subtype,
+                "oracle_subtype": oracle_subtype,
+                "domain_strict_json": bool(domain_parsed["strict_json"]),
+                "subtype_strict_json": subtype_strict_json,
+                "oracle_subtype_strict_json": oracle_subtype_strict_json,
+                "domain_rationale": domain_parsed["rationale"],
+                "subtype_rationale": subtype_rationale,
+                "domain_raw_text": domain_text[:1500],
+                "subtype_raw_text": routed_subtype_text[:1500],
+                "oracle_subtype_raw_text": oracle_subtype_text[:1500],
+            }
+            result_rows.append(result)
+            record(
+                "hierarchical_eval",
+                "progress",
+                model_id=model_id,
+                completed=idx,
+                total=len(rows),
+                domain_accuracy=round(sum(1 for item in result_rows if item["domain_correct"]) / len(result_rows), 4),
+                hierarchical_accuracy=round(
+                    sum(1 for item in result_rows if item["hierarchical_correct"]) / len(result_rows),
+                    4,
+                ),
+                oracle_domain_accuracy=round(
+                    sum(1 for item in result_rows if item["oracle_domain_correct"]) / len(result_rows),
+                    4,
+                ),
+            )
+    finally:
+        del pipe
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+    y_true_domain = [row["true_domain"] for row in result_rows]
+    y_pred_domain = [
+        row["pred_domain"] if row["pred_domain"] in DOMAIN_LABELS else "INVALID_OR_PARSE"
+        for row in result_rows
+    ]
+    domain_labels_for_matrix = DOMAIN_LABELS + ["INVALID_OR_PARSE"]
+    y_true_eight = [row["true_label"] for row in result_rows]
+    y_pred_eight = [
+        row["pred_label"] if row["pred_label"] in LABELS else "INVALID_OR_PARSE"
+        for row in result_rows
+    ]
+    y_oracle_eight = [
+        row["oracle_domain_pred_label"] if row["oracle_domain_pred_label"] in LABELS else "INVALID_OR_PARSE"
+        for row in result_rows
+    ]
+    eight_labels_for_matrix = LABELS + ["INVALID_OR_PARSE"]
+
+    domain_matrix = confusion_matrix(y_true_domain, y_pred_domain, labels=domain_labels_for_matrix)
+    hierarchical_matrix = confusion_matrix(y_true_eight, y_pred_eight, labels=eight_labels_for_matrix)
+    oracle_matrix = confusion_matrix(y_true_eight, y_oracle_eight, labels=eight_labels_for_matrix)
+    summary = {
+        "model_id": model_id,
+        "status": "completed",
+        "mode": "hierarchical",
+        "notes": candidate.get("notes", ""),
+        "n": len(result_rows),
+        "domain_accuracy": float(accuracy_score(y_true_domain, y_pred_domain)) if result_rows else 0.0,
+        "accuracy": float(accuracy_score(y_true_eight, y_pred_eight)) if result_rows else 0.0,
+        "hierarchical_accuracy": float(accuracy_score(y_true_eight, y_pred_eight)) if result_rows else 0.0,
+        "oracle_domain_accuracy": float(accuracy_score(y_true_eight, y_oracle_eight)) if result_rows else 0.0,
+        "domain_strict_json_rate": (
+            float(sum(bool(row["domain_strict_json"]) for row in result_rows) / len(result_rows))
+            if result_rows
+            else 0.0
+        ),
+        "subtype_strict_json_rate": (
+            float(sum(bool(row["subtype_strict_json"]) for row in result_rows) / len(result_rows))
+            if result_rows
+            else 0.0
+        ),
+        "oracle_subtype_strict_json_rate": (
+            float(sum(bool(row["oracle_subtype_strict_json"]) for row in result_rows) / len(result_rows))
+            if result_rows
+            else 0.0
+        ),
+        "seconds": round(time.time() - started, 2),
+        "domain_pred_counts": value_counts(y_pred_domain),
+        "pred_counts": value_counts(y_pred_eight),
+        "oracle_pred_counts": value_counts(y_oracle_eight),
+        "domain_classification_report": classification_report(
+            y_true_domain,
+            y_pred_domain,
+            labels=domain_labels_for_matrix,
+            zero_division=0,
+        ),
+        "classification_report": classification_report(
+            y_true_eight,
+            y_pred_eight,
+            labels=eight_labels_for_matrix,
+            zero_division=0,
+        ),
+        "oracle_domain_classification_report": classification_report(
+            y_true_eight,
+            y_oracle_eight,
+            labels=eight_labels_for_matrix,
+            zero_division=0,
+        ),
+        "domain_confusion_matrix_labels": domain_labels_for_matrix,
+        "domain_confusion_matrix": domain_matrix.tolist(),
+        "confusion_matrix_labels": eight_labels_for_matrix,
+        "confusion_matrix": hierarchical_matrix.tolist(),
+        "oracle_domain_confusion_matrix": oracle_matrix.tolist(),
+    }
+    write_rows_csv(OUTPUT_DIR / f"{safe_name}_hierarchical_eval.csv", result_rows)
+    (OUTPUT_DIR / f"{safe_name}_hierarchical_summary.json").write_text(
+        json.dumps(summary, indent=2),
+        encoding="utf-8",
+    )
+    record(
+        "hierarchical_eval",
+        "completed",
+        model_id=model_id,
+        domain_accuracy=summary["domain_accuracy"],
+        hierarchical_accuracy=summary["hierarchical_accuracy"],
+        oracle_domain_accuracy=summary["oracle_domain_accuracy"],
+        n=summary["n"],
+    )
     return summary
 
 
@@ -794,6 +1180,12 @@ def main() -> None:
         "repo_url": REPO_URL,
         "status": "started",
         "models": [],
+        "hierarchical_models": [],
+        "run_config": {
+            "run_hierarchical_diagnostic": RUN_HIERARCHICAL_DIAGNOSTIC,
+            "run_flat_benchmark": RUN_FLAT_BENCHMARK,
+            "run_lora": RUN_LORA,
+        },
     }
     try:
         print_banner("Kaggle multimodal tumor/dementia job starting")
@@ -822,56 +1214,99 @@ def main() -> None:
         clone_repo()
         manifest_path = create_manifest()
         rows = read_manifest_rows(manifest_path)
-        eval_sample = balanced_rows(rows, "test", 8)
+        eval_sample = balanced_rows(rows, "test", 10)
         write_rows_csv(OUTPUT_DIR / "multimodal_eval_sample.csv", eval_sample)
 
-        for candidate in MODEL_CANDIDATES:
+        if RUN_HIERARCHICAL_DIAGNOSTIC:
+            for candidate in HIERARCHICAL_MODEL_CANDIDATES:
+                try:
+                    summary = evaluate_hierarchical_candidate(candidate, rows, gpu)
+                except Exception as exc:  # noqa: BLE001
+                    summary = {
+                        "model_id": candidate["model_id"],
+                        "status": "failed",
+                        "mode": "hierarchical",
+                        "error": repr(exc),
+                        "traceback": traceback.format_exc()[-8000:],
+                        "notes": candidate.get("notes", ""),
+                    }
+                    safe_name = candidate["model_id"].replace("/", "__")
+                    (OUTPUT_DIR / f"{safe_name}_hierarchical_summary.json").write_text(
+                        json.dumps(summary, indent=2),
+                        encoding="utf-8",
+                    )
+                    record("hierarchical_eval", "failed", model_id=candidate["model_id"], error=repr(exc))
+                final["hierarchical_models"].append(summary)
+        else:
+            record("hierarchical_eval", "skipped", reason="RUN_HIERARCHICAL_DIAGNOSTIC is false")
+
+        if RUN_FLAT_BENCHMARK:
+            for candidate in MODEL_CANDIDATES:
+                try:
+                    summary = evaluate_candidate(candidate, rows, gpu)
+                except Exception as exc:  # noqa: BLE001
+                    summary = {
+                        "model_id": candidate["model_id"],
+                        "status": "failed",
+                        "error": repr(exc),
+                        "traceback": traceback.format_exc()[-8000:],
+                        "notes": candidate.get("notes", ""),
+                    }
+                    safe_name = candidate["model_id"].replace("/", "__")
+                    (OUTPUT_DIR / f"{safe_name}_summary.json").write_text(
+                        json.dumps(summary, indent=2),
+                        encoding="utf-8",
+                    )
+                    record("model_eval", "failed", model_id=candidate["model_id"], error=repr(exc))
+                final["models"].append(summary)
+        else:
+            record("model_eval", "skipped", reason="RUN_FLAT_BENCHMARK is false for this batch")
+
+        if RUN_LORA:
+            train_jsonl, val_jsonl = build_lora_jsonl(rows)
             try:
-                summary = evaluate_candidate(candidate, rows, gpu)
+                final["lora"] = train_qwen_lora(train_jsonl, val_jsonl, final.get("gpu", {}))
             except Exception as exc:  # noqa: BLE001
-                summary = {
-                    "model_id": candidate["model_id"],
+                final["lora"] = {
                     "status": "failed",
                     "error": repr(exc),
                     "traceback": traceback.format_exc()[-8000:],
-                    "notes": candidate.get("notes", ""),
                 }
-                safe_name = candidate["model_id"].replace("/", "__")
-                (OUTPUT_DIR / f"{safe_name}_summary.json").write_text(
-                    json.dumps(summary, indent=2),
-                    encoding="utf-8",
-                )
-                record("model_eval", "failed", model_id=candidate["model_id"], error=repr(exc))
-            final["models"].append(summary)
+                record("lora_train", "failed", error=repr(exc))
 
-        train_jsonl, val_jsonl = build_lora_jsonl(rows)
-        try:
-            final["lora"] = train_qwen_lora(train_jsonl, val_jsonl, final.get("gpu", {}))
-        except Exception as exc:  # noqa: BLE001
-            final["lora"] = {
-                "status": "failed",
-                "error": repr(exc),
-                "traceback": traceback.format_exc()[-8000:],
-            }
-            record("lora_train", "failed", error=repr(exc))
-
-        if final.get("lora", {}).get("status") == "completed":
-            try:
-                adapter_path = Path(str(final["lora"]["adapter_dir"]))
-                final["lora_eval"] = evaluate_qwen_lora_adapter(adapter_path, rows, final.get("gpu", {}))
-            except Exception as exc:  # noqa: BLE001
-                final["lora_eval"] = {
-                    "status": "failed",
-                    "error": repr(exc),
-                    "traceback": traceback.format_exc()[-8000:],
-                }
-                record("lora_eval", "failed", error=repr(exc))
+            if final.get("lora", {}).get("status") == "completed":
+                try:
+                    adapter_path = Path(str(final["lora"]["adapter_dir"]))
+                    final["lora_eval"] = evaluate_qwen_lora_adapter(adapter_path, rows, final.get("gpu", {}))
+                except Exception as exc:  # noqa: BLE001
+                    final["lora_eval"] = {
+                        "status": "failed",
+                        "error": repr(exc),
+                        "traceback": traceback.format_exc()[-8000:],
+                    }
+                    record("lora_eval", "failed", error=repr(exc))
+        else:
+            final["lora"] = {"status": "skipped", "reason": "RUN_LORA is false for this batch"}
+            record("lora_train", "skipped", reason=final["lora"]["reason"])
 
         completed_models = [item for item in final["models"] if item.get("status") == "completed"]
         if completed_models:
             final["best_zero_shot_model"] = sorted(
                 completed_models,
                 key=lambda item: (float(item.get("accuracy", 0.0)), float(item.get("strict_json_rate", 0.0))),
+                reverse=True,
+            )[0]
+        completed_hierarchical = [
+            item for item in final["hierarchical_models"] if item.get("status") == "completed"
+        ]
+        if completed_hierarchical:
+            final["best_hierarchical_model"] = sorted(
+                completed_hierarchical,
+                key=lambda item: (
+                    float(item.get("hierarchical_accuracy", item.get("accuracy", 0.0))),
+                    float(item.get("domain_accuracy", 0.0)),
+                    float(item.get("oracle_domain_accuracy", 0.0)),
+                ),
                 reverse=True,
             )[0]
         final["status"] = "completed"
