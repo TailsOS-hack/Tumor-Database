@@ -106,7 +106,8 @@ This is the clean restart plan for the tumor/dementia project. Training and larg
 - End-to-end metrics: `training_logs/experiments/hierarchical/test_evaluation/`
 - Colab export bundle: `MyDrive/Tumor-Database/exports/tumor_database_colab_artifacts_*.zip`
 - Kaggle multimodal batch 1: `training_logs/multimodal/kaggle_qwen_batch1/`
-- Kaggle LoRA adapter: `models/multimodal/qwen25vl_3b_mri_lora/`
+- Kaggle multimodal batch 2: `training_logs/multimodal/kaggle_qwen_batch2/`
+- Current Kaggle LoRA adapter: `models/multimodal/qwen25vl_3b_mri_lora/`
 
 ## Multimodal Candidate References
 

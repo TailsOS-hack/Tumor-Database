@@ -1,0 +1,122 @@
+{
+  "model_id": "Qwen/Qwen2.5-VL-3B-Instruct+LoRA",
+  "status": "completed",
+  "adapter_dir": "/kaggle/working/tumor_multimodal_kaggle_outputs/lora_adapter_qwen25vl_3b_mri",
+  "n": 96,
+  "accuracy": 0.3125,
+  "strict_json_rate": 1.0,
+  "seconds": 788.31,
+  "classification_report": "                           precision    recall  f1-score   support\n\n             tumor_glioma       0.30      0.83      0.44        12\n         tumor_meningioma       0.00      0.00      0.00        12\n            tumor_notumor       0.80      0.33      0.47        12\n          tumor_pituitary       0.67      0.33      0.44        12\n    dementia_MildDemented       0.00      0.00      0.00        12\ndementia_ModerateDemented       0.25      1.00      0.40        12\n     dementia_NonDemented       0.00      0.00      0.00        12\ndementia_VeryMildDemented       0.00      0.00      0.00        12\n         INVALID_OR_PARSE       0.00      0.00      0.00         0\n\n                 accuracy                           0.31        96\n                macro avg       0.22      0.28      0.20        96\n             weighted avg       0.25      0.31      0.22        96\n",
+  "confusion_matrix_labels": [
+    "tumor_glioma",
+    "tumor_meningioma",
+    "tumor_notumor",
+    "tumor_pituitary",
+    "dementia_MildDemented",
+    "dementia_ModerateDemented",
+    "dementia_NonDemented",
+    "dementia_VeryMildDemented",
+    "INVALID_OR_PARSE"
+  ],
+  "confusion_matrix": [
+    [
+      10,
+      1,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      11,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      7,
+      0,
+      4,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      5,
+      3,
+      0,
+      4,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      12,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      12,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      12,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      12,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ]
+}

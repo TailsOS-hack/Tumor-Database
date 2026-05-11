@@ -1,0 +1,122 @@
+{
+  "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
+  "status": "completed",
+  "notes": "Primary free-tier model. Strong quality with realistic Kaggle memory needs.",
+  "n": 64,
+  "accuracy": 0.171875,
+  "strict_json_rate": 1.0,
+  "seconds": 499.57,
+  "classification_report": "                           precision    recall  f1-score   support\n\n             tumor_glioma       0.00      0.00      0.00         8\n         tumor_meningioma       1.00      0.38      0.55         8\n            tumor_notumor       0.13      1.00      0.23         8\n          tumor_pituitary       0.00      0.00      0.00         8\n    dementia_MildDemented       0.00      0.00      0.00         8\ndementia_ModerateDemented       0.00      0.00      0.00         8\n     dementia_NonDemented       0.00      0.00      0.00         8\ndementia_VeryMildDemented       0.00      0.00      0.00         8\n         INVALID_OR_PARSE       0.00      0.00      0.00         0\n\n                 accuracy                           0.17        64\n                macro avg       0.13      0.15      0.09        64\n             weighted avg       0.14      0.17      0.10        64\n",
+  "confusion_matrix_labels": [
+    "tumor_glioma",
+    "tumor_meningioma",
+    "tumor_notumor",
+    "tumor_pituitary",
+    "dementia_MildDemented",
+    "dementia_ModerateDemented",
+    "dementia_NonDemented",
+    "dementia_VeryMildDemented",
+    "INVALID_OR_PARSE"
+  ],
+  "confusion_matrix": [
+    [
+      0,
+      0,
+      8,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      3,
+      5,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      8,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      8,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      8,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      8,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      8,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      8,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ]
+}

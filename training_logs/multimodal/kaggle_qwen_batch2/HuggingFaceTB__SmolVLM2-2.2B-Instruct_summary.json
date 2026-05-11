@@ -1,0 +1,122 @@
+{
+  "model_id": "HuggingFaceTB/SmolVLM2-2.2B-Instruct",
+  "status": "completed",
+  "notes": "Small open VLM baseline that should fit on Kaggle T4.",
+  "n": 48,
+  "accuracy": 0.08333333333333333,
+  "strict_json_rate": 0.7291666666666666,
+  "seconds": 620.52,
+  "classification_report": "                           precision    recall  f1-score   support\n\n             tumor_glioma       0.11      0.67      0.20         6\n         tumor_meningioma       0.00      0.00      0.00         6\n            tumor_notumor       0.00      0.00      0.00         6\n          tumor_pituitary       0.00      0.00      0.00         6\n    dementia_MildDemented       0.00      0.00      0.00         6\ndementia_ModerateDemented       0.00      0.00      0.00         6\n     dementia_NonDemented       0.00      0.00      0.00         6\ndementia_VeryMildDemented       0.00      0.00      0.00         6\n         INVALID_OR_PARSE       0.00      0.00      0.00         0\n\n                 accuracy                           0.08        48\n                macro avg       0.01      0.07      0.02        48\n             weighted avg       0.01      0.08      0.02        48\n",
+  "confusion_matrix_labels": [
+    "tumor_glioma",
+    "tumor_meningioma",
+    "tumor_notumor",
+    "tumor_pituitary",
+    "dementia_MildDemented",
+    "dementia_ModerateDemented",
+    "dementia_NonDemented",
+    "dementia_VeryMildDemented",
+    "INVALID_OR_PARSE"
+  ],
+  "confusion_matrix": [
+    [
+      4,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      2
+    ],
+    [
+      3,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      3
+    ],
+    [
+      5,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      3,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      3
+    ],
+    [
+      6,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      5,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      4,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      2
+    ],
+    [
+      5,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ]
+}

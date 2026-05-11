@@ -1,0 +1,122 @@
+{
+  "model_id": "Qwen/Qwen2-VL-2B-Instruct",
+  "status": "completed",
+  "notes": "Smaller Qwen baseline for free T4 runs.",
+  "n": 48,
+  "accuracy": 0.125,
+  "strict_json_rate": 1.0,
+  "seconds": 306.39,
+  "classification_report": "                           precision    recall  f1-score   support\n\n             tumor_glioma       0.12      1.00      0.22         6\n         tumor_meningioma       0.00      0.00      0.00         6\n            tumor_notumor       0.00      0.00      0.00         6\n          tumor_pituitary       0.00      0.00      0.00         6\n    dementia_MildDemented       0.00      0.00      0.00         6\ndementia_ModerateDemented       0.00      0.00      0.00         6\n     dementia_NonDemented       0.00      0.00      0.00         6\ndementia_VeryMildDemented       0.00      0.00      0.00         6\n         INVALID_OR_PARSE       0.00      0.00      0.00         0\n\n                 accuracy                           0.12        48\n                macro avg       0.01      0.11      0.02        48\n             weighted avg       0.02      0.12      0.03        48\n",
+  "confusion_matrix_labels": [
+    "tumor_glioma",
+    "tumor_meningioma",
+    "tumor_notumor",
+    "tumor_pituitary",
+    "dementia_MildDemented",
+    "dementia_ModerateDemented",
+    "dementia_NonDemented",
+    "dementia_VeryMildDemented",
+    "INVALID_OR_PARSE"
+  ],
+  "confusion_matrix": [
+    [
+      6,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      6,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      6,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      6,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      6,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      6,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      6,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      6,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ]
+}

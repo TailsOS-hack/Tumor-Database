@@ -39,8 +39,9 @@ Manifest path: `training_logs/splits/strict_manifest.csv`
 | --- | ---: | --- | --- | ---: | ---: | --- |
 | Qwen/Qwen2.5-VL-3B-Instruct | 3B | Kaggle 2x T4 | 4-bit | 1.0000 | 0.1719 | Best zero-shot VLM, still weak |
 | Qwen/Qwen2-VL-2B-Instruct | 2B | Kaggle 2x T4 | 4-bit | 1.0000 | 0.1250 | Smaller Qwen baseline |
-| Qwen/Qwen2.5-VL-7B-Instruct | 7B | Kaggle 2x T4 | 4-bit | 1.0000 | 0.1500 | Loaded on T4 but accuracy remained weak |
-| HuggingFaceTB/SmolVLM2-2.2B-Instruct | 2.2B | Kaggle 2x T4 | 4-bit | N/A | N/A | Batch 1 missing `num2words`; retry planned |
+| Qwen/Qwen2.5-VL-7B-Instruct | 7B | Kaggle 2x T4 | 4-bit | 1.0000 | 0.1750 | Best zero-shot in batch 2, still weak |
+| HuggingFaceTB/SmolVLM2-2.2B-Instruct | 2.2B | Kaggle 2x T4 | 4-bit | 0.7292 | 0.0833 | Dependency fixed in batch 2; JSON and accuracy weak |
+| Qwen/Qwen2.5-VL-3B-Instruct + LoRA | 3B | Kaggle 2x T4 | 4-bit LoRA | 1.0000 | 0.3125 | Improved after 256-example LoRA but still collapsed labels |
 | llava-hf/llava-v1.6-34b-hf | 34B | Kaggle 2x T4 | 4-bit | N/A | N/A | Skipped because memory was insufficient |
 
 ## Methods Notes
@@ -50,6 +51,7 @@ Manifest path: `training_logs/splits/strict_manifest.csv`
 - Keep validation metrics separate from test metrics.
 - Record random seed, epochs, image size, optimizer, learning rate, batch size, GPU type, and checkpoint hash for each run.
 - For LoRA, report base model, adapter rank, target modules, quantization, training examples, validation examples, and adapter path.
+- Current multimodal conclusion: VLMs should not replace the CNN classifiers for image labeling; treat them as report/metadata assistants unless a redesigned task produces materially stronger strict-test accuracy.
 
 ## Rationale Draft
 
