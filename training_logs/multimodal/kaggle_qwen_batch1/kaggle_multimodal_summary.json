@@ -1,0 +1,543 @@
+{
+  "created_utc": "2026-05-11T15:43:31.562822+00:00",
+  "repo_url": "https://github.com/TailsOS-hack/Tumor-Database.git",
+  "status": "completed",
+  "models": [
+    {
+      "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
+      "status": "completed",
+      "notes": "Primary free-tier model. Strong quality with realistic Kaggle memory needs.",
+      "n": 64,
+      "accuracy": 0.171875,
+      "strict_json_rate": 1.0,
+      "seconds": 464.72,
+      "classification_report": "                           precision    recall  f1-score   support\n\n             tumor_glioma       0.00      0.00      0.00         8\n         tumor_meningioma       1.00      0.38      0.55         8\n            tumor_notumor       0.13      1.00      0.23         8\n          tumor_pituitary       0.00      0.00      0.00         8\n    dementia_MildDemented       0.00      0.00      0.00         8\ndementia_ModerateDemented       0.00      0.00      0.00         8\n     dementia_NonDemented       0.00      0.00      0.00         8\ndementia_VeryMildDemented       0.00      0.00      0.00         8\n         INVALID_OR_PARSE       0.00      0.00      0.00         0\n\n                 accuracy                           0.17        64\n                macro avg       0.13      0.15      0.09        64\n             weighted avg       0.14      0.17      0.10        64\n",
+      "confusion_matrix_labels": [
+        "tumor_glioma",
+        "tumor_meningioma",
+        "tumor_notumor",
+        "tumor_pituitary",
+        "dementia_MildDemented",
+        "dementia_ModerateDemented",
+        "dementia_NonDemented",
+        "dementia_VeryMildDemented",
+        "INVALID_OR_PARSE"
+      ],
+      "confusion_matrix": [
+        [
+          0,
+          0,
+          8,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          3,
+          5,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          8,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          8,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          8,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          8,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          8,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          8,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "model_id": "Qwen/Qwen2-VL-2B-Instruct",
+      "status": "completed",
+      "notes": "Smaller Qwen baseline for free T4 runs.",
+      "n": 48,
+      "accuracy": 0.125,
+      "strict_json_rate": 1.0,
+      "seconds": 291.35,
+      "classification_report": "                           precision    recall  f1-score   support\n\n             tumor_glioma       0.12      1.00      0.22         6\n         tumor_meningioma       0.00      0.00      0.00         6\n            tumor_notumor       0.00      0.00      0.00         6\n          tumor_pituitary       0.00      0.00      0.00         6\n    dementia_MildDemented       0.00      0.00      0.00         6\ndementia_ModerateDemented       0.00      0.00      0.00         6\n     dementia_NonDemented       0.00      0.00      0.00         6\ndementia_VeryMildDemented       0.00      0.00      0.00         6\n         INVALID_OR_PARSE       0.00      0.00      0.00         0\n\n                 accuracy                           0.12        48\n                macro avg       0.01      0.11      0.02        48\n             weighted avg       0.02      0.12      0.03        48\n",
+      "confusion_matrix_labels": [
+        "tumor_glioma",
+        "tumor_meningioma",
+        "tumor_notumor",
+        "tumor_pituitary",
+        "dementia_MildDemented",
+        "dementia_ModerateDemented",
+        "dementia_NonDemented",
+        "dementia_VeryMildDemented",
+        "INVALID_OR_PARSE"
+      ],
+      "confusion_matrix": [
+        [
+          6,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          6,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          6,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          6,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          6,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          6,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          6,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          6,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "model_id": "HuggingFaceTB/SmolVLM2-2.2B-Instruct",
+      "status": "failed",
+      "error": "ImportError('Package `num2words` is required to run SmolVLM processor. Install it with `pip install num2words`.')",
+      "traceback": "Traceback (most recent call last):\n  File \"/kaggle/src/script.py\", line 713, in main\n    summary = evaluate_candidate(candidate, rows, gpu)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/kaggle/src/script.py\", line 410, in evaluate_candidate\n    pipe = load_vlm_pipeline(candidate)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/kaggle/src/script.py\", line 374, in load_vlm_pipeline\n    return pipeline(\n           ^^^^^^^^^\n  File \"/usr/local/lib/python3.12/dist-packages/transformers/pipelines/__init__.py\", line 1052, in pipeline\n    processor = _resolve_processor(\n                ^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/dist-packages/transformers/pipelines/__init__.py\", line 638, in _resolve_processor\n    return _load_pipeline_component(load_processor, processor, load)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/dist-packages/transformers/pipelines/__init__.py\", line 446, in _load_pipeline_component\n    return loader(component)\n           ^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/dist-packages/transformers/pipelines/__init__.py\", line 629, in load\n    processor = AutoProcessor.from_pretrained(processor, _from_pipeline=task, **hub_kwargs, **model_kwargs)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/dist-packages/transformers/models/auto/processing_auto.py\", line 436, in from_pretrained\n    return processor_class.from_pretrained(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/dist-packages/transformers/processing_utils.py\", line 1430, in from_pretrained\n    return cls.from_args_and_dict(args, processor_dict, **instantiation_kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/dist-packages/transformers/processing_utils.py\", line 1197, in from_args_and_dict\n    processor = cls(*args, **valid_kwargs)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/dist-packages/transformers/models/smolvlm/processing_smolvlm.py\", line 142, in __init__\n    raise ImportError(\nImportError: Package `num2words` is required to run SmolVLM processor. Install it with `pip install num2words`.\n",
+      "notes": "Small open VLM baseline that should fit on Kaggle T4."
+    },
+    {
+      "model_id": "Qwen/Qwen2.5-VL-7B-Instruct",
+      "status": "completed",
+      "notes": "Stronger Qwen candidate. Runs only if the assigned GPU has enough memory.",
+      "n": 40,
+      "accuracy": 0.15,
+      "strict_json_rate": 1.0,
+      "seconds": 441.07,
+      "classification_report": "                           precision    recall  f1-score   support\n\n             tumor_glioma       0.16      0.80      0.27         5\n         tumor_meningioma       0.00      0.00      0.00         5\n            tumor_notumor       0.13      0.40      0.20         5\n          tumor_pituitary       0.00      0.00      0.00         5\n    dementia_MildDemented       0.00      0.00      0.00         5\ndementia_ModerateDemented       0.00      0.00      0.00         5\n     dementia_NonDemented       0.00      0.00      0.00         5\ndementia_VeryMildDemented       0.00      0.00      0.00         5\n         INVALID_OR_PARSE       0.00      0.00      0.00         0\n\n                 accuracy                           0.15        40\n                macro avg       0.03      0.13      0.05        40\n             weighted avg       0.04      0.15      0.06        40\n",
+      "confusion_matrix_labels": [
+        "tumor_glioma",
+        "tumor_meningioma",
+        "tumor_notumor",
+        "tumor_pituitary",
+        "dementia_MildDemented",
+        "dementia_ModerateDemented",
+        "dementia_NonDemented",
+        "dementia_VeryMildDemented",
+        "INVALID_OR_PARSE"
+      ],
+      "confusion_matrix": [
+        [
+          4,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          5,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          3,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          4,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          3,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          0,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          0,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          0,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "model_id": "llava-hf/llava-v1.6-34b-hf",
+      "status": "skipped",
+      "reason": "GPU memory 29.12 GB is below requested 38.0 GB",
+      "notes": "Large requested baseline. Usually skipped on free Kaggle unless a very large GPU is assigned."
+    }
+  ],
+  "gpu": {
+    "cuda_available": true,
+    "gpu_name": "Tesla T4",
+    "total_memory_gb": 14.56,
+    "nvidia_smi": "Mon May 11 15:44:05 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 580.105.08             Driver Version: 580.105.08     CUDA Version: 13.0     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  Tesla T4                       Off |   00000000:00:04.0 Off |                    0 |\n| N/A   40C    P8             10W /   70W |       3MiB /  15360MiB |      0%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n|   1  Tesla T4                       Off |   00000000:00:05.0 Off |                    0 |\n| N/A   41C    P8             11W /   70W |       3MiB /  15360MiB |      0%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|  No running processes found                                                             |\n+-----------------------------------------------------------------------------------------+\n",
+    "compute_capability": "7.5",
+    "compute_capability_major": 7,
+    "torch_cuda_supported": true,
+    "device_count": 2,
+    "devices": [
+      {
+        "index": 0,
+        "name": "Tesla T4",
+        "memory_gb": 14.56,
+        "compute_capability": "7.5"
+      },
+      {
+        "index": 1,
+        "name": "Tesla T4",
+        "memory_gb": 14.56,
+        "compute_capability": "7.5"
+      }
+    ],
+    "aggregate_memory_gb": 29.12
+  },
+  "lora": {
+    "status": "completed",
+    "base_model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
+    "adapter_dir": "/kaggle/working/tumor_multimodal_kaggle_outputs/lora_adapter_qwen25vl_3b_mri",
+    "train_examples": 64,
+    "val_examples": 16,
+    "optimizer_updates": 16,
+    "final_loss": 0.05060507729649544,
+    "mean_loss": 0.3761961980490014
+  },
+  "best_zero_shot_model": {
+    "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
+    "status": "completed",
+    "notes": "Primary free-tier model. Strong quality with realistic Kaggle memory needs.",
+    "n": 64,
+    "accuracy": 0.171875,
+    "strict_json_rate": 1.0,
+    "seconds": 464.72,
+    "classification_report": "                           precision    recall  f1-score   support\n\n             tumor_glioma       0.00      0.00      0.00         8\n         tumor_meningioma       1.00      0.38      0.55         8\n            tumor_notumor       0.13      1.00      0.23         8\n          tumor_pituitary       0.00      0.00      0.00         8\n    dementia_MildDemented       0.00      0.00      0.00         8\ndementia_ModerateDemented       0.00      0.00      0.00         8\n     dementia_NonDemented       0.00      0.00      0.00         8\ndementia_VeryMildDemented       0.00      0.00      0.00         8\n         INVALID_OR_PARSE       0.00      0.00      0.00         0\n\n                 accuracy                           0.17        64\n                macro avg       0.13      0.15      0.09        64\n             weighted avg       0.14      0.17      0.10        64\n",
+    "confusion_matrix_labels": [
+      "tumor_glioma",
+      "tumor_meningioma",
+      "tumor_notumor",
+      "tumor_pituitary",
+      "dementia_MildDemented",
+      "dementia_ModerateDemented",
+      "dementia_NonDemented",
+      "dementia_VeryMildDemented",
+      "INVALID_OR_PARSE"
+    ],
+    "confusion_matrix": [
+      [
+        0,
+        0,
+        8,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        3,
+        5,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        8,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        8,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        8,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        8,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        8,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        8,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ]
+  }
+}

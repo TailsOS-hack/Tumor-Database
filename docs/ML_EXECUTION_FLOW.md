@@ -63,9 +63,9 @@ This is the clean restart plan for the tumor/dementia project. Training and larg
    python -m src.experiment_pipeline test --task eight_class --split test
    ```
 
-9. Move multimodal LLM inference to Google Colab and test 3-5 models.
+9. Move multimodal LLM inference to cloud GPU and test 3-5 models.
 
-   Use `notebooks/multimodal_llm_lora_colab.ipynb` or `notebooks/multimodal_llm_lora_colab.py`. Outputs go to Google Drive by default.
+   Use `notebooks/multimodal_llm_lora_colab.ipynb` for Colab or `notebooks/kaggle_multimodal_qwen_kernel.py` for Kaggle. The current free-runner path is Kaggle with a T4 accelerator request and hourly monitoring from Codex.
 
 10. Fine-tune the best multimodal model with LoRA.
 
@@ -92,9 +92,9 @@ This is the clean restart plan for the tumor/dementia project. Training and larg
 | Apply image augmentation | Flips, rotations, contrast on all training datasets | Arman | Implemented in shared training transforms |
 | Retrain subtype models | Tumor and dementia specialists with strict splits | Arman | Automated in GitHub Actions full suite |
 | Validate confusion matrices | Save realistic strict-test metrics and confusion matrices | Arman | Automated: metrics JSON, CSV, PNG outputs |
-| Set up Google Colab | Student account plus A100 access | Arman | Notebook added; runtime/account step remains manual |
-| Test large multimodal models | LLaVA-34B, Qwen, Phi, Llama/other candidates | Arman | Colab benchmark notebook added |
-| Implement LoRA fine-tuning | Adapter-based training | Arman | Colab LoRA training skeleton added |
+| Set up cloud GPU runner | Kaggle free GPU first, Colab as fallback | Arman | Kaggle CLI runner active |
+| Test large multimodal models | LLaVA-34B, Qwen, Phi, Llama/other candidates | Arman | Batch 1 complete; batch 2 retry planned |
+| Implement LoRA fine-tuning | Adapter-based training | Arman | Batch 1 Qwen2.5-VL-3B adapter saved |
 | Compare architectures | Binary+specialist vs single 8-class | Arman | Automated in GitHub Actions full suite |
 | Prepare publication notes | Model comparisons and rationale | Arman / Mina | Template plus result collector added |
 
@@ -105,6 +105,8 @@ This is the clean restart plan for the tumor/dementia project. Training and larg
 - Metrics: `training_logs/experiments/<task>/<run>/test/`
 - End-to-end metrics: `training_logs/experiments/hierarchical/test_evaluation/`
 - Colab export bundle: `MyDrive/Tumor-Database/exports/tumor_database_colab_artifacts_*.zip`
+- Kaggle multimodal batch 1: `training_logs/multimodal/kaggle_qwen_batch1/`
+- Kaggle LoRA adapter: `models/multimodal/qwen25vl_3b_mri_lora/`
 
 ## Multimodal Candidate References
 

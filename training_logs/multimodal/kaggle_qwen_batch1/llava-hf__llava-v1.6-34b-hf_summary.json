@@ -1,0 +1,6 @@
+{
+  "model_id": "llava-hf/llava-v1.6-34b-hf",
+  "status": "skipped",
+  "reason": "GPU memory 29.12 GB is below requested 38.0 GB",
+  "notes": "Large requested baseline. Usually skipped on free Kaggle unless a very large GPU is assigned."
+}

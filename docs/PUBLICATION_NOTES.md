@@ -21,27 +21,27 @@ Manifest path: `training_logs/splits/strict_manifest.csv`
 | --- | --- | --- | --- | --- |
 | Hierarchical | ResNet50 binary router | EfficientNet-B3 tumor, MobileNetV3 dementia | Binary route plus 4-class specialists | `models/binary_router.pt`, specialists |
 | Single model | None | EfficientNet-B3 | 8 classes | `models/single_8class_classifier.pt` |
-| Multimodal LLM | Candidate-dependent | Prompting or LoRA adapter | Structured report metadata/labels | Google Drive adapter path |
+| Multimodal LLM | Qwen/Qwen2.5-VL-3B-Instruct | LoRA adapter | Structured JSON labels/report metadata | `models/multimodal/qwen25vl_3b_mri_lora/` |
 
 ## Strict-Test Results
 
 | Model | Accuracy | Macro F1 | Weighted F1 | Key Failure Modes | Metrics Path |
 | --- | ---: | ---: | ---: | --- | --- |
-| Binary router | TBD | TBD | TBD | TBD | `training_logs/experiments/binary/.../test/metrics.json` |
-| Tumor specialist | TBD | TBD | TBD | TBD | `training_logs/experiments/tumor/.../test/metrics.json` |
-| Dementia specialist | TBD | TBD | TBD | TBD | `training_logs/experiments/dementia/.../test/metrics.json` |
-| Hierarchical end-to-end | TBD | TBD | TBD | TBD | `training_logs/experiments/hierarchical/test_evaluation/metrics.json` |
-| Single 8-class | TBD | TBD | TBD | TBD | `training_logs/experiments/eight_class/.../test/metrics.json` |
+| Binary router | 1.0000 | 1.0000 | 1.0000 | Possible domain/source bias should be discussed | `training_logs/experiments/binary/20260510_204656/test/metrics.json` |
+| Tumor specialist | 0.9962 | 0.9960 | 0.9962 | Rare subtype confusions | `training_logs/experiments/tumor/20260510_222255/test/metrics.json` |
+| Dementia specialist | 0.9985 | 0.9986 | 0.9985 | Dementia split may be optimistic because no official holdout was provided | `training_logs/experiments/dementia/20260510_224400/test/metrics.json` |
+| Hierarchical end-to-end | 0.9982 | 0.9973 | 0.9982 | Inherits router and specialist risks | `training_logs/experiments/hierarchical/test_evaluation/metrics.json` |
+| Single 8-class | 0.9993 | 0.9975 | 0.9993 | Strongest strict-test accuracy but still needs leakage discussion | `training_logs/experiments/eight_class/20260511_000016/test/metrics.json` |
 
 ## Multimodal LLM Benchmark
 
 | Candidate | Size | Runtime | Quantization | Strict JSON Rate | Label Accuracy | Report Quality Notes |
 | --- | ---: | --- | --- | ---: | ---: | --- |
-| Qwen/Qwen2.5-VL-7B-Instruct | 7B | Colab A100 | 4-bit or bf16 | TBD | TBD | TBD |
-| Qwen/Qwen2.5-VL-32B-Instruct | 32B | Colab A100 | 4-bit | TBD | TBD | TBD |
-| llava-hf/llava-v1.6-34b-hf | 34B | Colab A100 | 4-bit | TBD | TBD | TBD |
-| microsoft/Phi-3.5-vision-instruct | 4.2B | Colab A100/T4 | bf16 or 4-bit | TBD | TBD | TBD |
-| meta-llama/Llama-3.2-11B-Vision-Instruct | 11B | Colab A100 | 4-bit or bf16 | TBD | TBD | Gated model access required |
+| Qwen/Qwen2.5-VL-3B-Instruct | 3B | Kaggle 2x T4 | 4-bit | 1.0000 | 0.1719 | Best zero-shot VLM, still weak |
+| Qwen/Qwen2-VL-2B-Instruct | 2B | Kaggle 2x T4 | 4-bit | 1.0000 | 0.1250 | Smaller Qwen baseline |
+| Qwen/Qwen2.5-VL-7B-Instruct | 7B | Kaggle 2x T4 | 4-bit | 1.0000 | 0.1500 | Loaded on T4 but accuracy remained weak |
+| HuggingFaceTB/SmolVLM2-2.2B-Instruct | 2.2B | Kaggle 2x T4 | 4-bit | N/A | N/A | Batch 1 missing `num2words`; retry planned |
+| llava-hf/llava-v1.6-34b-hf | 34B | Kaggle 2x T4 | 4-bit | N/A | N/A | Skipped because memory was insufficient |
 
 ## Methods Notes
 

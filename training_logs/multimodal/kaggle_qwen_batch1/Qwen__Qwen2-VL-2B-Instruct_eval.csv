@@ -1,0 +1,337 @@
+model_id,idx,path,true_label,pred_label,confidence,correct,rationale,raw_text
+Qwen/Qwen2-VL-2B-Instruct,1,data/brain_tumor/Testing/glioma/Te-glTr_0000.jpg,tumor_glioma,tumor_glioma,0.75,True,"The MRI image shows a tumor-like lesion in the brain, which is consistent with glioma.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The MRI image shows a tumor-like lesion in the brain, which is consistent with glioma.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,2,data/brain_tumor/Testing/glioma/Te-glTr_0001.jpg,tumor_glioma,tumor_glioma,0.75,True,"The image shows a brain MRI with abnormal tissue that could be indicative of glioma, a type of brain tumor.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The image shows a brain MRI with abnormal tissue that could be indicative of glioma, a type of brain tumor.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,3,data/brain_tumor/Testing/glioma/Te-glTr_0002.jpg,tumor_glioma,tumor_glioma,0.75,True,"The image shows a glioma, which is a type of brain tumor.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The image shows a glioma, which is a type of brain tumor.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,4,data/brain_tumor/Testing/glioma/Te-glTr_0003.jpg,tumor_glioma,tumor_glioma,0.75,True,"The image shows a brain MRI with abnormal tissue in the brain parenchyma, which is consistent with glioma.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The image shows a brain MRI with abnormal tissue in the brain parenchyma, which is consistent with glioma.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,5,data/brain_tumor/Testing/glioma/Te-glTr_0004.jpg,tumor_glioma,tumor_glioma,0.75,True,"The image shows a brain MRI with abnormal tissue that could be indicative of glioma, a type of brain tumor.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The image shows a brain MRI with abnormal tissue that could be indicative of glioma, a type of brain tumor.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,6,data/brain_tumor/Testing/glioma/Te-glTr_0005.jpg,tumor_glioma,tumor_glioma,0.75,True,"The MRI image shows a large, irregularly shaped mass in the brain with a central area of high signal intensity, which is characteristic of glioma.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The MRI image shows a large, irregularly shaped mass in the brain with a central area of high signal intensity, which is characteristic of glioma.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,7,data/brain_tumor/Testing/meningioma/Te-meTr_0000.jpg,tumor_meningioma,tumor_glioma,0.75,False,"The image shows a brain MRI with a tumor-like appearance in the left hemisphere, which is consistent with glioma.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The image shows a brain MRI with a tumor-like appearance in the left hemisphere, which is consistent with glioma.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,8,data/brain_tumor/Testing/meningioma/Te-meTr_0001.jpg,tumor_meningioma,tumor_glioma,0.75,False,"The image shows a tumor in the brain, which is a common finding in glioma.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The image shows a tumor in the brain, which is a common finding in glioma.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,9,data/brain_tumor/Testing/meningioma/Te-meTr_0002.jpg,tumor_meningioma,tumor_glioma,0.75,False,"The image shows a tumor in the brain, which is indicated by the white arrow pointing to the tumor. The presence of a tumor is a common finding in brain MRI images.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The image shows a tumor in the brain, which is indicated by the white arrow pointing to the tumor. The presence of a tumor is a common finding in brain MRI images.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,10,data/brain_tumor/Testing/meningioma/Te-meTr_0003.jpg,tumor_meningioma,tumor_glioma,0.75,False,"The image shows a tumor in the brain, which is a common finding in glioma.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The image shows a tumor in the brain, which is a common finding in glioma.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,11,data/brain_tumor/Testing/meningioma/Te-meTr_0004.jpg,tumor_meningioma,tumor_glioma,0.75,False,"The image shows a brain MRI with a large, bright area in the center, which is characteristic of a glioma.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The image shows a brain MRI with a large, bright area in the center, which is characteristic of a glioma.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,12,data/brain_tumor/Testing/meningioma/Te-meTr_0005.jpg,tumor_meningioma,tumor_glioma,0.75,False,"The image shows a tumor in the brain, which is a common finding in glioma.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The image shows a tumor in the brain, which is a common finding in glioma.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,13,data/brain_tumor/Testing/notumor/Te-noTr_0000.jpg,tumor_notumor,tumor_glioma,0.75,False,"The image shows a brain MRI with a large mass in the center, which is characteristic of glioma.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The image shows a brain MRI with a large mass in the center, which is characteristic of glioma.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,14,data/brain_tumor/Testing/notumor/Te-noTr_0001.jpg,tumor_notumor,tumor_glioma,0.75,False,"The MRI image shows a tumor-like lesion in the brain, which is consistent with glioma.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The MRI image shows a tumor-like lesion in the brain, which is consistent with glioma.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,15,data/brain_tumor/Testing/notumor/Te-noTr_0002.jpg,tumor_notumor,tumor_glioma,0.75,False,"The MRI image shows a brain with abnormal tissue, which is characteristic of glioma.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The MRI image shows a brain with abnormal tissue, which is characteristic of glioma.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,16,data/brain_tumor/Testing/notumor/Te-noTr_0003.jpg,tumor_notumor,tumor_glioma,0.75,False,"The image shows a brain MRI with a prominent tumor in the left hemisphere, which is characteristic of glioma.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The image shows a brain MRI with a prominent tumor in the left hemisphere, which is characteristic of glioma.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,17,data/brain_tumor/Testing/notumor/Te-noTr_0004.jpg,tumor_notumor,tumor_glioma,0.75,False,"The MRI image shows a brain with abnormal tissue, which is characteristic of glioma.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The MRI image shows a brain with abnormal tissue, which is characteristic of glioma.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,18,data/brain_tumor/Testing/notumor/Te-noTr_0005.jpg,tumor_notumor,tumor_glioma,0.75,False,"The brain MRI image shows a tumor-like appearance with irregular borders and a central area of high signal intensity, which is characteristic of glioma.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The brain MRI image shows a tumor-like appearance with irregular borders and a central area of high signal intensity, which is characteristic of glioma.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,19,data/brain_tumor/Testing/pituitary/Te-piTr_0000.jpg,tumor_pituitary,tumor_glioma,0.75,False,"The image shows a brain MRI with abnormal enhancement in the right hemisphere, which is characteristic of glioma.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The image shows a brain MRI with abnormal enhancement in the right hemisphere, which is characteristic of glioma.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,20,data/brain_tumor/Testing/pituitary/Te-piTr_0001.jpg,tumor_pituitary,tumor_glioma,0.75,False,"The image shows a brain MRI with abnormal enhancement in the left hemisphere, which is characteristic of glioma.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The image shows a brain MRI with abnormal enhancement in the left hemisphere, which is characteristic of glioma.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,21,data/brain_tumor/Testing/pituitary/Te-piTr_0002.jpg,tumor_pituitary,tumor_glioma,0.75,False,"The image shows a brain MRI with abnormal enhancement in the right hemisphere, which is characteristic of glioma.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The image shows a brain MRI with abnormal enhancement in the right hemisphere, which is characteristic of glioma.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,22,data/brain_tumor/Testing/pituitary/Te-piTr_0003.jpg,tumor_pituitary,tumor_glioma,0.75,False,"The image shows a tumor in the brain, which is a common finding in glioma.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The image shows a tumor in the brain, which is a common finding in glioma.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,23,data/brain_tumor/Testing/pituitary/Te-piTr_0004.jpg,tumor_pituitary,tumor_glioma,0.75,False,"The image shows a brain MRI with a prominent mass in the left hemisphere, which is characteristic of glioma.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The image shows a brain MRI with a prominent mass in the left hemisphere, which is characteristic of glioma.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,24,data/brain_tumor/Testing/pituitary/Te-piTr_0005.jpg,tumor_pituitary,tumor_glioma,0.75,False,"The image shows a brain MRI with a tumor-like appearance in the central region, which is consistent with glioma.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The image shows a brain MRI with a tumor-like appearance in the central region, which is consistent with glioma.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,25,data/alzheimers/MildDemented/002cb9c1-b160-4c76-b7e4-5fb2f1b527f7.jpg,dementia_MildDemented,tumor_glioma,0.75,False,"The brain MRI image shows a typical appearance of glioma, which is a type of brain tumor.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The brain MRI image shows a typical appearance of glioma, which is a type of brain tumor.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,26,data/alzheimers/MildDemented/00387cfa-b6ce-4eb0-8cc5-9273080c8187.jpg,dementia_MildDemented,tumor_glioma,0.75,False,"The brain MRI image shows a butterfly-shaped pattern, which is characteristic of gliomas. Gliomas are typically found in the brain and can cause various symptoms depending on their location.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The brain MRI image shows a butterfly-shaped pattern, which is characteristic of gliomas. Gliomas are typically found in the brain and can cause various symptoms depending on their location.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,27,data/alzheimers/MildDemented/00a03a9d-f709-4516-8a50-7d39c8329d37.jpg,dementia_MildDemented,tumor_glioma,0.75,False,"The brain MRI image shows a tumor-like structure in the central region of the brain, which is characteristic of glioma.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The brain MRI image shows a tumor-like structure in the central region of the brain, which is characteristic of glioma.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,28,data/alzheimers/MildDemented/00ddce1c-fd19-4925-9fa6-addc480a012c.jpg,dementia_MildDemented,tumor_glioma,0.75,False,"The brain MRI image shows a typical appearance of glioma, which is a type of brain tumor.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The brain MRI image shows a typical appearance of glioma, which is a type of brain tumor.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,29,data/alzheimers/MildDemented/00eae021-81e5-4fd2-8daa-f16da1feb99a.jpg,dementia_MildDemented,tumor_glioma,0.75,False,"The brain MRI image shows a typical appearance of glioma, which is a type of brain tumor.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The brain MRI image shows a typical appearance of glioma, which is a type of brain tumor.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,30,data/alzheimers/MildDemented/013c7086-9972-4193-8544-31c9fbb49072.jpg,dementia_MildDemented,tumor_glioma,0.75,False,"The brain MRI image shows a tumor-like appearance with irregular borders and a central area of high signal intensity, which is characteristic of glioma.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The brain MRI image shows a tumor-like appearance with irregular borders and a central area of high signal intensity, which is characteristic of glioma.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,31,data/alzheimers/ModerateDemented/0021740c-fbc2-405c-b0d7-0c7176217933.jpg,dementia_ModerateDemented,tumor_glioma,0.75,False,"The brain MRI image shows a typical appearance of glioma, which is a type of brain tumor.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The brain MRI image shows a typical appearance of glioma, which is a type of brain tumor.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,32,data/alzheimers/ModerateDemented/00965011-ba74-42f9-bd30-8fdabfd3ae82.jpg,dementia_ModerateDemented,tumor_glioma,0.75,False,"The image shows a brain MRI with abnormal high signal intensity in the left hemisphere, which is characteristic of glioma.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The image shows a brain MRI with abnormal high signal intensity in the left hemisphere, which is characteristic of glioma.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,33,data/alzheimers/ModerateDemented/013283d9-eed7-4a53-8701-ca113abdaa97.jpg,dementia_ModerateDemented,tumor_glioma,0.75,False,"The image shows a brain MRI with abnormal tissue that could be indicative of glioma, a type of brain tumor.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The image shows a brain MRI with abnormal tissue that could be indicative of glioma, a type of brain tumor.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,34,data/alzheimers/ModerateDemented/01593caa-1752-43f5-88b5-144553b5abd3.jpg,dementia_ModerateDemented,tumor_glioma,0.75,False,"The brain MRI image shows a tumor-like appearance with irregular borders and a central area of high signal intensity, which is characteristic of glioma.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The brain MRI image shows a tumor-like appearance with irregular borders and a central area of high signal intensity, which is characteristic of glioma.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,35,data/alzheimers/ModerateDemented/017d7747-5c1e-44d9-ba00-c14d70defe56.jpg,dementia_ModerateDemented,tumor_glioma,0.75,False,"The brain MRI image shows a typical appearance of glioma, which is a type of brain tumor.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The brain MRI image shows a typical appearance of glioma, which is a type of brain tumor.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,36,data/alzheimers/ModerateDemented/01850009-6a02-4307-8092-0e3ab8f1f8b2.jpg,dementia_ModerateDemented,tumor_glioma,0.75,False,"The brain MRI image shows a typical appearance of glioma, which is a type of brain tumor.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The brain MRI image shows a typical appearance of glioma, which is a type of brain tumor.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,37,data/alzheimers/NonDemented/00190c87-a639-417d-a6d9-bae6a9e68207.jpg,dementia_NonDemented,tumor_glioma,0.75,False,"The image shows a brain MRI with abnormal tissue that could be indicative of glioma, a type of brain tumor.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The image shows a brain MRI with abnormal tissue that could be indicative of glioma, a type of brain tumor.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,38,data/alzheimers/NonDemented/002a24a5-fce1-47df-9169-0efafbfd6447.jpg,dementia_NonDemented,tumor_glioma,0.75,False,"The brain MRI image shows a tumor-like appearance with irregular borders and a central area of high signal intensity, which is characteristic of glioma.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The brain MRI image shows a tumor-like appearance with irregular borders and a central area of high signal intensity, which is characteristic of glioma.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,39,data/alzheimers/NonDemented/003b999c-62d5-4d24-bdfc-1476d3a4355f.jpg,dementia_NonDemented,tumor_glioma,0.75,False,"The brain MRI image shows a typical appearance of glioma, which is a type of brain tumor.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The brain MRI image shows a typical appearance of glioma, which is a type of brain tumor.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,40,data/alzheimers/NonDemented/0048efe4-d51d-453c-acaa-3cd6d3f49e50.jpg,dementia_NonDemented,tumor_glioma,0.75,False,"The brain MRI image shows a pattern of abnormal tissue growth, which is characteristic of glioma.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The brain MRI image shows a pattern of abnormal tissue growth, which is characteristic of glioma.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,41,data/alzheimers/NonDemented/006269e9-710a-4e86-a7c6-b9e0a8b6be53.jpg,dementia_NonDemented,tumor_glioma,0.75,False,"The image shows a typical pattern of glioma, which is a type of brain tumor.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The image shows a typical pattern of glioma, which is a type of brain tumor.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,42,data/alzheimers/NonDemented/007c2e31-e320-41a8-a5a1-bdb0c5d0bbd5.jpg,dementia_NonDemented,tumor_glioma,0.75,False,"The brain MRI image shows a pattern that is characteristic of gliomas, which are tumors that arise from brain cells. The irregular, branching pattern is often seen in gliomas.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The brain MRI image shows a pattern that is characteristic of gliomas, which are tumors that arise from brain cells. The irregular, branching pattern is often seen in gliomas.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,43,data/alzheimers/VeryMildDemented/0001b959-d622-4311-acab-84633370c892.jpg,dementia_VeryMildDemented,tumor_glioma,0.75,False,"The brain MRI image shows a typical appearance of glioma, which is a type of brain tumor.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The brain MRI image shows a typical appearance of glioma, which is a type of brain tumor.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,44,data/alzheimers/VeryMildDemented/005ce7f6-f465-4c1f-a641-d5e295aa4be4.jpg,dementia_VeryMildDemented,tumor_glioma,0.75,False,"The brain MRI image shows a pattern of abnormal tissue that resembles gliomas, which are types of brain tumors.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The brain MRI image shows a pattern of abnormal tissue that resembles gliomas, which are types of brain tumors.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,45,data/alzheimers/VeryMildDemented/007a3aa3-6958-478a-8525-bcd7dc955388.jpg,dementia_VeryMildDemented,tumor_glioma,0.75,False,"The brain MRI image shows a typical appearance of glioma, which is a type of brain tumor.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The brain MRI image shows a typical appearance of glioma, which is a type of brain tumor.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,46,data/alzheimers/VeryMildDemented/00af4663-62ee-4b3a-81e2-da74a2db5843.jpg,dementia_VeryMildDemented,tumor_glioma,0.75,False,"The MRI image shows a brain structure with a central area that appears to be abnormal, which is characteristic of glioma tumors.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The MRI image shows a brain structure with a central area that appears to be abnormal, which is characteristic of glioma tumors.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,47,data/alzheimers/VeryMildDemented/00afb057-1ac1-4700-8118-88093dbd420d.jpg,dementia_VeryMildDemented,tumor_glioma,0.75,False,"The brain MRI image shows a typical appearance of glioma, which is a type of brain tumor.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The brain MRI image shows a typical appearance of glioma, which is a type of brain tumor.""
+}
+```"
+Qwen/Qwen2-VL-2B-Instruct,48,data/alzheimers/VeryMildDemented/00b4979d-ac1c-40e3-90b2-422511918fc0.jpg,dementia_VeryMildDemented,tumor_glioma,0.75,False,"The brain MRI image shows a typical appearance of glioma, which is a type of brain tumor.","```json
+{
+  ""label"": ""tumor_glioma"",
+  ""confidence"": 0.75,
+  ""rationale"": ""The brain MRI image shows a typical appearance of glioma, which is a type of brain tumor.""
+}
+```"
