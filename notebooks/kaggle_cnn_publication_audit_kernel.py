@@ -24,16 +24,16 @@ os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 WORK_DIR = Path("/kaggle/working")
 REPO_URL = "https://github.com/TailsOS-hack/Tumor-Database.git"
 REPO_DIR = WORK_DIR / "Tumor-Database"
-OUTPUT_DIR = WORK_DIR / "tumor_cnn_publication_audit_outputs"
+OUTPUT_DIR = WORK_DIR / "tumor_cnn_dedup_retrain_outputs"
 PROGRESS_PATH = OUTPUT_DIR / "progress.jsonl"
 SUMMARY_PATH = OUTPUT_DIR / "cnn_publication_audit_summary.json"
-ZIP_PATH = WORK_DIR / "tumor_cnn_publication_audit_outputs.zip"
+ZIP_PATH = WORK_DIR / "tumor_cnn_dedup_retrain_outputs.zip"
 
-CURRENT_EVAL_DIR = REPO_DIR / "training_logs" / "experiments_current_eval"
+CURRENT_EVAL_DIR = REPO_DIR / "training_logs" / "experiments_dedup_current_eval"
 DEFAULT_EXPERIMENTS_DIR = REPO_DIR / "training_logs" / "experiments"
-REGULARIZED_EXPERIMENT_DIR = REPO_DIR / "training_logs" / "experiments_regularized"
-PRETRAIN_AUDIT_DIR = REPO_DIR / "training_logs" / "publication_audit" / "pre_regularized"
-REGULARIZED_AUDIT_DIR = REPO_DIR / "training_logs" / "publication_audit" / "regularized"
+REGULARIZED_EXPERIMENT_DIR = REPO_DIR / "training_logs" / "experiments_dedup_regularized"
+PRETRAIN_AUDIT_DIR = REPO_DIR / "training_logs" / "publication_audit" / "dedup_pre_regularized"
+REGULARIZED_AUDIT_DIR = REPO_DIR / "training_logs" / "publication_audit" / "dedup_regularized"
 
 REGULARIZED_EPOCHS = 20
 REGULARIZED_BATCH_SIZE = 32

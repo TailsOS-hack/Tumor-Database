@@ -1,0 +1,78 @@
+{
+  "accuracy": 0.9965034965034965,
+  "loss": 0.030037744443027557,
+  "n": 572,
+  "correct": 570,
+  "classification_report": {
+    "glioma": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 132.0
+    },
+    "meningioma": {
+      "precision": 0.9925373134328358,
+      "recall": 0.9925373134328358,
+      "f1-score": 0.9925373134328358,
+      "support": 134.0
+    },
+    "notumor": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 160.0
+    },
+    "pituitary": {
+      "precision": 0.9931506849315068,
+      "recall": 0.9931506849315068,
+      "f1-score": 0.9931506849315068,
+      "support": 146.0
+    },
+    "accuracy": 0.9965034965034965,
+    "macro avg": {
+      "precision": 0.9964219995910857,
+      "recall": 0.9964219995910857,
+      "f1-score": 0.9964219995910857,
+      "support": 572.0
+    },
+    "weighted avg": {
+      "precision": 0.9965034965034965,
+      "recall": 0.9965034965034965,
+      "f1-score": 0.9965034965034965,
+      "support": 572.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      132,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      133,
+      0,
+      1
+    ],
+    [
+      0,
+      0,
+      160,
+      0
+    ],
+    [
+      0,
+      1,
+      0,
+      145
+    ]
+  ],
+  "class_names": [
+    "glioma",
+    "meningioma",
+    "notumor",
+    "pituitary"
+  ],
+  "created_utc": "2026-05-11T21:06:38Z"
+}

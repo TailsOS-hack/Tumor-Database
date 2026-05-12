@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import csv
 import datetime as dt
+import hashlib
 import json
 import random
 from collections import Counter, defaultdict
@@ -83,6 +84,14 @@ def iter_images(folder: Path) -> list[Path]:
     )
 
 
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def collect_records(data_root: Path = DATA_ROOT) -> list[ImageRecord]:
     records: list[ImageRecord] = []
 
@@ -134,33 +143,65 @@ def split_counts(total: int, val_fraction: float, test_fraction: float, include_
     return train_count, val_count, test_count
 
 
+def duplicate_group_key(records: list[ImageRecord]) -> tuple[str, str, str]:
+    """Return the splitting key for an exact-duplicate group.
+
+    The key is only used to keep class balance roughly stratified while assigning
+    whole duplicate groups to one split. If an exact image hash appears in the
+    official tumor test folder, the full duplicate group is treated as test.
+    """
+
+    sorted_records = sorted(records, key=lambda record: str(record.path))
+    if any(record.domain == "tumor" and record.source_split == "test" for record in sorted_records):
+        tumor_test = [record for record in sorted_records if record.domain == "tumor" and record.source_split == "test"]
+        anchor = tumor_test[0]
+        return anchor.domain, anchor.subtype, "test"
+
+    counter = Counter((record.domain, record.subtype, record.source_split) for record in sorted_records)
+    return sorted(counter.items(), key=lambda item: (-item[1], item[0]))[0][0]
+
+
+def build_split_units(records: Iterable[ImageRecord], *, dedupe_exact_hash: bool) -> list[list[ImageRecord]]:
+    if not dedupe_exact_hash:
+        return [[record] for record in records]
+
+    buckets: dict[str, list[ImageRecord]] = defaultdict(list)
+    for record in records:
+        buckets[sha256_file(record.path)].append(record)
+    return list(buckets.values())
+
+
 def assign_split(
     records: Iterable[ImageRecord],
     *,
     seed: int,
     val_fraction: float,
     test_fraction: float,
+    dedupe_exact_hash: bool = True,
 ) -> list[ImageRecord]:
     """Create strict splits before any augmentation is applied.
 
     Tumor images use the dataset's official Testing folder as the strict test
     set. Dementia images do not ship with an official split here, so they get a
-    stratified deterministic train/val/test split.
+    stratified deterministic train/val/test split. Exact duplicate image hashes
+    are assigned as an indivisible group so the same pixels cannot cross splits.
     """
 
     rng = random.Random(seed)
-    grouped: dict[tuple[str, str, str], list[ImageRecord]] = defaultdict(list)
+    grouped: dict[tuple[str, str, str], list[list[ImageRecord]]] = defaultdict(list)
     assigned: list[ImageRecord] = []
 
-    for record in records:
-        grouped[(record.domain, record.subtype, record.source_split)].append(record)
+    for unit in build_split_units(records, dedupe_exact_hash=dedupe_exact_hash):
+        domain, subtype, source_split = duplicate_group_key(unit)
+        grouped[(domain, subtype, source_split)].append(unit)
 
-    for (domain, subtype, source_split), class_records in sorted(grouped.items()):
-        shuffled = sorted(class_records, key=lambda item: str(item.path))
+    for (domain, subtype, source_split), class_units in sorted(grouped.items()):
+        shuffled = sorted(class_units, key=lambda unit: str(sorted(record.path for record in unit)[0]))
         rng.shuffle(shuffled)
 
         if domain == "tumor" and source_split == "test":
-            assigned.extend(record_with_split(record, "test") for record in shuffled)
+            for unit in shuffled:
+                assigned.extend(record_with_split(record, "test") for record in unit)
             continue
 
         include_test = domain == "dementia"
@@ -175,9 +216,12 @@ def assign_split(
         val_records = shuffled[train_count : train_count + val_count]
         test_records = shuffled[train_count + val_count : train_count + val_count + test_count]
 
-        assigned.extend(record_with_split(record, "train") for record in train_records)
-        assigned.extend(record_with_split(record, "val") for record in val_records)
-        assigned.extend(record_with_split(record, "test") for record in test_records)
+        for unit in train_records:
+            assigned.extend(record_with_split(record, "train") for record in unit)
+        for unit in val_records:
+            assigned.extend(record_with_split(record, "val") for record in unit)
+        for unit in test_records:
+            assigned.extend(record_with_split(record, "test") for record in unit)
 
     return sorted(assigned, key=lambda item: (item.split, item.domain, item.subtype, str(item.path)))
 
@@ -199,6 +243,7 @@ def create_manifest(
     seed: int = 42,
     val_fraction: float = 0.1,
     test_fraction: float = 0.2,
+    dedupe_exact_hash: bool = True,
 ) -> dict[str, object]:
     records = collect_records(data_root)
     assigned = assign_split(
@@ -206,6 +251,7 @@ def create_manifest(
         seed=seed,
         val_fraction=val_fraction,
         test_fraction=test_fraction,
+        dedupe_exact_hash=dedupe_exact_hash,
     )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -238,6 +284,7 @@ def create_manifest(
 
     summary = summarize_manifest(assigned)
     summary["manifest_path"] = str(output_path)
+    summary["dedupe_exact_hash"] = dedupe_exact_hash
     return summary
 
 
@@ -796,6 +843,7 @@ def command_manifest(args: argparse.Namespace) -> None:
         seed=args.seed,
         val_fraction=args.val_fraction,
         test_fraction=args.test_fraction,
+        dedupe_exact_hash=args.dedupe_exact_hash,
     )
     print(json.dumps(summary, indent=2))
 
@@ -847,6 +895,13 @@ def build_parser() -> argparse.ArgumentParser:
     manifest.add_argument("--seed", type=int, default=42)
     manifest.add_argument("--val-fraction", type=float, default=0.1)
     manifest.add_argument("--test-fraction", type=float, default=0.2)
+    manifest.add_argument(
+        "--allow-duplicate-leakage",
+        dest="dedupe_exact_hash",
+        action="store_false",
+        default=True,
+        help="Legacy mode: do not group exact duplicate image hashes into one split.",
+    )
     manifest.set_defaults(func=command_manifest)
 
     summary = subparsers.add_parser("summary", help="Summarize an existing manifest.")

@@ -51,9 +51,17 @@ The CNN metrics are strong enough that the paper must proactively address leakag
 
 Local audit artifact: `training_logs/publication_audit/local_summary/audit_report.md`
 
+Full Kaggle audit artifact: `training_logs/publication_audit/cnn_publication_audit_summary.json`
+
 Remote audit/retraining script: `notebooks/kaggle_cnn_publication_audit_kernel.py`
 
-Planned remote checks:
+The first full Kaggle audit found a blocking leakage risk:
+
+- Exact cross-split SHA-256 overlaps: 782 rows, 228 unique hashes.
+- Perceptual dHash cross-split overlaps: 22,537 rows, 3,372 unique hashes.
+- Regularized retraining showed no train/validation gap flags, but those checkpoints were still trained on the leaky manifest and should not replace the current model files.
+
+Next remote checks:
 
 - Exact SHA-256 duplicate checks across train/val/test splits.
 - Perceptual dHash duplicate checks across train/val/test splits.
@@ -61,6 +69,7 @@ Planned remote checks:
 - Train/validation gap summaries from recorded training histories.
 - Regularized retraining with label smoothing, random erasing, stronger weight decay, and early stopping.
 - Publication summary for the regularized run before replacing any current checkpoint.
+- The manifest builder now groups exact duplicate SHA-256 hashes before split assignment; the next run must show zero exact cross-split hash overlap before any new checkpoint is accepted.
 
 ## Methods Notes
 

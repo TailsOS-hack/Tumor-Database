@@ -1,0 +1,48 @@
+{
+  "accuracy": 1.0,
+  "loss": 1.1988058673042027e-10,
+  "n": 4972,
+  "correct": 4972,
+  "classification_report": {
+    "tumor": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 572.0
+    },
+    "dementia": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 4400.0
+    },
+    "accuracy": 1.0,
+    "macro avg": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 4972.0
+    },
+    "weighted avg": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 4972.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      572,
+      0
+    ],
+    [
+      0,
+      4400
+    ]
+  ],
+  "class_names": [
+    "tumor",
+    "dementia"
+  ],
+  "created_utc": "2026-05-11T21:05:21Z"
+}

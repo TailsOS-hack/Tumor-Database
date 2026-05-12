@@ -1,0 +1,78 @@
+{
+  "accuracy": 0.9985227272727273,
+  "loss": 0.00455473563902858,
+  "n": 8800,
+  "correct": 8787,
+  "classification_report": {
+    "MildDemented": {
+      "precision": 0.999,
+      "recall": 0.999,
+      "f1-score": 0.999,
+      "support": 2000.0
+    },
+    "ModerateDemented": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 2000.0
+    },
+    "NonDemented": {
+      "precision": 0.9992172211350293,
+      "recall": 0.997265625,
+      "f1-score": 0.9982404692082112,
+      "support": 2560.0
+    },
+    "VeryMildDemented": {
+      "precision": 0.9959910913140312,
+      "recall": 0.9982142857142857,
+      "f1-score": 0.9971014492753624,
+      "support": 2240.0
+    },
+    "accuracy": 0.9985227272727273,
+    "macro avg": {
+      "precision": 0.9985520781122651,
+      "recall": 0.9986199776785716,
+      "f1-score": 0.9985854796208935,
+      "support": 8800.0
+    },
+    "weighted avg": {
+      "precision": 0.9985245603010346,
+      "recall": 0.9985227272727273,
+      "f1-score": 0.9985230508579356,
+      "support": 8800.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      1998,
+      0,
+      0,
+      2
+    ],
+    [
+      0,
+      2000,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      2553,
+      7
+    ],
+    [
+      2,
+      0,
+      2,
+      2236
+    ]
+  ],
+  "class_names": [
+    "MildDemented",
+    "ModerateDemented",
+    "NonDemented",
+    "VeryMildDemented"
+  ],
+  "created_utc": "2026-05-11T21:08:34Z"
+}

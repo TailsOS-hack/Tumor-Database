@@ -89,7 +89,7 @@ This is the clean restart plan for the tumor/dementia project. Training and larg
    kaggle kernels push -p <clean-upload-folder> --accelerator NvidiaTeslaT4
    ```
 
-   The Kaggle script is `notebooks/kaggle_cnn_publication_audit_kernel.py`. It performs image-hash duplicate checks, current checkpoint train/val/test evaluation, and a regularized retraining suite.
+   The Kaggle script is `notebooks/kaggle_cnn_publication_audit_kernel.py`. It performs image-hash duplicate checks, current checkpoint train/val/test evaluation, and a regularized retraining suite. The strict manifest builder now groups exact duplicate SHA-256 image hashes into one split by default. Use `--allow-duplicate-leakage` only for legacy reproduction, never for publication training.
 
 ## Leakage Controls
 
@@ -113,7 +113,7 @@ This is the clean restart plan for the tumor/dementia project. Training and larg
 | Implement LoRA fine-tuning | Adapter-based training | Arman | Batch 2 Qwen2.5-VL-3B adapter saved |
 | Compare architectures | Binary+specialist vs single 8-class | Arman | Automated in GitHub Actions full suite |
 | Prepare publication notes | Model comparisons and rationale | Arman / Mina | Results plus audit workflow added |
-| Audit overfitting/leakage | Hash overlap checks, train/val/test gaps, regularized CNN rerun | Arman | Local summary added; Kaggle full audit prepared |
+| Audit overfitting/leakage | Hash overlap checks, train/val/test gaps, regularized CNN rerun | Arman | First Kaggle audit found exact duplicate leakage; de-duplicated retrain prepared |
 
 ## Output Locations
 
