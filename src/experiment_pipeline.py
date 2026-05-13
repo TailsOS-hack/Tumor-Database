@@ -92,6 +92,22 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def dhash_file(path: Path, hash_size: int = 8) -> str:
+    from PIL import Image
+
+    resample = getattr(getattr(Image, "Resampling", Image), "LANCZOS")
+    with Image.open(path) as image:
+        grayscale = image.convert("L").resize((hash_size + 1, hash_size), resample)
+        pixels = list(grayscale.getdata())
+
+    value = 0
+    for row in range(hash_size):
+        offset = row * (hash_size + 1)
+        for col in range(hash_size):
+            value = (value << 1) | int(pixels[offset + col] > pixels[offset + col + 1])
+    return f"{value:0{hash_size * hash_size // 4}x}"
+
+
 def collect_records(data_root: Path = DATA_ROOT) -> list[ImageRecord]:
     records: list[ImageRecord] = []
 
@@ -161,13 +177,46 @@ def duplicate_group_key(records: list[ImageRecord]) -> tuple[str, str, str]:
     return sorted(counter.items(), key=lambda item: (-item[1], item[0]))[0][0]
 
 
-def build_split_units(records: Iterable[ImageRecord], *, dedupe_exact_hash: bool) -> list[list[ImageRecord]]:
-    if not dedupe_exact_hash:
-        return [[record] for record in records]
+def build_split_units(
+    records: Iterable[ImageRecord],
+    *,
+    dedupe_exact_hash: bool,
+    dedupe_perceptual_hash: bool = False,
+) -> list[list[ImageRecord]]:
+    records_list = list(records)
+    if not dedupe_exact_hash and not dedupe_perceptual_hash:
+        return [[record] for record in records_list]
 
-    buckets: dict[str, list[ImageRecord]] = defaultdict(list)
-    for record in records:
-        buckets[sha256_file(record.path)].append(record)
+    parent = list(range(len(records_list)))
+
+    def find(index: int) -> int:
+        while parent[index] != index:
+            parent[index] = parent[parent[index]]
+            index = parent[index]
+        return index
+
+    def union(left: int, right: int) -> None:
+        left_root = find(left)
+        right_root = find(right)
+        if left_root != right_root:
+            parent[right_root] = left_root
+
+    seen_keys: dict[tuple[str, str], int] = {}
+    for index, record in enumerate(records_list):
+        keys: list[tuple[str, str]] = []
+        if dedupe_exact_hash:
+            keys.append(("sha256", sha256_file(record.path)))
+        if dedupe_perceptual_hash:
+            keys.append(("dhash", dhash_file(record.path)))
+        for key in keys:
+            if key in seen_keys:
+                union(seen_keys[key], index)
+            else:
+                seen_keys[key] = index
+
+    buckets: dict[int, list[ImageRecord]] = defaultdict(list)
+    for index, record in enumerate(records_list):
+        buckets[find(index)].append(record)
     return list(buckets.values())
 
 
@@ -178,6 +227,7 @@ def assign_split(
     val_fraction: float,
     test_fraction: float,
     dedupe_exact_hash: bool = True,
+    dedupe_perceptual_hash: bool = False,
 ) -> list[ImageRecord]:
     """Create strict splits before any augmentation is applied.
 
@@ -185,13 +235,19 @@ def assign_split(
     set. Dementia images do not ship with an official split here, so they get a
     stratified deterministic train/val/test split. Exact duplicate image hashes
     are assigned as an indivisible group so the same pixels cannot cross splits.
+    Optional perceptual dHash grouping is intended for sensitivity analysis,
+    because dHash can be too coarse for MRI slices and may group distinct labels.
     """
 
     rng = random.Random(seed)
     grouped: dict[tuple[str, str, str], list[list[ImageRecord]]] = defaultdict(list)
     assigned: list[ImageRecord] = []
 
-    for unit in build_split_units(records, dedupe_exact_hash=dedupe_exact_hash):
+    for unit in build_split_units(
+        records,
+        dedupe_exact_hash=dedupe_exact_hash,
+        dedupe_perceptual_hash=dedupe_perceptual_hash,
+    ):
         domain, subtype, source_split = duplicate_group_key(unit)
         grouped[(domain, subtype, source_split)].append(unit)
 
@@ -244,6 +300,7 @@ def create_manifest(
     val_fraction: float = 0.1,
     test_fraction: float = 0.2,
     dedupe_exact_hash: bool = True,
+    dedupe_perceptual_hash: bool = False,
 ) -> dict[str, object]:
     records = collect_records(data_root)
     assigned = assign_split(
@@ -252,6 +309,7 @@ def create_manifest(
         val_fraction=val_fraction,
         test_fraction=test_fraction,
         dedupe_exact_hash=dedupe_exact_hash,
+        dedupe_perceptual_hash=dedupe_perceptual_hash,
     )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -285,6 +343,7 @@ def create_manifest(
     summary = summarize_manifest(assigned)
     summary["manifest_path"] = str(output_path)
     summary["dedupe_exact_hash"] = dedupe_exact_hash
+    summary["dedupe_perceptual_hash"] = dedupe_perceptual_hash
     return summary
 
 
@@ -844,6 +903,7 @@ def command_manifest(args: argparse.Namespace) -> None:
         val_fraction=args.val_fraction,
         test_fraction=args.test_fraction,
         dedupe_exact_hash=args.dedupe_exact_hash,
+        dedupe_perceptual_hash=args.dedupe_perceptual_hash,
     )
     print(json.dumps(summary, indent=2))
 
@@ -901,6 +961,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_false",
         default=True,
         help="Legacy mode: do not group exact duplicate image hashes into one split.",
+    )
+    manifest.add_argument(
+        "--dedupe-perceptual-hash",
+        action="store_true",
+        help="Sensitivity mode: also group identical image dHash fingerprints into one split.",
     )
     manifest.set_defaults(func=command_manifest)
 

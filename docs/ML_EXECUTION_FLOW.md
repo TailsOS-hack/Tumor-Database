@@ -91,6 +91,16 @@ This is the clean restart plan for the tumor/dementia project. Training and larg
 
    The Kaggle script is `notebooks/kaggle_cnn_publication_audit_kernel.py`. It performs image-hash duplicate checks, current checkpoint train/val/test evaluation, and a regularized retraining suite. The strict manifest builder now groups exact duplicate SHA-256 image hashes into one split by default. Use `--allow-duplicate-leakage` only for legacy reproduction, never for publication training.
 
+13. Run perceptual-hash sensitivity if reviewers may question near-duplicate risk.
+
+   ```bash
+   python -m src.experiment_pipeline create-manifest \
+     --manifest training_logs/splits/perceptual_strict_manifest.csv \
+     --dedupe-perceptual-hash
+   ```
+
+   The Kaggle script is `notebooks/kaggle_cnn_perceptual_sensitivity_kernel.py`. It creates a stricter dHash-grouped manifest, retrains the regularized suite, and packages a robustness comparison without automatically replacing the accepted exact-deduplicated checkpoints.
+
 ## Leakage Controls
 
 - The manifest is created before augmentation.
@@ -114,6 +124,7 @@ This is the clean restart plan for the tumor/dementia project. Training and larg
 | Compare architectures | Binary+specialist vs single 8-class | Arman | Automated in GitHub Actions full suite |
 | Prepare publication notes | Model comparisons and rationale | Arman / Mina | Results plus audit workflow added |
 | Audit overfitting/leakage | Hash overlap checks, train/val/test gaps, regularized CNN rerun | Arman | Complete: exact duplicate leakage fixed; de-duplicated checkpoints accepted |
+| Run perceptual sensitivity | dHash-grouped manifest and regularized CNN rerun | Arman | Prepared for Kaggle |
 
 ## Output Locations
 
@@ -128,6 +139,7 @@ This is the clean restart plan for the tumor/dementia project. Training and larg
 - Local publication audit: `training_logs/publication_audit/local_summary/`
 - Initial Kaggle CNN audit output: `training_logs/publication_audit/regularized/`, `training_logs/experiments_regularized/`
 - Accepted de-duplicated CNN audit output: `training_logs/publication_audit/dedup_regularized/`, `training_logs/experiments_dedup_regularized/`
+- Perceptual sensitivity output after import: `training_logs/publication_audit/perceptual_regularized/`, `training_logs/experiments_perceptual_regularized/`
 - Current Kaggle LoRA adapter: `models/multimodal/qwen25vl_3b_mri_lora/`
 
 ## Multimodal Candidate References
