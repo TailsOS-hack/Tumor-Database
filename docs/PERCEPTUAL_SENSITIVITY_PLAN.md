@@ -27,7 +27,7 @@ Kernel id: `armankazi/tumor-cnn-perceptual-sensitivity`
 
 The script will:
 
-- Create `training_logs/splits/perceptual_strict_manifest.csv` with exact SHA-256 and identical dHash groups assigned to a single split.
+- Create `training_logs/splits/perceptual_strict_manifest.csv` with exact SHA-256 and identical audit-compatible dHash groups assigned to a single split.
 - Audit the perceptual manifest before training.
 - Retrain the regularized CNN suite on the perceptual manifest.
 - Re-run publication audit on the perceptual run.

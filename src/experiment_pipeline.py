@@ -95,9 +95,9 @@ def sha256_file(path: Path) -> str:
 def dhash_file(path: Path, hash_size: int = 8) -> str:
     from PIL import Image
 
-    resample = getattr(getattr(Image, "Resampling", Image), "LANCZOS")
     with Image.open(path) as image:
-        grayscale = image.convert("L").resize((hash_size + 1, hash_size), resample)
+        # Keep this byte-for-byte aligned with scripts.publication_audit.image_dhash.
+        grayscale = image.convert("L").resize((hash_size + 1, hash_size))
         pixels = list(grayscale.getdata())
 
     value = 0
