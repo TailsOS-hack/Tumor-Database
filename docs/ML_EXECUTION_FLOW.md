@@ -113,7 +113,7 @@ This is the clean restart plan for the tumor/dementia project. Training and larg
 | Implement LoRA fine-tuning | Adapter-based training | Arman | Batch 2 Qwen2.5-VL-3B adapter saved |
 | Compare architectures | Binary+specialist vs single 8-class | Arman | Automated in GitHub Actions full suite |
 | Prepare publication notes | Model comparisons and rationale | Arman / Mina | Results plus audit workflow added |
-| Audit overfitting/leakage | Hash overlap checks, train/val/test gaps, regularized CNN rerun | Arman | First Kaggle audit found exact duplicate leakage; de-duplicated retrain prepared |
+| Audit overfitting/leakage | Hash overlap checks, train/val/test gaps, regularized CNN rerun | Arman | Complete: exact duplicate leakage fixed; de-duplicated checkpoints accepted |
 
 ## Output Locations
 
@@ -126,7 +126,8 @@ This is the clean restart plan for the tumor/dementia project. Training and larg
 - Kaggle multimodal batch 2: `training_logs/multimodal/kaggle_qwen_batch2/`
 - Kaggle multimodal batch 3: `training_logs/multimodal/kaggle_qwen_batch3/` after artifact import
 - Local publication audit: `training_logs/publication_audit/local_summary/`
-- Kaggle CNN audit output after import: `training_logs/publication_audit/regularized/`, `training_logs/experiments_regularized/`
+- Initial Kaggle CNN audit output: `training_logs/publication_audit/regularized/`, `training_logs/experiments_regularized/`
+- Accepted de-duplicated CNN audit output: `training_logs/publication_audit/dedup_regularized/`, `training_logs/experiments_dedup_regularized/`
 - Current Kaggle LoRA adapter: `models/multimodal/qwen25vl_3b_mri_lora/`
 
 ## Multimodal Candidate References

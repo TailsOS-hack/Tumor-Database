@@ -1,0 +1,5 @@
+true\pred,glioma,meningioma,notumor,pituitary
+glioma,1189,0,0,0
+meningioma,0,1202,0,2
+notumor,0,0,1326,0
+pituitary,0,1,0,1305

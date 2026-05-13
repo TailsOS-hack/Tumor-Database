@@ -4,14 +4,14 @@ Use this file as the running methods/results record. Fill it only from strict te
 
 ## Study Goal
 
-Compare a hierarchical MRI classifier against a single 8-class classifier for tumor and dementia image categorization, then evaluate whether multimodal LLMs improve report metadata extraction or report generation.
+Compare a hierarchical MRI classifier against a single 8-class classifier for tumor and dementia image categorization, then evaluate whether multimodal LLMs improve report metadata extraction or report generation. The image datasets used here are brain MRI scans, not CT scans.
 
 ## Dataset and Splits
 
 | Dataset | Classes | Split Source | Notes |
 | --- | --- | --- | --- |
-| Brain tumor | glioma, meningioma, notumor, pituitary | Official Training/Testing folders | Testing folder held out as strict test |
-| Dementia | MildDemented, ModerateDemented, NonDemented, VeryMildDemented | Deterministic stratified split | Manifest generated before augmentation |
+| Brain tumor MRI | glioma, meningioma, notumor, pituitary | Official Training/Testing folders plus exact-duplicate grouped split units | Official Testing folder held out when possible; duplicate groups never cross splits |
+| Dementia MRI | MildDemented, ModerateDemented, NonDemented, VeryMildDemented | Deterministic stratified split plus exact-duplicate grouped split units | Manifest generated before augmentation; no official dementia holdout was provided |
 
 Manifest path: `training_logs/splits/strict_manifest.csv`
 
@@ -23,15 +23,17 @@ Manifest path: `training_logs/splits/strict_manifest.csv`
 | Single model | None | EfficientNet-B3 | 8 classes | `models/single_8class_classifier.pt` |
 | Multimodal LLM | Qwen/Qwen2.5-VL-3B-Instruct | LoRA adapter | Structured JSON labels/report metadata | `models/multimodal/qwen25vl_3b_mri_lora/` |
 
-## Strict-Test Results
+## Accepted De-duplicated Strict-Test Results
 
 | Model | Accuracy | Macro F1 | Weighted F1 | Key Failure Modes | Metrics Path |
 | --- | ---: | ---: | ---: | --- | --- |
-| Binary router | 1.0000 | 1.0000 | 1.0000 | Possible domain/source bias should be discussed | `training_logs/experiments/binary/20260510_204656/test/metrics.json` |
-| Tumor specialist | 0.9962 | 0.9960 | 0.9962 | Rare subtype confusions | `training_logs/experiments/tumor/20260510_222255/test/metrics.json` |
-| Dementia specialist | 0.9985 | 0.9986 | 0.9985 | Dementia split may be optimistic because no official holdout was provided | `training_logs/experiments/dementia/20260510_224400/test/metrics.json` |
-| Hierarchical end-to-end | 0.9982 | 0.9973 | 0.9982 | Inherits router and specialist risks | `training_logs/experiments/hierarchical/test_evaluation/metrics.json` |
-| Single 8-class | 0.9993 | 0.9975 | 0.9993 | Strongest strict-test accuracy but still needs leakage discussion | `training_logs/experiments/eight_class/20260511_000016/test/metrics.json` |
+| Binary router | 1.0000 | 1.0000 | 1.0000 | Possible tumor-vs-dementia source bias should be discussed | `training_logs/experiments_dedup_regularized/binary/20260512_013727/test/metrics.json` |
+| Tumor specialist | 0.9792 | 0.9791 | 0.9793 | Subtype errors increased after exact duplicate leakage removal | `training_logs/experiments_dedup_regularized/tumor/20260512_021514/test/metrics.json` |
+| Dementia specialist | 0.9991 | 0.9991 | 0.9991 | Dementia split may be optimistic because no official holdout was provided | `training_logs/experiments_dedup_regularized/dementia/20260512_022515/test/metrics.json` |
+| Hierarchical end-to-end | 0.9963 | 0.9891 | 0.9963 | Inherits source-bias and specialist risks | `training_logs/experiments_dedup_regularized/hierarchical/test_evaluation/metrics.json` |
+| Single 8-class | 0.9972 | 0.9905 | 0.9972 | Slightly higher accuracy than hierarchical; still needs external validation | `training_logs/experiments_dedup_regularized/eight_class/20260512_025559/test/metrics.json` |
+
+Former near-perfect CNN results under `training_logs/experiments/` are retained for provenance but should not be used as final publication claims because the first full Kaggle audit found exact cross-split duplicate leakage.
 
 ## Multimodal LLM Benchmark
 
@@ -51,7 +53,9 @@ The CNN metrics are strong enough that the paper must proactively address leakag
 
 Local audit artifact: `training_logs/publication_audit/local_summary/audit_report.md`
 
-Full Kaggle audit artifact: `training_logs/publication_audit/cnn_publication_audit_summary.json`
+Full initial Kaggle audit artifact: `training_logs/publication_audit/cnn_publication_audit_summary.json`
+
+Accepted de-duplicated audit artifact: `training_logs/publication_audit/cnn_dedup_retrain_summary.json`
 
 Remote audit/retraining script: `notebooks/kaggle_cnn_publication_audit_kernel.py`
 
@@ -61,15 +65,14 @@ The first full Kaggle audit found a blocking leakage risk:
 - Perceptual dHash cross-split overlaps: 22,537 rows, 3,372 unique hashes.
 - Regularized retraining showed no train/validation gap flags, but those checkpoints were still trained on the leaky manifest and should not replace the current model files.
 
-Next remote checks:
+The accepted de-duplicated Kaggle rerun found:
 
-- Exact SHA-256 duplicate checks across train/val/test splits.
-- Perceptual dHash duplicate checks across train/val/test splits.
-- Current checkpoint evaluation across train, validation, and test splits.
-- Train/validation gap summaries from recorded training histories.
-- Regularized retraining with label smoothing, random erasing, stronger weight decay, and early stopping.
-- Publication summary for the regularized run before replacing any current checkpoint.
-- The manifest builder now groups exact duplicate SHA-256 hashes before split assignment; the next run must show zero exact cross-split hash overlap before any new checkpoint is accepted.
+- Exact cross-split SHA-256 overlaps: 0.
+- Missing manifest files: 0.
+- Perceptual dHash cross-split overlaps: 22,304 rows, 3,290 hashes.
+- Train/validation gap flags: 0.
+- Regularized retraining used label smoothing, random erasing, stronger weight decay, and early stopping.
+- The accepted `.pt` checkpoint files now come from the de-duplicated regularized run.
 
 ## Methods Notes
 
@@ -78,6 +81,7 @@ Next remote checks:
 - Keep validation metrics separate from test metrics.
 - Record random seed, epochs, image size, optimizer, learning rate, batch size, GPU type, and checkpoint hash for each run.
 - Treat any accuracy above 0.995 as a reviewer-risk flag that needs leakage/source-bias discussion, not as self-validating evidence.
+- State that the accepted CNN run fixed exact duplicate leakage, but perceptual near-duplicate overlap still needs discussion or a later sensitivity analysis.
 - For LoRA, report base model, adapter rank, target modules, quantization, training examples, validation examples, and adapter path.
 - Current multimodal conclusion: VLMs should not replace the CNN classifiers for image labeling; treat them as report/metadata assistants unless a redesigned task produces materially stronger strict-test accuracy.
 

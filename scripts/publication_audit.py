@@ -237,7 +237,10 @@ def load_metric_rows(experiments_dir: Path, summary_json: Path | None) -> list[d
             continue
         metrics = json.loads(path.read_text(encoding="utf-8"))
         report = metrics.get("classification_report", {})
-        task = path.parts[-4] if len(path.parts) >= 4 else path.parent.name
+        try:
+            task = path.relative_to(experiments_dir).parts[0]
+        except ValueError:
+            task = path.parent.name
         rows.append(
             {
                 "model": task,

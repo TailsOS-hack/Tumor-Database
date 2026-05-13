@@ -1,0 +1,581 @@
+{
+  "created_utc": "2026-05-12T01:11:42.958655+00:00",
+  "repo_url": "https://github.com/TailsOS-hack/Tumor-Database.git",
+  "status": "completed",
+  "regularized_config": {
+    "epochs": 20,
+    "batch_size": 32,
+    "num_workers": 2,
+    "learning_rate": "5e-5",
+    "weight_decay": "0.001",
+    "label_smoothing": "0.05",
+    "random_erasing": "0.10",
+    "patience": "4"
+  },
+  "gpu": {
+    "cuda_available": true,
+    "devices": [
+      {
+        "index": 0,
+        "name": "Tesla T4",
+        "memory_gb": 14.56
+      },
+      {
+        "index": 1,
+        "name": "Tesla T4",
+        "memory_gb": 14.56
+      }
+    ],
+    "device_count": 2,
+    "aggregate_memory_gb": 29.12,
+    "nvidia_smi": "Tue May 12 01:12:23 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 580.105.08             Driver Version: 580.105.08     CUDA Version: 13.0     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  Tesla T4                       Off |   00000000:00:04.0 Off |                    0 |\n| N/A   52C    P8             11W /   70W |       3MiB /  15360MiB |      0%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n|   1  Tesla T4                       Off |   00000000:00:05.0 Off |                    0 |\n| N/A   48C    P8             10W /   70W |       3MiB /  15360MiB |      0%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|  No running processes found                                                             |\n+-----------------------------------------------------------------------------------------+\n"
+  },
+  "lfs": {
+    "status": "completed",
+    "returncode": 0,
+    "checkpoint_sizes": {
+      "binary": 94370979,
+      "tumor": 43376447,
+      "dementia": 17040563,
+      "eight_class": 43402247
+    }
+  },
+  "pre_regularized_audit": {
+    "manifest": {
+      "rows": 51023,
+      "split_counts": {
+        "test": 10251,
+        "train": 35820,
+        "val": 4952
+      },
+      "domain_split_counts": {
+        "test::dementia": 8806,
+        "test::tumor": 1445,
+        "train::dementia": 30795,
+        "train::tumor": 5025,
+        "val::dementia": 4399,
+        "val::tumor": 553
+      },
+      "eight_class_split_counts": {
+        "test::dementia_MildDemented": 2006,
+        "test::dementia_ModerateDemented": 2001,
+        "test::dementia_NonDemented": 2560,
+        "test::dementia_VeryMildDemented": 2239,
+        "test::tumor_glioma": 300,
+        "test::tumor_meningioma": 308,
+        "test::tumor_notumor": 530,
+        "test::tumor_pituitary": 307,
+        "train::dementia_MildDemented": 6997,
+        "train::dementia_ModerateDemented": 6994,
+        "train::dementia_NonDemented": 8962,
+        "train::dementia_VeryMildDemented": 7842,
+        "train::tumor_glioma": 1189,
+        "train::tumor_meningioma": 1204,
+        "train::tumor_notumor": 1326,
+        "train::tumor_pituitary": 1306,
+        "val::dementia_MildDemented": 997,
+        "val::dementia_ModerateDemented": 1005,
+        "val::dementia_NonDemented": 1278,
+        "val::dementia_VeryMildDemented": 1119,
+        "val::tumor_glioma": 132,
+        "val::tumor_meningioma": 133,
+        "val::tumor_notumor": 144,
+        "val::tumor_pituitary": 144
+      },
+      "duplicate_manifest_paths": [],
+      "source_split_by_domain": {
+        "dementia": {
+          "pool": 44000
+        },
+        "tumor": {
+          "test": 1311,
+          "pool": 5712
+        }
+      },
+      "source_split_by_manifest_split": {
+        "test": {
+          "dementia::pool": 8806,
+          "tumor::test": 1311,
+          "tumor::pool": 134
+        },
+        "train": {
+          "dementia::pool": 30795,
+          "tumor::pool": 5025
+        },
+        "val": {
+          "dementia::pool": 4399,
+          "tumor::pool": 553
+        }
+      },
+      "manifest_path": "training_logs/splits/strict_manifest.csv"
+    },
+    "image_hashes": {
+      "enabled": true,
+      "files_hashed": 51023,
+      "missing_files": 0,
+      "exact_cross_split_overlaps": 0,
+      "perceptual_cross_split_overlaps": 22304,
+      "exact_overlap_csv": "exact_hash_cross_split_overlaps.csv",
+      "perceptual_overlap_csv": "perceptual_hash_cross_split_overlaps.csv",
+      "missing_files_csv": "missing_manifest_files.csv"
+    },
+    "metrics": {
+      "rows": [
+        {
+          "model": "binary",
+          "status": "complete",
+          "accuracy": 1.0,
+          "macro_f1": 1.0,
+          "weighted_f1": 1.0,
+          "metrics_path": "training_logs/experiments/binary/20260510_204656/test/metrics.json"
+        },
+        {
+          "model": "tumor",
+          "status": "complete",
+          "accuracy": 0.996186117467582,
+          "macro_f1": 0.9959855745916388,
+          "weighted_f1": 0.9961895036092903,
+          "metrics_path": "training_logs/experiments/tumor/20260510_222255/test/metrics.json"
+        },
+        {
+          "model": "dementia",
+          "status": "complete",
+          "accuracy": 0.9985227272727273,
+          "macro_f1": 0.9985854796208935,
+          "weighted_f1": 0.9985230508579356,
+          "metrics_path": "training_logs/experiments/dementia/20260510_224400/test/metrics.json"
+        },
+        {
+          "model": "hierarchical",
+          "status": "complete",
+          "accuracy": 0.9982197606567105,
+          "macro_f1": 0.9972855271062662,
+          "weighted_f1": 0.998220481335339,
+          "metrics_path": "training_logs/experiments/hierarchical/test_evaluation/metrics.json"
+        },
+        {
+          "model": "eight_class",
+          "status": "complete",
+          "accuracy": 0.9993076846998319,
+          "macro_f1": 0.9975284151290794,
+          "weighted_f1": 0.9993082636144662,
+          "metrics_path": "training_logs/experiments/eight_class/20260511_000016/test/metrics.json"
+        }
+      ],
+      "high_accuracy_flags": [
+        {
+          "model": "binary",
+          "accuracy": 1.0,
+          "reason": "Accuracy >= 0.995 needs explicit leakage/source-bias and external-validity discussion."
+        },
+        {
+          "model": "tumor",
+          "accuracy": 0.996186117467582,
+          "reason": "Accuracy >= 0.995 needs explicit leakage/source-bias and external-validity discussion."
+        },
+        {
+          "model": "dementia",
+          "accuracy": 0.9985227272727273,
+          "reason": "Accuracy >= 0.995 needs explicit leakage/source-bias and external-validity discussion."
+        },
+        {
+          "model": "hierarchical",
+          "accuracy": 0.9982197606567105,
+          "reason": "Accuracy >= 0.995 needs explicit leakage/source-bias and external-validity discussion."
+        },
+        {
+          "model": "eight_class",
+          "accuracy": 0.9993076846998319,
+          "reason": "Accuracy >= 0.995 needs explicit leakage/source-bias and external-validity discussion."
+        }
+      ],
+      "metrics_available": true
+    },
+    "histories": {
+      "histories": [],
+      "histories_available": false,
+      "gap_flags": []
+    },
+    "risk_summary": {
+      "status": "reviewer_risk_needs_documentation",
+      "blockers": [],
+      "warnings": [
+        "Perceptual hash overlap across splits needs manual review.",
+        "Near-perfect metrics require leakage/source-bias and external-validity discussion.",
+        "Training histories were not available, so overfitting gaps could not be audited locally.",
+        "Binary router may learn dataset/domain artifacts because tumor and dementia images come from different source datasets."
+      ]
+    }
+  },
+  "current_eval": {
+    "status": "completed",
+    "tasks": {
+      "binary": {
+        "train": {
+          "accuracy": 1.0,
+          "loss": 1.996805301912302e-11,
+          "n": 35820
+        },
+        "val": {
+          "accuracy": 1.0,
+          "loss": 1.4443771398808633e-10,
+          "n": 4952
+        },
+        "test": {
+          "accuracy": 1.0,
+          "loss": 2.3258078713365308e-11,
+          "n": 10251
+        }
+      },
+      "tumor": {
+        "train": {
+          "accuracy": 0.9994029850746269,
+          "loss": 0.003779145280199762,
+          "n": 5025
+        },
+        "val": {
+          "accuracy": 1.0,
+          "loss": 0.0003063108705700574,
+          "n": 553
+        },
+        "test": {
+          "accuracy": 0.9965397923875432,
+          "loss": 0.027605541497361698,
+          "n": 1445
+        }
+      },
+      "dementia": {
+        "train": {
+          "accuracy": 0.9988959246630946,
+          "loss": 0.0034061824227741497,
+          "n": 30795
+        },
+        "val": {
+          "accuracy": 0.9988633780404638,
+          "loss": 0.0031350751938737853,
+          "n": 4399
+        },
+        "test": {
+          "accuracy": 0.9990915285032932,
+          "loss": 0.003576244597192693,
+          "n": 8806
+        }
+      },
+      "eight_class": {
+        "train": {
+          "accuracy": 0.9998883305415969,
+          "loss": 0.001054442508924664,
+          "n": 35820
+        },
+        "val": {
+          "accuracy": 1.0,
+          "loss": 0.00013605585171580015,
+          "n": 4952
+        },
+        "test": {
+          "accuracy": 0.9993171397912399,
+          "loss": 0.004691224932958333,
+          "n": 10251
+        }
+      }
+    },
+    "checkpoint_ready": {
+      "binary": true,
+      "tumor": true,
+      "dementia": true,
+      "eight_class": true
+    }
+  },
+  "regularized_training": {
+    "status": "completed",
+    "epochs_requested": 20,
+    "batch_size": 32,
+    "learning_rate": "5e-5",
+    "weight_decay": "0.001",
+    "label_smoothing": "0.05",
+    "random_erasing": "0.10",
+    "early_stop_patience": "4"
+  },
+  "regularized_audit": {
+    "manifest": {
+      "rows": 51023,
+      "split_counts": {
+        "test": 10251,
+        "train": 35820,
+        "val": 4952
+      },
+      "domain_split_counts": {
+        "test::dementia": 8806,
+        "test::tumor": 1445,
+        "train::dementia": 30795,
+        "train::tumor": 5025,
+        "val::dementia": 4399,
+        "val::tumor": 553
+      },
+      "eight_class_split_counts": {
+        "test::dementia_MildDemented": 2006,
+        "test::dementia_ModerateDemented": 2001,
+        "test::dementia_NonDemented": 2560,
+        "test::dementia_VeryMildDemented": 2239,
+        "test::tumor_glioma": 300,
+        "test::tumor_meningioma": 308,
+        "test::tumor_notumor": 530,
+        "test::tumor_pituitary": 307,
+        "train::dementia_MildDemented": 6997,
+        "train::dementia_ModerateDemented": 6994,
+        "train::dementia_NonDemented": 8962,
+        "train::dementia_VeryMildDemented": 7842,
+        "train::tumor_glioma": 1189,
+        "train::tumor_meningioma": 1204,
+        "train::tumor_notumor": 1326,
+        "train::tumor_pituitary": 1306,
+        "val::dementia_MildDemented": 997,
+        "val::dementia_ModerateDemented": 1005,
+        "val::dementia_NonDemented": 1278,
+        "val::dementia_VeryMildDemented": 1119,
+        "val::tumor_glioma": 132,
+        "val::tumor_meningioma": 133,
+        "val::tumor_notumor": 144,
+        "val::tumor_pituitary": 144
+      },
+      "duplicate_manifest_paths": [],
+      "source_split_by_domain": {
+        "dementia": {
+          "pool": 44000
+        },
+        "tumor": {
+          "test": 1311,
+          "pool": 5712
+        }
+      },
+      "source_split_by_manifest_split": {
+        "test": {
+          "dementia::pool": 8806,
+          "tumor::test": 1311,
+          "tumor::pool": 134
+        },
+        "train": {
+          "dementia::pool": 30795,
+          "tumor::pool": 5025
+        },
+        "val": {
+          "dementia::pool": 4399,
+          "tumor::pool": 553
+        }
+      },
+      "manifest_path": "training_logs/splits/strict_manifest.csv"
+    },
+    "image_hashes": {
+      "enabled": true,
+      "files_hashed": 51023,
+      "missing_files": 0,
+      "exact_cross_split_overlaps": 0,
+      "perceptual_cross_split_overlaps": 22304,
+      "exact_overlap_csv": "exact_hash_cross_split_overlaps.csv",
+      "perceptual_overlap_csv": "perceptual_hash_cross_split_overlaps.csv",
+      "missing_files_csv": "missing_manifest_files.csv"
+    },
+    "metrics": {
+      "rows": [
+        {
+          "model": "binary",
+          "status": "complete",
+          "accuracy": 1.0,
+          "macro_f1": 1.0,
+          "weighted_f1": 1.0,
+          "metrics_path": "training_logs/experiments/binary/20260510_204656/test/metrics.json"
+        },
+        {
+          "model": "tumor",
+          "status": "complete",
+          "accuracy": 0.996186117467582,
+          "macro_f1": 0.9959855745916388,
+          "weighted_f1": 0.9961895036092903,
+          "metrics_path": "training_logs/experiments/tumor/20260510_222255/test/metrics.json"
+        },
+        {
+          "model": "dementia",
+          "status": "complete",
+          "accuracy": 0.9985227272727273,
+          "macro_f1": 0.9985854796208935,
+          "weighted_f1": 0.9985230508579356,
+          "metrics_path": "training_logs/experiments/dementia/20260510_224400/test/metrics.json"
+        },
+        {
+          "model": "hierarchical",
+          "status": "complete",
+          "accuracy": 0.9982197606567105,
+          "macro_f1": 0.9972855271062662,
+          "weighted_f1": 0.998220481335339,
+          "metrics_path": "training_logs/experiments/hierarchical/test_evaluation/metrics.json"
+        },
+        {
+          "model": "eight_class",
+          "status": "complete",
+          "accuracy": 0.9993076846998319,
+          "macro_f1": 0.9975284151290794,
+          "weighted_f1": 0.9993082636144662,
+          "metrics_path": "training_logs/experiments/eight_class/20260511_000016/test/metrics.json"
+        },
+        {
+          "model": "binary",
+          "status": "complete",
+          "accuracy": 1.0,
+          "macro_f1": 1.0,
+          "weighted_f1": 1.0,
+          "metrics_path": "training_logs/experiments_dedup_regularized/binary/20260512_013727/test/metrics.json",
+          "n": 10251,
+          "accuracy_ci95_low": 0.9996253867051441,
+          "accuracy_ci95_high": 0.9999999999999998
+        },
+        {
+          "model": "dementia",
+          "status": "complete",
+          "accuracy": 0.9990915285032932,
+          "macro_f1": 0.9991357771694546,
+          "weighted_f1": 0.9990915285032932,
+          "metrics_path": "training_logs/experiments_dedup_regularized/dementia/20260512_022515/test/metrics.json",
+          "n": 8806,
+          "accuracy_ci95_low": 0.9982082004882943,
+          "accuracy_ci95_high": 0.9995395910270491
+        },
+        {
+          "model": "eight_class",
+          "status": "complete",
+          "accuracy": 0.9971710077065652,
+          "macro_f1": 0.990524913231328,
+          "weighted_f1": 0.9971756171848888,
+          "metrics_path": "training_logs/experiments_dedup_regularized/eight_class/20260512_025559/test/metrics.json",
+          "n": 10251,
+          "accuracy_ci95_low": 0.9959400274184677,
+          "accuracy_ci95_high": 0.9980294942560554
+        },
+        {
+          "model": "hierarchical",
+          "status": "complete",
+          "accuracy": 0.9962930445810165,
+          "macro_f1": 0.9891122649916929,
+          "weighted_f1": 0.9962947322821064,
+          "metrics_path": "training_logs/experiments_dedup_regularized/hierarchical/test_evaluation/metrics.json",
+          "n": 10251,
+          "accuracy_ci95_low": 0.9949162897092009,
+          "accuracy_ci95_high": 0.9972979635075433
+        },
+        {
+          "model": "tumor",
+          "status": "complete",
+          "accuracy": 0.9792387543252595,
+          "macro_f1": 0.9790887528139313,
+          "weighted_f1": 0.9792507270753442,
+          "metrics_path": "training_logs/experiments_dedup_regularized/tumor/20260512_021514/test/metrics.json",
+          "n": 1445,
+          "accuracy_ci95_low": 0.9705168661678935,
+          "accuracy_ci95_high": 0.9854192416854425
+        }
+      ],
+      "high_accuracy_flags": [
+        {
+          "model": "binary",
+          "accuracy": 1.0,
+          "reason": "Accuracy >= 0.995 needs explicit leakage/source-bias and external-validity discussion."
+        },
+        {
+          "model": "tumor",
+          "accuracy": 0.996186117467582,
+          "reason": "Accuracy >= 0.995 needs explicit leakage/source-bias and external-validity discussion."
+        },
+        {
+          "model": "dementia",
+          "accuracy": 0.9985227272727273,
+          "reason": "Accuracy >= 0.995 needs explicit leakage/source-bias and external-validity discussion."
+        },
+        {
+          "model": "hierarchical",
+          "accuracy": 0.9982197606567105,
+          "reason": "Accuracy >= 0.995 needs explicit leakage/source-bias and external-validity discussion."
+        },
+        {
+          "model": "eight_class",
+          "accuracy": 0.9993076846998319,
+          "reason": "Accuracy >= 0.995 needs explicit leakage/source-bias and external-validity discussion."
+        },
+        {
+          "model": "binary",
+          "accuracy": 1.0,
+          "reason": "Accuracy >= 0.995 needs explicit leakage/source-bias and external-validity discussion."
+        },
+        {
+          "model": "dementia",
+          "accuracy": 0.9990915285032932,
+          "reason": "Accuracy >= 0.995 needs explicit leakage/source-bias and external-validity discussion."
+        },
+        {
+          "model": "eight_class",
+          "accuracy": 0.9971710077065652,
+          "reason": "Accuracy >= 0.995 needs explicit leakage/source-bias and external-validity discussion."
+        },
+        {
+          "model": "hierarchical",
+          "accuracy": 0.9962930445810165,
+          "reason": "Accuracy >= 0.995 needs explicit leakage/source-bias and external-validity discussion."
+        }
+      ],
+      "metrics_available": true
+    },
+    "histories": {
+      "histories": [
+        {
+          "task": "binary",
+          "history_path": "training_logs/experiments_dedup_regularized/binary/20260512_013727/history.json",
+          "epochs_recorded": 5,
+          "best_val_accuracy": 1.0,
+          "final_train_accuracy": 1.0,
+          "final_val_accuracy": 1.0,
+          "max_train_val_accuracy_gap": 0.0,
+          "flag": ""
+        },
+        {
+          "task": "dementia",
+          "history_path": "training_logs/experiments_dedup_regularized/dementia/20260512_022515/history.json",
+          "epochs_recorded": 16,
+          "best_val_accuracy": 0.9988633780404638,
+          "final_train_accuracy": 0.9964604643610976,
+          "final_val_accuracy": 0.9984087292566493,
+          "max_train_val_accuracy_gap": -0.0005193434086131488,
+          "flag": ""
+        },
+        {
+          "task": "eight_class",
+          "history_path": "training_logs/experiments_dedup_regularized/eight_class/20260512_025559/history.json",
+          "epochs_recorded": 17,
+          "best_val_accuracy": 0.9981825525040388,
+          "final_train_accuracy": 0.9940256839754327,
+          "final_val_accuracy": 0.9979806138933764,
+          "max_train_val_accuracy_gap": -0.0039549299179437725,
+          "flag": ""
+        },
+        {
+          "task": "tumor",
+          "history_path": "training_logs/experiments_dedup_regularized/tumor/20260512_021514/history.json",
+          "epochs_recorded": 10,
+          "best_val_accuracy": 0.9855334538878843,
+          "final_train_accuracy": 0.9924378109452736,
+          "final_val_accuracy": 0.9819168173598554,
+          "max_train_val_accuracy_gap": 0.010520993585418248,
+          "flag": ""
+        }
+      ],
+      "histories_available": true,
+      "gap_flags": []
+    },
+    "risk_summary": {
+      "status": "reviewer_risk_needs_documentation",
+      "blockers": [],
+      "warnings": [
+        "Perceptual hash overlap across splits needs manual review.",
+        "Near-perfect metrics require leakage/source-bias and external-validity discussion.",
+        "Binary router may learn dataset/domain artifacts because tumor and dementia images come from different source datasets."
+      ]
+    }
+  }
+}

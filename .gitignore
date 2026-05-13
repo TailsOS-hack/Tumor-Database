@@ -9,7 +9,9 @@ models/*.pt
 !models/single_8class_classifier.pt
 !models/backup*/*.pt
 training_logs/experiments/
-training_logs/splits/
+training_logs/splits/*
+!training_logs/splits/
+!training_logs/splits/strict_manifest.csv
 notebooks/.ipynb_checkpoints/
 __pycache__/
 *.py[cod]
