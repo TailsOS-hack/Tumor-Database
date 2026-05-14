@@ -1,0 +1,4 @@
+analysis,manifest_rows,train,val,test,exact_hash_overlaps,perceptual_hash_overlaps,missing_files,gap_flags,risk_status
+Initial leaky audit,51023,35940,4972,10111,782,22537,0,0,blocking_leakage_risk
+Accepted exact-deduplicated,51023,35820,4952,10251,0,22304,0,0,reviewer_risk_needs_documentation
+Conservative dHash sensitivity,51023,34759,5364,10900,0,0,0,0,reviewer_risk_needs_documentation

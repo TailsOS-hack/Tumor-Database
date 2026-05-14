@@ -1,0 +1,4 @@
+family,model,n,json_rate,accuracy,note,domain_accuracy,oracle_domain_subtype_accuracy
+VLM zero-shot,Qwen/Qwen2.5-VL-7B-Instruct,40,1.0,0.175,Best flat zero-shot VLM from batch 2; not competitive with CNNs.,,
+VLM LoRA,Qwen/Qwen2.5-VL-3B-Instruct + LoRA,96,1.0,0.3125,Improved direct VLM labeling but collapsed dementia subclasses.,,
+VLM hierarchical diagnostic,Qwen/Qwen2.5-VL-7B-Instruct,40,1.0,0.225,Broad-domain routing improved; subtype labels remained weak.,0.875,0.25
