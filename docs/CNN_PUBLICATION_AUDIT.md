@@ -31,6 +31,15 @@ The de-duplicated retrain fixed the blocking issue:
 - Train/validation overfitting gap flags: 0.
 - Risk status: `reviewer_risk_needs_documentation`, not `blocking_leakage_risk`.
 
+The corrected perceptual-hash sensitivity run addressed that remaining dHash concern with a stricter manifest:
+
+- Exact cross-split SHA-256 overlaps: 0.
+- Perceptual dHash cross-split overlaps: 0.
+- Missing manifest files: 0.
+- Train/validation overfitting gap flags: 0.
+- Conservative hierarchical strict-test accuracy: 0.9894.
+- Conservative single 8-class strict-test accuracy: 0.9906.
+
 ## Remote Kaggle Audit and Retraining
 
 Script: `notebooks/kaggle_cnn_publication_audit_kernel.py`
@@ -60,6 +69,16 @@ The remote run is designed to:
 | Hierarchical end-to-end | 0.9963 | 0.9891 | 0.9963 | Accepted main architecture |
 | Single 8-class baseline | 0.9972 | 0.9905 | 0.9972 | Slightly higher accuracy than hierarchical |
 
+## Conservative Sensitivity Metrics
+
+| Model | Accuracy | Macro F1 | Weighted F1 | Notes |
+| --- | ---: | ---: | ---: | --- |
+| Binary router | 1.0000 | 1.0000 | 1.0000 | Source/dataset bias still needs discussion |
+| Tumor specialist | 0.9539 | 0.9535 | 0.9530 | Conservative estimate after exact dHash grouping |
+| Dementia specialist | 0.9975 | 0.9976 | 0.9975 | Still high under strict dHash grouping |
+| Hierarchical end-to-end | 0.9894 | 0.9755 | 0.9893 | Robustness result, not default checkpoint |
+| Single 8-class baseline | 0.9906 | 0.9740 | 0.9904 | Robustness result, not default checkpoint |
+
 ## Decision
 
-The de-duplicated regularized checkpoints are accepted as the repo's current model files because exact cross-split hash overlap is zero, strict-test performance remains strong, and no train/validation overfitting gap flags were found. The paper should still include a limitation paragraph on source bias, near-duplicate perceptual-hash overlap, and the need for external validation.
+The de-duplicated regularized checkpoints are accepted as the repo's current model files because exact cross-split hash overlap is zero, strict-test performance remains strong, and no train/validation overfitting gap flags were found. The perceptual-hash sensitivity run should be reported as a conservative robustness analysis because it removes the remaining dHash overlap warning while preserving strong performance. The paper should still include a limitation paragraph on source bias and the need for external validation.

@@ -35,6 +35,18 @@ Manifest path: `training_logs/splits/strict_manifest.csv`
 
 Former near-perfect CNN results under `training_logs/experiments/` are retained for provenance but should not be used as final publication claims because the first full Kaggle audit found exact cross-split duplicate leakage.
 
+## Conservative Perceptual-Hash Sensitivity Results
+
+This run uses `training_logs/splits/perceptual_strict_manifest.csv`, which groups exact SHA-256 duplicates and identical audit-compatible dHash fingerprints into the same split. It is a robustness analysis for the near-duplicate concern, not the default model checkpoint set.
+
+| Model | Accuracy | Macro F1 | Weighted F1 | Interpretation | Metrics Path |
+| --- | ---: | ---: | ---: | --- | --- |
+| Binary router | 1.0000 | 1.0000 | 1.0000 | Still likely source-separable | `training_logs/experiments_perceptual_regularized/binary/20260513_155157/test/metrics.json` |
+| Tumor specialist | 0.9539 | 0.9535 | 0.9530 | Conservative tumor estimate under dHash grouping | `training_logs/experiments_perceptual_regularized/tumor/20260513_162514/test/metrics.json` |
+| Dementia specialist | 0.9975 | 0.9976 | 0.9975 | Robust under dHash grouping | `training_logs/experiments_perceptual_regularized/dementia/20260513_163515/test/metrics.json` |
+| Hierarchical end-to-end | 0.9894 | 0.9755 | 0.9893 | Conservative support for the accepted baseline | `training_logs/experiments_perceptual_regularized/hierarchical/test_evaluation/metrics.json` |
+| Single 8-class | 0.9906 | 0.9740 | 0.9904 | Conservative support for the accepted baseline | `training_logs/experiments_perceptual_regularized/eight_class/20260513_170749/test/metrics.json` |
+
 ## Multimodal LLM Benchmark
 
 | Candidate | Size | Runtime | Quantization | Strict JSON Rate | Label Accuracy | Report Quality Notes |
@@ -57,6 +69,8 @@ Full initial Kaggle audit artifact: `training_logs/publication_audit/cnn_publica
 
 Accepted de-duplicated audit artifact: `training_logs/publication_audit/cnn_dedup_retrain_summary.json`
 
+Perceptual sensitivity audit artifact: `training_logs/publication_audit/cnn_perceptual_sensitivity_summary.json`
+
 Remote audit/retraining script: `notebooks/kaggle_cnn_publication_audit_kernel.py`
 
 The first full Kaggle audit found a blocking leakage risk:
@@ -74,6 +88,15 @@ The accepted de-duplicated Kaggle rerun found:
 - Regularized retraining used label smoothing, random erasing, stronger weight decay, and early stopping.
 - The accepted `.pt` checkpoint files now come from the de-duplicated regularized run.
 
+The corrected perceptual-hash sensitivity rerun found:
+
+- Exact cross-split SHA-256 overlaps: 0.
+- Perceptual dHash cross-split overlaps: 0.
+- Missing manifest files: 0.
+- Train/validation gap flags: 0.
+- Hierarchical strict-test accuracy: 0.9894.
+- Single 8-class strict-test accuracy: 0.9906.
+
 ## Methods Notes
 
 - Report all final metrics from the strict test split.
@@ -81,7 +104,7 @@ The accepted de-duplicated Kaggle rerun found:
 - Keep validation metrics separate from test metrics.
 - Record random seed, epochs, image size, optimizer, learning rate, batch size, GPU type, and checkpoint hash for each run.
 - Treat any accuracy above 0.995 as a reviewer-risk flag that needs leakage/source-bias discussion, not as self-validating evidence.
-- State that the accepted CNN run fixed exact duplicate leakage, but perceptual near-duplicate overlap still needs discussion or a later sensitivity analysis.
+- State that the accepted CNN run fixed exact duplicate leakage, and the corrected perceptual-hash sensitivity run removed dHash overlap as a robustness check.
 - For LoRA, report base model, adapter rank, target modules, quantization, training examples, validation examples, and adapter path.
 - Current multimodal conclusion: VLMs should not replace the CNN classifiers for image labeling; treat them as report/metadata assistants unless a redesigned task produces materially stronger strict-test accuracy.
 

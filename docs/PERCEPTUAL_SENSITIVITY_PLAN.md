@@ -36,3 +36,17 @@ The script will:
 ## Decision Rule
 
 If the perceptual sensitivity run stays near the accepted de-duplicated baseline, use it as a robustness paragraph and keep the current exact-deduplicated checkpoints as the main model files. If performance drops sharply, report the perceptual run as the conservative estimate and consider replacing the main publication claims with the stricter sensitivity results.
+
+## Completed Result
+
+Corrected Kaggle version 2 completed successfully after aligning the manifest-builder dHash implementation with `scripts/publication_audit.py`.
+
+Artifacts:
+
+- `training_logs/splits/perceptual_strict_manifest.csv`
+- `training_logs/publication_audit/cnn_perceptual_sensitivity_summary.json`
+- `training_logs/publication_audit/perceptual_regularized/`
+- `training_logs/experiments_perceptual_regularized/`
+- `docs/PERCEPTUAL_SENSITIVITY_RESULTS.md`
+
+The corrected run showed 0 exact SHA-256 overlaps, 0 perceptual dHash overlaps, 0 missing files, and 0 train/validation gap flags. Strict-test performance remained high: hierarchical accuracy 0.9894 and single 8-class accuracy 0.9906. This supports the accepted exact-deduplicated baseline rather than replacing it.

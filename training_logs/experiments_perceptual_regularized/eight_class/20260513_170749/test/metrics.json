@@ -1,0 +1,162 @@
+{
+  "accuracy": 0.9905504587155963,
+  "loss": 0.17954503713397804,
+  "n": 10900,
+  "correct": 10797,
+  "classification_report": {
+    "tumor_glioma": {
+      "precision": 0.9272151898734177,
+      "recall": 0.9766666666666667,
+      "f1-score": 0.9512987012987013,
+      "support": 300.0
+    },
+    "tumor_meningioma": {
+      "precision": 0.9700272479564033,
+      "recall": 0.8516746411483254,
+      "f1-score": 0.9070063694267516,
+      "support": 418.0
+    },
+    "tumor_notumor": {
+      "precision": 0.9533267130089375,
+      "recall": 0.9726443768996961,
+      "f1-score": 0.9628886659979939,
+      "support": 987.0
+    },
+    "tumor_pituitary": {
+      "precision": 0.9513677811550152,
+      "recall": 0.9968152866242038,
+      "f1-score": 0.973561430793157,
+      "support": 314.0
+    },
+    "dementia_MildDemented": {
+      "precision": 0.9994711792702274,
+      "recall": 1.0,
+      "f1-score": 0.999735519703782,
+      "support": 1890.0
+    },
+    "dementia_ModerateDemented": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 2088.0
+    },
+    "dementia_NonDemented": {
+      "precision": 1.0,
+      "recall": 0.99812734082397,
+      "f1-score": 0.9990627928772259,
+      "support": 2670.0
+    },
+    "dementia_VeryMildDemented": {
+      "precision": 0.997764863656683,
+      "recall": 0.999552171965965,
+      "f1-score": 0.9986577181208054,
+      "support": 2233.0
+    },
+    "accuracy": 0.9905504587155963,
+    "macro avg": {
+      "precision": 0.9748966218650854,
+      "recall": 0.9744350605161034,
+      "f1-score": 0.9740263997773021,
+      "support": 10900.0
+    },
+    "weighted avg": {
+      "precision": 0.9906704922015047,
+      "recall": 0.9905504587155963,
+      "f1-score": 0.9904209311197397,
+      "support": 10900.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      293,
+      7,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      8,
+      356,
+      47,
+      7,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      15,
+      3,
+      960,
+      9,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      0,
+      313,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      1890,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      2088,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      2665,
+      5
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      2232
+    ]
+  ],
+  "class_names": [
+    "tumor_glioma",
+    "tumor_meningioma",
+    "tumor_notumor",
+    "tumor_pituitary",
+    "dementia_MildDemented",
+    "dementia_ModerateDemented",
+    "dementia_NonDemented",
+    "dementia_VeryMildDemented"
+  ],
+  "created_utc": "2026-05-13T18:55:34Z"
+}

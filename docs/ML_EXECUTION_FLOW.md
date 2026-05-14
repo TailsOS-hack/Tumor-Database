@@ -124,7 +124,7 @@ This is the clean restart plan for the tumor/dementia project. Training and larg
 | Compare architectures | Binary+specialist vs single 8-class | Arman | Automated in GitHub Actions full suite |
 | Prepare publication notes | Model comparisons and rationale | Arman / Mina | Results plus audit workflow added |
 | Audit overfitting/leakage | Hash overlap checks, train/val/test gaps, regularized CNN rerun | Arman | Complete: exact duplicate leakage fixed; de-duplicated checkpoints accepted |
-| Run perceptual sensitivity | dHash-grouped manifest and regularized CNN rerun | Arman | Prepared for Kaggle |
+| Run perceptual sensitivity | dHash-grouped manifest and regularized CNN rerun | Arman | Complete: corrected v2 showed 0 exact and 0 dHash split overlaps |
 
 ## Output Locations
 

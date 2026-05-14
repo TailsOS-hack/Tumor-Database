@@ -1,0 +1,5 @@
+true\pred,MildDemented,ModerateDemented,NonDemented,VeryMildDemented
+MildDemented,1889,0,0,1
+ModerateDemented,0,2088,0,0
+NonDemented,2,0,2662,6
+VeryMildDemented,4,0,9,2220

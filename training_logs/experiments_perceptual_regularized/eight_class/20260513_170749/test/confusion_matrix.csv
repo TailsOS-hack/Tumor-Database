@@ -1,0 +1,9 @@
+true\pred,tumor_glioma,tumor_meningioma,tumor_notumor,tumor_pituitary,dementia_MildDemented,dementia_ModerateDemented,dementia_NonDemented,dementia_VeryMildDemented
+tumor_glioma,293,7,0,0,0,0,0,0
+tumor_meningioma,8,356,47,7,0,0,0,0
+tumor_notumor,15,3,960,9,0,0,0,0
+tumor_pituitary,0,1,0,313,0,0,0,0
+dementia_MildDemented,0,0,0,0,1890,0,0,0
+dementia_ModerateDemented,0,0,0,0,0,2088,0,0
+dementia_NonDemented,0,0,0,0,0,0,2665,5
+dementia_VeryMildDemented,0,0,0,0,1,0,0,2232

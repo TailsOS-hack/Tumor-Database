@@ -12,6 +12,7 @@ training_logs/experiments/
 training_logs/splits/*
 !training_logs/splits/
 !training_logs/splits/strict_manifest.csv
+!training_logs/splits/perceptual_strict_manifest.csv
 notebooks/.ipynb_checkpoints/
 __pycache__/
 *.py[cod]
