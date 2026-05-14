@@ -10,10 +10,12 @@ Compare a hierarchical MRI classifier against a single 8-class classifier for tu
 
 | Dataset | Classes | Split Source | Notes |
 | --- | --- | --- | --- |
-| Brain tumor MRI | glioma, meningioma, notumor, pituitary | Official Training/Testing folders plus exact-duplicate grouped split units | Official Testing folder held out when possible; duplicate groups never cross splits |
-| Dementia MRI | MildDemented, ModerateDemented, NonDemented, VeryMildDemented | Deterministic stratified split plus exact-duplicate grouped split units | Manifest generated before augmentation; no official dementia holdout was provided |
+| Brain tumor MRI | glioma, meningioma, notumor, pituitary | Official Training/Testing folders plus exact-duplicate grouped split units | Kaggle Brain Tumor MRI Dataset by Masoud Nickparvar; official Testing folder held out when possible; duplicate groups never cross splits |
+| Dementia MRI | MildDemented, ModerateDemented, NonDemented, VeryMildDemented | Deterministic stratified split plus exact-duplicate grouped split units | Kaggle Alzheimer's Disease Multiclass Images Dataset by Aryan Singhal; augmented/up-sampled derivative source chain; no official dementia holdout was provided |
 
 Manifest path: `training_logs/splits/strict_manifest.csv`
+
+Dataset provenance and citation notes: `docs/DATASET_PROVENANCE.md`
 
 ## Architectures
 
@@ -107,6 +109,7 @@ The corrected perceptual-hash sensitivity rerun found:
 - State that the accepted CNN run fixed exact duplicate leakage, and the corrected perceptual-hash sensitivity run removed dHash overlap as a robustness check.
 - For LoRA, report base model, adapter rank, target modules, quantization, training examples, validation examples, and adapter path.
 - Current multimodal conclusion: VLMs should not replace the CNN classifiers for image labeling; treat them as report/metadata assistants unless a redesigned task produces materially stronger strict-test accuracy.
+- Dataset citation conclusion: cite the Kaggle source datasets and the dementia upstream source chain; re-check current Kaggle license fields immediately before submission.
 
 ## Rationale Draft
 

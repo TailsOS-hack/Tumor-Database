@@ -12,6 +12,8 @@ This study evaluates convolutional neural network classifiers for brain MRI imag
 
 Images were treated as brain MRI scans. The brain tumor dataset contains glioma, meningioma, no-tumor, and pituitary classes. The dementia dataset contains MildDemented, ModerateDemented, NonDemented, and VeryMildDemented classes. Splits were generated before augmentation. Tumor images from the official Testing folder were preferentially held out as test data, while dementia images were deterministically stratified because no official dementia test split was available.
 
+Brain tumor MRI images were sourced from the public Kaggle Brain Tumor MRI Dataset by Masoud Nickparvar. Dementia MRI images were sourced from the public Kaggle Alzheimer's Disease Multiclass Images Dataset by Aryan Singhal, an augmented and upsampled derivative dataset. The dementia data card cites UraninJo's Augmented Alzheimer MRI Dataset V2 as its upstream source, which in turn references Tourist55's Alzheimer's Dataset (4 class of Images). Full provenance notes and citation drafts are maintained in `docs/DATASET_PROVENANCE.md`.
+
 The primary training manifest grouped exact duplicate SHA-256 image hashes into a single split to prevent identical pixels from appearing across train, validation, and test partitions. Training augmentation was applied only to training images and included horizontal flips, rotation, and contrast jitter. Validation and test transforms were limited to resizing, tensor conversion, and normalization.
 
 The hierarchical architecture used a ResNet50 binary router to classify images as tumor or dementia, followed by an EfficientNet-B3 tumor specialist or MobileNetV3 dementia specialist. The comparison baseline used a single EfficientNet-B3 head over all eight classes. Training used ImageNet-pretrained backbones, class-weighted cross-entropy, label smoothing, random erasing, AdamW optimization, stronger weight decay, and early stopping.
@@ -48,6 +50,7 @@ Multimodal VLMs were not competitive as direct MRI classifiers. The best flat ze
 
 Primary generated tables:
 
+- `docs/DATASET_PROVENANCE.md`
 - `docs/PUBLICATION_RESULTS_TABLES.md`
 - `docs/publication_cnn_results.csv`
 - `docs/publication_audit_checks.csv`
@@ -72,10 +75,17 @@ Recommended figures:
 
 The binary router may exploit dataset/source differences because tumor and dementia images originate from separate source datasets. Dementia results may be optimistic because no official external dementia holdout split was available. The dHash sensitivity run reduces near-duplicate split risk, but dHash is still a coarse perceptual fingerprint rather than a patient-level grouping method. Confidence calibration is imperfect, especially for the 8-class and hierarchical models, so softmax confidence should be reported as model confidence rather than clinical probability. The study should not make clinical deployment claims without independent external MRI validation and patient-level metadata.
 
+## Ethics And Data Availability Draft
+
+This study used publicly available, de-identified image datasets from Kaggle. No patient-level identifiers, acquisition metadata, or institutional clinical records were available to the investigators. Because only public de-identified datasets were used, institutional review board review and informed consent were not sought for this computational analysis. The absence of patient-level metadata prevents patient-level split validation and is reported as a limitation.
+
+The raw images are not redistributed in this repository. They can be obtained from the cited Kaggle dataset pages subject to their current terms and licenses. Derived manifests, evaluation metrics, confusion matrices, calibration summaries, probability outputs, and manuscript figures are included in this repository to support reproducibility of the reported results.
+
 ## Submission Checklist
 
 - Confirm all final tables are regenerated with `python3 scripts/build_publication_tables.py`.
 - Confirm the publication package gate passes with `python3 scripts/check_publication_package.py`.
+- Re-check `docs/DATASET_PROVENANCE.md` against the live Kaggle data cards and target venue requirements.
 - Use exact-deduplicated CNN results as the primary table.
 - Include the dHash sensitivity table as robustness evidence.
 - Include calibration, ROC, and precision-recall evidence from `training_logs/publication_evidence/`.

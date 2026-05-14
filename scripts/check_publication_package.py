@@ -23,6 +23,7 @@ OUTPUT_PATH = DOCS_DIR / "PUBLICATION_SUBMISSION_STATUS.md"
 
 REQUIRED_PATHS = {
     "manuscript_docs": [
+        "docs/DATASET_PROVENANCE.md",
         "docs/MANUSCRIPT_DRAFT.md",
         "docs/PUBLICATION_RESULTS_TABLES.md",
         "docs/PUBLICATION_EVIDENCE_RESULTS.md",
@@ -384,6 +385,7 @@ def write_status_doc(
             "## Reviewer-Facing Evidence Map",
             "",
             "- Tables: `docs/PUBLICATION_RESULTS_TABLES.md`, `docs/publication_cnn_results.csv`, `docs/publication_audit_checks.csv`, `docs/publication_vlm_results.csv`.",
+            "- Dataset provenance: `docs/DATASET_PROVENANCE.md`.",
             "- Figures: `docs/figures/figure1_workflow.png` through `docs/figures/figure7_roc_pr_curves.png`.",
             "- Captions: `docs/FIGURE_CAPTIONS.md`.",
             "- Probability evidence: `training_logs/publication_evidence/`.",
@@ -403,7 +405,7 @@ def write_status_doc(
             "## Remaining Before Submission",
             "",
             "- Choose the exact target venue and reformat the manuscript to its required template.",
-            "- Add dataset citations, dataset license statements, and any required attribution text.",
+            "- Re-check dataset citations, license statements, and attribution text against the live Kaggle data cards.",
             "- State clearly that patient-level metadata were unavailable, so patient-level leakage cannot be excluded.",
             "- State clearly that external MRI validation is required before clinical or deployment claims.",
             "- Decide whether to include the deterministic report generator as an application contribution or keep it as a safety-oriented appendix.",
