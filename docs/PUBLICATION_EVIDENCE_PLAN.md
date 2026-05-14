@@ -2,6 +2,8 @@
 
 This job evaluates the already accepted checkpoints and creates manuscript support artifacts. It does not retrain models.
 
+Status: completed on Kaggle version 3 and imported into `training_logs/publication_evidence/`.
+
 ## Purpose
 
 The current CNN metrics are strong enough for the primary result table, but a publication draft still benefits from:
@@ -41,6 +43,7 @@ Bundle-level outputs:
 - `publication_evidence_summary.json`
 - `PUBLICATION_EVIDENCE_SUMMARY.md`
 - `tumor_publication_evidence_outputs.zip` on Kaggle
+- `docs/PUBLICATION_EVIDENCE_RESULTS.md` in the repository
 
 ## Publication Use
 

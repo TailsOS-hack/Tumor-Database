@@ -1,0 +1,90 @@
+{
+  "n": 10251,
+  "correct": 10213,
+  "accuracy": 0.9962930445810165,
+  "macro_f1": 0.9891122649916929,
+  "weighted_f1": 0.9962947322821064,
+  "mean_confidence": 0.8437323229105288,
+  "median_confidence": 0.8334533251038461,
+  "expected_calibration_error": 0.1525607216704878,
+  "multiclass_brier": 0.04737739098260849,
+  "created_utc": "2026-05-14T06:44:25Z",
+  "class_names": [
+    "tumor_glioma",
+    "tumor_meningioma",
+    "tumor_notumor",
+    "tumor_pituitary",
+    "dementia_MildDemented",
+    "dementia_ModerateDemented",
+    "dementia_NonDemented",
+    "dementia_VeryMildDemented"
+  ],
+  "classification_report": {
+    "tumor_glioma": {
+      "precision": 0.9638157894736842,
+      "recall": 0.9766666666666667,
+      "f1-score": 0.9701986754966887,
+      "support": 300.0
+    },
+    "tumor_meningioma": {
+      "precision": 0.9622641509433962,
+      "recall": 0.9935064935064936,
+      "f1-score": 0.9776357827476039,
+      "support": 308.0
+    },
+    "tumor_notumor": {
+      "precision": 0.9961013645224172,
+      "recall": 0.9641509433962264,
+      "f1-score": 0.9798657718120806,
+      "support": 530.0
+    },
+    "tumor_pituitary": {
+      "precision": 0.9838709677419355,
+      "recall": 0.993485342019544,
+      "f1-score": 0.9886547811993517,
+      "support": 307.0
+    },
+    "dementia_MildDemented": {
+      "precision": 0.9995014955134596,
+      "recall": 0.9995014955134596,
+      "f1-score": 0.9995014955134596,
+      "support": 2006.0
+    },
+    "dementia_ModerateDemented": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 2001.0
+    },
+    "dementia_NonDemented": {
+      "precision": 0.998828125,
+      "recall": 0.998828125,
+      "f1-score": 0.998828125,
+      "support": 2560.0
+    },
+    "dementia_VeryMildDemented": {
+      "precision": 0.9982134881643591,
+      "recall": 0.9982134881643591,
+      "f1-score": 0.9982134881643591,
+      "support": 2239.0
+    },
+    "accuracy": 0.9962930445810165,
+    "macro avg": {
+      "precision": 0.9878244226699064,
+      "recall": 0.9905440692833437,
+      "f1-score": 0.9891122649916929,
+      "support": 10251.0
+    },
+    "weighted avg": {
+      "precision": 0.9963422305751952,
+      "recall": 0.9962930445810165,
+      "f1-score": 0.9962947322821064,
+      "support": 10251.0
+    }
+  },
+  "log_loss": 0.18531505254279917,
+  "roc_auc_macro_ovr": 0.9967736878516226,
+  "average_precision_macro": 0.990668165646525,
+  "routed_accuracy": 0.9962930445810165,
+  "routed_correct": 10213
+}

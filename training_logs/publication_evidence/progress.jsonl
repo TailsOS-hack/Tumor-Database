@@ -1,0 +1,9 @@
+{"event": "install_packages_start", "time": "2026-05-14T06:34:38Z"}
+{"event": "install_packages_done", "time": "2026-05-14T06:35:17Z"}
+{"event": "clone_repo_start", "time": "2026-05-14T06:35:17Z"}
+{"event": "clone_repo_done", "time": "2026-05-14T06:36:16Z"}
+{"event": "git_lfs_start", "time": "2026-05-14T06:36:16Z"}
+{"attempted": true, "event": "git_lfs_done", "install_returncode": 0, "ok": true, "pull_returncode": 0, "time": "2026-05-14T06:36:21Z"}
+{"event": "evidence_start", "time": "2026-05-14T06:36:21Z"}
+{"event": "evidence_done", "time": "2026-05-14T06:44:31Z"}
+{"event": "zip_start", "time": "2026-05-14T06:44:31Z"}

@@ -13,6 +13,8 @@ This manifest maps the manuscript draft to the exact figure assets already produ
 | Figure 4A | Conservative dHash sensitivity hierarchical CNN confusion matrix | `training_logs/experiments_perceptual_regularized/hierarchical/test_evaluation/confusion_matrix.png` |
 | Figure 4B | Conservative dHash sensitivity single 8-class CNN confusion matrix | `training_logs/experiments_perceptual_regularized/eight_class/20260513_170749/test/confusion_matrix.png` |
 | Figure 5 | CNN versus multimodal VLM comparison | `docs/publication_cnn_results.csv` and `docs/publication_vlm_results.csv` |
+| Figure 6 | Calibration and confidence reliability for the accepted CNN checkpoints | `training_logs/publication_evidence/*/calibration.png` and `training_logs/publication_evidence/*/confidence_histogram.png` |
+| Figure 7 | One-vs-rest ROC and precision-recall evidence for the accepted CNN checkpoints | `training_logs/publication_evidence/*/roc_curves.png` and `training_logs/publication_evidence/*/precision_recall_curves.png` |
 
 ## Supporting Confusion Matrices
 
@@ -25,5 +27,6 @@ This manifest maps the manuscript draft to the exact figure assets already produ
 ## Export Notes
 
 - Existing confusion matrix images are 1440 x 1080 PNG files, suitable for draft review.
+- Publication evidence plots are generated from the accepted checkpoint probability outputs in `training_logs/publication_evidence/`.
 - For journal submission, export final panels at the journal-required resolution and combine Figure 3 and Figure 4 into labeled multi-panel images.
-- Keep `docs/PUBLICATION_RESULTS_TABLES.md` as the source of truth for numeric values in figure captions.
+- Keep `docs/PUBLICATION_RESULTS_TABLES.md` and `docs/PUBLICATION_EVIDENCE_RESULTS.md` as the source of truth for numeric values in figure captions.

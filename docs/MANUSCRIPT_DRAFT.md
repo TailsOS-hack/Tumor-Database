@@ -40,6 +40,8 @@ The exact-deduplicated audit still reported identical perceptual dHash values ac
 
 The single 8-class CNN slightly outperformed the hierarchical CNN in both the accepted exact-deduplicated run and the conservative dHash sensitivity run. The hierarchical design remains useful for interpretability and domain-specific error analysis, but the single-head baseline should be reported as the top strict-test performer.
 
+Probability-level evidence was generated from the accepted checkpoints without retraining. The tumor specialist reached ROC AUC 0.9975 and average precision 0.9875 with expected calibration error 0.0372. The dementia specialist reached ROC AUC 1.0000 and average precision 1.0000 with expected calibration error 0.0386. The single 8-class CNN reached ROC AUC 0.9979 and average precision 0.9969 with expected calibration error 0.1327. The hierarchical CNN reached ROC AUC 0.9968 and average precision 0.9907 with expected calibration error 0.1526. These results support strong discrimination while showing that softmax confidence should not be interpreted as calibrated clinical probability.
+
 Multimodal VLMs were not competitive as direct MRI classifiers. The best flat zero-shot VLM result was Qwen2.5-VL-7B at 0.1750 accuracy. Qwen2.5-VL-3B with LoRA improved to 0.3125 accuracy but showed label collapse. The best hierarchical VLM diagnostic reached 0.8750 broad-domain accuracy but only 0.2250 routed 8-class accuracy.
 
 ## Tables And Figures
@@ -51,6 +53,8 @@ Primary generated tables:
 - `docs/publication_audit_checks.csv`
 - `docs/publication_vlm_results.csv`
 - `docs/PUBLICATION_FIGURES.md`
+- `docs/PUBLICATION_EVIDENCE_RESULTS.md`
+- `training_logs/publication_evidence/PUBLICATION_EVIDENCE_SUMMARY.md`
 
 Recommended figures:
 
@@ -59,16 +63,19 @@ Recommended figures:
 - Figure 3: Accepted exact-deduplicated confusion matrices for hierarchical and single 8-class CNNs.
 - Figure 4: Conservative dHash sensitivity confusion matrices for hierarchical and single 8-class CNNs.
 - Figure 5: Multimodal VLM comparison showing direct VLM classification failure relative to CNNs.
+- Figure 6: Calibration curves and confidence histograms for accepted CNN checkpoints.
+- Figure 7: ROC and precision-recall curves for accepted CNN checkpoints.
 
 ## Limitations
 
-The binary router may exploit dataset/source differences because tumor and dementia images originate from separate source datasets. Dementia results may be optimistic because no official external dementia holdout split was available. The dHash sensitivity run reduces near-duplicate split risk, but dHash is still a coarse perceptual fingerprint rather than a patient-level grouping method. The study should not make clinical deployment claims without independent external MRI validation and patient-level metadata.
+The binary router may exploit dataset/source differences because tumor and dementia images originate from separate source datasets. Dementia results may be optimistic because no official external dementia holdout split was available. The dHash sensitivity run reduces near-duplicate split risk, but dHash is still a coarse perceptual fingerprint rather than a patient-level grouping method. Confidence calibration is imperfect, especially for the 8-class and hierarchical models, so softmax confidence should be reported as model confidence rather than clinical probability. The study should not make clinical deployment claims without independent external MRI validation and patient-level metadata.
 
 ## Submission Checklist
 
 - Confirm all final tables are regenerated with `python3 scripts/build_publication_tables.py`.
 - Use exact-deduplicated CNN results as the primary table.
 - Include the dHash sensitivity table as robustness evidence.
+- Include calibration, ROC, and precision-recall evidence from `training_logs/publication_evidence/`.
 - Include the initial leakage audit as a methodological correction, not as a final result.
 - Report VLM experiments as negative direct-classification results.
 - Avoid clinical claims beyond this dataset.
