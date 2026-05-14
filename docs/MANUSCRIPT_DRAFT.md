@@ -53,18 +53,19 @@ Primary generated tables:
 - `docs/publication_audit_checks.csv`
 - `docs/publication_vlm_results.csv`
 - `docs/PUBLICATION_FIGURES.md`
+- `docs/FIGURE_CAPTIONS.md`
 - `docs/PUBLICATION_EVIDENCE_RESULTS.md`
 - `training_logs/publication_evidence/PUBLICATION_EVIDENCE_SUMMARY.md`
 
 Recommended figures:
 
-- Figure 1: Dataset and splitting workflow, including exact-hash and dHash audit stages.
-- Figure 2: Model architecture comparison: hierarchical router plus specialists versus single 8-class CNN.
-- Figure 3: Accepted exact-deduplicated confusion matrices for hierarchical and single 8-class CNNs.
-- Figure 4: Conservative dHash sensitivity confusion matrices for hierarchical and single 8-class CNNs.
-- Figure 5: Multimodal VLM comparison showing direct VLM classification failure relative to CNNs.
-- Figure 6: Calibration curves and confidence histograms for accepted CNN checkpoints.
-- Figure 7: ROC and precision-recall curves for accepted CNN checkpoints.
+- Figure 1: Dataset and splitting workflow, including exact-hash and dHash audit stages (`docs/figures/figure1_workflow.png`).
+- Figure 2: Model architecture comparison: hierarchical router plus specialists versus single 8-class CNN (`docs/figures/figure2_architecture.png`).
+- Figure 3: Accepted exact-deduplicated confusion matrices for tumor, dementia, hierarchical, and single 8-class CNNs (`docs/figures/figure3_exact_dedup_confusion.png`).
+- Figure 4: Conservative dHash sensitivity confusion matrices for tumor, dementia, hierarchical, and single 8-class CNNs (`docs/figures/figure4_dhash_sensitivity_confusion.png`).
+- Figure 5: Multimodal VLM comparison showing direct VLM classification failure relative to CNNs (`docs/figures/figure5_cnn_vlm_comparison.png`).
+- Figure 6: Calibration curves and confidence histograms for accepted CNN checkpoints (`docs/figures/figure6_calibration_confidence.png`).
+- Figure 7: ROC and precision-recall curves for accepted CNN checkpoints (`docs/figures/figure7_roc_pr_curves.png`).
 
 ## Limitations
 
