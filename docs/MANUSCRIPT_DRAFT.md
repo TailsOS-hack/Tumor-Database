@@ -55,6 +55,7 @@ Primary generated tables:
 - `docs/PUBLICATION_FIGURES.md`
 - `docs/FIGURE_CAPTIONS.md`
 - `docs/PUBLICATION_EVIDENCE_RESULTS.md`
+- `docs/PUBLICATION_SUBMISSION_STATUS.md`
 - `training_logs/publication_evidence/PUBLICATION_EVIDENCE_SUMMARY.md`
 
 Recommended figures:
@@ -74,6 +75,7 @@ The binary router may exploit dataset/source differences because tumor and demen
 ## Submission Checklist
 
 - Confirm all final tables are regenerated with `python3 scripts/build_publication_tables.py`.
+- Confirm the publication package gate passes with `python3 scripts/check_publication_package.py`.
 - Use exact-deduplicated CNN results as the primary table.
 - Include the dHash sensitivity table as robustness evidence.
 - Include calibration, ROC, and precision-recall evidence from `training_logs/publication_evidence/`.

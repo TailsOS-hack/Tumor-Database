@@ -111,3 +111,13 @@ The corrected perceptual-hash sensitivity rerun found:
 ## Rationale Draft
 
 The hierarchical approach is expected to reduce subtype confusion by first separating broad image domains, then applying specialized classifiers trained on narrower label spaces. The 8-class baseline tests whether a single shared visual representation can learn both datasets without routing errors. The multimodal LLM experiments are treated separately because they are evaluated for structured metadata/report generation and should not replace strict visual classifier metrics without evidence.
+
+## Publication Package Gate
+
+Run the lightweight submission gate before sharing the manuscript package:
+
+```bash
+python3 scripts/check_publication_package.py
+```
+
+The gate writes `docs/PUBLICATION_SUBMISSION_STATUS.md`, verifies required tables, figures, audit artifacts, probability evidence, source scripts, and grounded-report documentation, and keeps active warnings visible. It does not retrain models.
