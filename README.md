@@ -1,6 +1,6 @@
 # AI-Powered Neuro-Radiology Report Generator
 
-This project is an advanced medical imaging analysis tool. It uses deep learning to analyze MRI scans for both **Brain Tumors** and **Alzheimer's/Dementia** signs, and employs a local Large Language Model (LLM) via Ollama to automatically generate detailed, professional radiology reports following strict clinical templates.
+This project is an advanced medical imaging analysis tool. It uses deep learning to analyze MRI scans for both **Brain Tumors** and **Alzheimer's/Dementia** signs, then generates grounded draft reports from structured classifier evidence. The reporting path is deterministic by default so it does not ask an LLM to invent lesion measurements, locations, mass effect, atrophy measurements, or other unsupported clinical findings.
 
 ## Features
 
@@ -10,9 +10,10 @@ This project is an advanced medical imaging analysis tool. It uses deep learning
         -   **Brain Tumor Classifier:** `EfficientNet-B3` (PyTorch) for specific tumor types (Glioma, Meningioma, Pituitary).
         -   **Alzheimer's Classifier:** `MobileNetV3-Large` (PyTorch) for dementia stages (Mild, Moderate, Very Mild).
     -   **Unified Normal Class:** The system intelligently identifies healthy scans from both datasets as a single "Normal" category.
--   **AI Auto-Detect Metadata:** The system uses a multimodal AI model to analyze the scan image and automatically infer technical details (e.g., "Axial T2-weighted", "Contrast/Non-contrast") and the clinical reason for the exam.
--   **Standardized Reporting:** Generates reports using a strict JSON template to ensure professional consistency (Findings, Impression, Technique, etc.), avoiding common AI formatting errors.
--   **PDF Export:** Saves reports as professional "Final Report" PDF documents with the MRI image embedded, timestamped footer, page numbering, and optional password encryption.
+-   **Grounded Report Maker:** Generates draft reports from the classifier label, confidence, user-entered exam details, and model validation context. Unsupported findings are explicitly marked as not assessed instead of being hallucinated.
+-   **Optional AI Metadata Assist:** The GUI can use a multimodal AI model only for basic acquisition metadata. The prompt refuses diagnosis/pathology inference and falls back to manual entry when uncertain.
+-   **Standardized Reporting:** Generates reports with a strict evidence schema for consistency across Findings, Impression, Technique, classifier evidence, and safety limitations.
+-   **PDF Export:** Saves draft reports as PDF documents with the MRI image embedded, timestamped footer, page numbering, and optional password encryption.
 -   **User-Friendly GUI:** A modern Tkinter interface with tabs for Patient Info and Exam Details.
 -   **Data Visualization:** Includes a suite to benchmark model performance and generate accuracy heatmaps.
 
@@ -38,7 +39,7 @@ This project is an advanced medical imaging analysis tool. It uses deep learning
 
 ### Prerequisites
 - **Python 3.10+**
-- **Ollama** (for local AI report generation)
+- **Ollama** (optional, only for metadata assist; grounded report generation does not require an LLM)
 
 ### 🐧 Linux (Ubuntu/Debian)
 
@@ -55,7 +56,7 @@ This project is an advanced medical imaging analysis tool. It uses deep learning
     ```
     *(Note: Using a virtual environment `venv` is recommended if you prefer not to install system-wide.)*
 
-3.  **Install & Setup Ollama**
+3.  **Optional: Install & Setup Ollama**
     -   Install Ollama:
         ```bash
         curl -fsSL https://ollama.com/install.sh | sh
@@ -82,7 +83,7 @@ This project is an advanced medical imaging analysis tool. It uses deep learning
     pip3 install -r requirements.txt
     ```
 
-3.  **Install & Setup Ollama**
+3.  **Optional: Install & Setup Ollama**
     -   Download and install Ollama from [ollama.com/download/mac](https://ollama.com/download/mac).
     -   Open the Ollama application.
     -   Run the following in your terminal to download the model:
@@ -109,7 +110,7 @@ This project is an advanced medical imaging analysis tool. It uses deep learning
     pip install -r requirements.txt
     ```
 
-4.  **Install & Setup Ollama**
+4.  **Optional: Install & Setup Ollama**
     -   Download the Windows installer from [ollama.com/download/windows](https://ollama.com/download/windows).
     -   Run the installer.
     -   Open PowerShell or Command Prompt and run:
@@ -131,7 +132,7 @@ python -m src.experiment_pipeline evaluate-hierarchical --split test
 python -m src.experiment_pipeline train --task eight_class --epochs 30 --batch-size 32 --pretrained
 ```
 
-See `docs/ML_EXECUTION_FLOW.md` and `docs/PUBLICATION_NOTES.md` for the full task order, leakage controls, Colab plan, and publication tables.
+See `docs/ML_EXECUTION_FLOW.md` and `docs/PUBLICATION_NOTES.md` for the full task order, leakage controls, Colab plan, and publication tables. See `docs/GROUNDED_REPORTING.md` for the non-hallucinating report-generation path and current specialist accuracy table.
 
 For cloud execution, dispatch the **ML Experiment Suite** GitHub Actions workflow in `smoke` mode for validation or `full` mode on a CUDA/GPU runner. For a single Google Colab run that trains the full suite and downloads a model/metrics bundle, use `docs/COLAB_FULL_TRAINING.md`. For multimodal LLM benchmarking and LoRA fine-tuning, open `notebooks/multimodal_llm_lora_colab.ipynb` in Google Colab.
 
@@ -145,10 +146,25 @@ python -m src.radiology_report_gui
 1.  **Patient Info:** Enter Patient Name, ID, and Date of Birth.
 2.  **Scan:** Click **"Scan"** to load an MRI image.
 3.  **Exam Details:** Switch to the "Exam Details" tab.
-    -   Click **"AI Auto-Detect"** to let the AI guess the technique and reason from the image.
+    -   Click **"AI Auto-Detect"** to let the optional AI assistant fill basic acquisition metadata only.
     -   Or click **"Manual Entry"** to fill the details yourself.
 4.  **Analyze:** Once details are confirmed, click **"Analyze & Generate Report"**.
 5.  **Export:** Review the generated report and click **"Save as PDF"**.
+
+### Grounded Report CLI
+
+Generate a deterministic report from a classifier result:
+
+```bash
+python -m src.grounded_report --prediction glioma --confidence 97.2% --model-used "Brain Tumor Model" --format markdown
+```
+
+Or use hierarchical inference output:
+
+```bash
+python -m src.hierarchical_inference path/to/mri.png > prediction.json
+python -m src.grounded_report --prediction-json prediction.json --format html --output grounded_report.html
+```
 
 ### Performance Visualization
 To generate performance graphs and heatmaps for the models:

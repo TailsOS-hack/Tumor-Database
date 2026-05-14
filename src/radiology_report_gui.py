@@ -7,6 +7,7 @@ import torch.nn as nn
 from torchvision.models import efficientnet_b3, mobilenet_v3_large
 from torchvision import transforms
 from src.gatekeeper_model import GatekeeperClassifier
+from src.grounded_report import build_grounded_report, render_report_html, render_report_markdown
 try:
     from src.experiment_pipeline import build_model as build_pipeline_model
     from src.experiment_pipeline import build_transforms as build_pipeline_transforms
@@ -22,7 +23,6 @@ from datetime import datetime
 from PIL import Image, ImageTk
 from tkhtmlview import HTMLLabel
 from tkcalendar import DateEntry
-import markdown
 from weasyprint import HTML as WeasyHTML
 from pypdf import PdfReader, PdfWriter
 
@@ -431,14 +431,14 @@ class App(ttk.Frame):
                 image_bytes = f.read()
 
             prompt = (
-                "Analyze this MRI scan metadata from the image appearance. "
-                "Guess the likely imaging technique (e.g. 'Axial T2-weighted MRI', 'Sagittal FLAIR'), "
-                "whether contrast was used, and a plausible reason for exam based on visible abnormalities. "
+                "Analyze only basic MRI acquisition metadata from the image appearance. "
+                "If a detail is not directly supported, return 'Not provided'. "
+                "Do not infer diagnosis, pathology, lesion size, lesion location, or a clinical reason from visible abnormalities. "
                 "Return valid JSON only:\n"
                 "{\n"
                 '  "technique": "string",\n'
                 '  "contrast": "string",\n'
-                '  "reason": "string",\n'
+                '  "reason": "Not provided",\n'
                 '  "comparison": "None"\n'
                 "}"
             )
@@ -516,7 +516,7 @@ class App(ttk.Frame):
         self.pred_label.configure(text="Prediction: Analyzing...")
         self.confidence_label.configure(text="Confidence: -")
         self.model_used_label.configure(text="Model Used: -")
-        self.report_html.set_html("<p><i>Running multi-stage analysis and generating report...</i></p>")
+        self.report_html.set_html("<p><i>Running multi-stage analysis and generating grounded report...</i></p>")
         self.progress_bar.pack(fill="x", pady=5)
         self.progress_bar.start()
         self.update_idletasks()
@@ -529,11 +529,11 @@ class App(ttk.Frame):
             self.model_used_label.configure(text=f"Model Used: {model_name}")
             
             confidence_str = f"{pred_conf:.1f}%"
-            patient_info_formatted = (
-                f"**Name:** {self.patient_name_entry.get()}<br>"
-                f"**DOB:** {self.dob_entry.get_date().strftime('%Y-%m-%d')}<br>"
-                f"**Patient ID:** {self.patient_id_entry.get()}"
-            )
+            patient_info = {
+                "name": self.patient_name_entry.get(),
+                "dob": self.dob_entry.get_date().strftime('%Y-%m-%d'),
+                "patient_id": self.patient_id_entry.get(),
+            }
 
             # Collect user inputs
             user_inputs = {
@@ -544,7 +544,7 @@ class App(ttk.Frame):
                 "contrast": self.contrast_entry.get()
             }
 
-            self._start_report_generation(pred_label, confidence_str, patient_info_formatted, user_inputs)
+            self._start_report_generation(pred_label, confidence_str, patient_info, user_inputs, model_name)
 
         except Exception as e:
             messagebox.showerror("Analysis Error", f"An error occurred:\n{e}")
@@ -640,161 +640,37 @@ class App(ttk.Frame):
 
         raise Exception("No models loaded or available.")
 
-    def _start_report_generation(self, prediction, confidence_str, patient_info_formatted, user_inputs):
+    def _start_report_generation(self, prediction, confidence_str, patient_info, user_inputs, model_name):
         while not self.report_queue.empty():
             self.report_queue.get_nowait()
 
         thread = threading.Thread(
             target=self._generate_report_threaded,
-            args=(prediction, confidence_str, patient_info_formatted, user_inputs),
+            args=(prediction, confidence_str, patient_info, user_inputs, model_name),
             daemon=True
         )
         thread.start()
         self.master.after(100, self._check_report_queue)
 
-    def _generate_report_threaded(self, prediction, confidence_str, patient_info_formatted, user_inputs):
+    def _generate_report_threaded(self, prediction, confidence_str, patient_info, user_inputs, model_name):
         try:
             report_date = datetime.now().strftime("%B %d, %Y")
-            
-            image_bytes = None
-            try:
-                with open(self.image_path, "rb") as f:
-                    image_bytes = f.read()
-            except Exception as e:
-                print(f"Image read error: {e}")
-
-            prompt = self._create_llava_prompt(prediction, confidence_str, patient_info_formatted, report_date)
-            
-            response = ollama.chat(
-                model='llava:7b',
-                messages=[{
-                    'role': 'user',
-                    'content': prompt,
-                    'images': [image_bytes] if image_bytes else []
-                }],
+            report = build_grounded_report(
+                prediction=prediction,
+                confidence=confidence_str,
+                patient_info=patient_info,
+                exam_details=user_inputs,
+                report_date=report_date,
+                model_used=model_name,
+                source_image=self.image_path,
             )
-            
-            raw_content = response['message']['content']
-            
-            # extract JSON
-            import json
-            import re
-            
-            json_str = raw_content
-            # Try to find JSON block if wrapped in markdown
-            match = re.search(r'```json\s*(.*?)\s*```', raw_content, re.DOTALL)
-            if match:
-                json_str = match.group(1)
-            
-            # Sanitization: Remove trailing commas
-            json_str = re.sub(r',\s*([\]}])', r'\1', json_str)
-            
-            try:
-                data = json.loads(json_str)
-                html_text = self._format_json_to_html(data, patient_info_formatted, report_date, prediction, confidence_str, user_inputs)
-                self.last_report_html = html_text # Save for PDF
-                self.report_queue.put(html_text)
-            except json.JSONDecodeError:
-                print("JSON Decode Failed. Raw output:", raw_content)
-                self.last_report_markdown = raw_content
-                html_text = markdown.markdown(raw_content, extensions=['fenced_code', 'tables'])
-                self.report_queue.put(f"<div style='color:red'><b>Warning: AI did not return strict JSON. Raw output shown:</b></div><br>{html_text}")
+            html_text = render_report_html(report)
+            self.last_report_html = html_text
+            self.last_report_markdown = render_report_markdown(report)
+            self.report_queue.put(html_text)
 
         except Exception as e:
             self.report_queue.put(f"<p><b>Error generating report:</b></p><pre>{e}</pre>")
-
-    def _format_json_to_html(self, data, patient_info, date, pred, conf, user_inputs):
-        # Helper to safely get fields
-        def g(path, default="-"):
-            val = data
-            for key in path:
-                if isinstance(val, dict):
-                    val = val.get(key, default)
-                else:
-                    return default
-            return val
-
-        # Override JSON values with User Inputs
-        reason = user_inputs.get("reason") or g(['clinical_information', 'reason_for_exam'])
-        history = user_inputs.get("history") or g(['clinical_information', 'clinical_history'])
-        comparison = user_inputs.get("comparison") or g(['clinical_information', 'comparison'])
-        technique = user_inputs.get("technique") or g(['procedure_details', 'technique'])
-        contrast = user_inputs.get("contrast") or g(['procedure_details', 'contrast_info', 'agent'])
-
-        # Timestamp for footer
-        print_ts = datetime.now().strftime("%m/%d/%Y %H:%M EST")
-
-        # Construct the HTML Report
-        html = f"""
-        <div style="font-family: Arial, sans-serif; padding: 20px;">
-            <div style="text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px;">
-                <h1 style="margin: 0;">Final Report</h1>
-                <p style="margin: 5px 0;"><b>* Final Report *</b></p>
-            </div>
-
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-                <tr>
-                    <td style="vertical-align: top; width: 50%; padding-right: 10px;">
-                        <h3>Patient Information</h3>
-                        {patient_info.replace('**', '<b>').replace('**', '</b>')}
-                    </td>
-                    <td style="vertical-align: top; width: 50%;">
-                        <h3>Report Details</h3>
-                        <b>Date:</b> {date}<br>
-                        <b>AI Analysis:</b> {pred} ({conf})
-                    </td>
-                </tr>
-            </table>
-
-            <div style="margin-bottom: 15px;">
-                <b>Reason for Exam:</b> {reason}<br>
-                <b>Clinical History:</b> {history}<br>
-                <b>Comparison:</b> {comparison}
-            </div>
-
-            <div style="margin-bottom: 15px;">
-                <b>Technique:</b> {technique}<br>
-                <b>Contrast:</b> {contrast}
-            </div>
-
-            <hr style="border: 0; border-top: 1px solid #ccc; margin: 20px 0;">
-
-            <h3>FINDINGS</h3>
-            <p>
-            <b>Cerebral Parenchyma:</b> {g(['findings', 'cerebral_parenchyma'])}<br><br>
-            <b>Extra-axial Spaces:</b> {g(['findings', 'extra_axial_spaces'])}<br><br>
-            <b>Ventricles:</b> {g(['findings', 'ventricles'])}<br><br>
-            <b>Mass Effect:</b> {g(['findings', 'mass_effect'])}<br><br>
-            <b>Vascular Structures:</b> {g(['findings', 'vascular_structures'])}<br><br>
-            <b>Bones & Soft Tissues:</b> {g(['findings', 'bones_and_soft_tissues'])}<br><br>
-            <b>Paranasal Sinuses/Mastoids:</b> {g(['findings', 'paranasal_sinuses_mastoids'])}<br><br>
-            <b>Orbits:</b> {g(['findings', 'orbits'])}
-            </p>
-
-            <div style="background-color: #f9f9f9; padding: 15px; border-left: 5px solid #007acc; margin-top: 20px;">
-                <h3 style="margin-top: 0;">IMPRESSION</h3>
-                <ol style="padding-left: 20px;">
-        """
-        
-        impressions = g(['impression'], [])
-        if isinstance(impressions, list):
-            for imp in impressions:
-                html += f"<li>{imp}</li>"
-        else:
-             html += f"<li>{impressions}</li>"
-
-        html += f"""
-                </ol>
-            </div>
-            
-            <div style="margin-top: 40px; font-size: 0.9em; color: #555; text-align: right; border-top: 1px solid #ddd; padding-top: 10px;">
-                Electronically Signed by AI Radiology Assistant<br>
-                Workstation ID: GEMINI-CLI-01<br>
-                Printed on: {print_ts}
-            </div>
-        </div>
-        """
-        return html
 
     def _check_report_queue(self):
         try:
@@ -872,79 +748,6 @@ class App(ttk.Frame):
 
         except Exception as e:
             messagebox.showerror("PDF Error", f"Failed to save PDF:\n{e}")
-
-    def _create_llava_prompt(self, prediction, confidence_str, patient_info_formatted, report_date):
-        # JSON Template Structure
-        json_structure = """
-{
-  "report_header": {
-    "exam_type": "MRI Brain w/ + w/o Contrast",
-    "final_report_status": "Final Report"
-  },
-  "clinical_information": {
-    "reason_for_exam": "string",
-    "clinical_history": "string (include codes if applicable)",
-    "comparison": "string (or 'None')"
-  },
-  "procedure_details": {
-    "examination": "MR OF THE BRAIN WITH AND WITHOUT CONTRAST",
-    "technique": "Multisequence, multiplanar imaging...",
-    "contrast_info": { "agent": "string", "volume": "string" },
-    "dose_info": "string (if applicable)"
-  },
-  "findings": {
-    "cerebral_parenchyma": "string",
-    "extra_axial_spaces": "string",
-    "ventricles": "string",
-    "mass_effect": "string",
-    "vascular_structures": "string",
-    "bones_and_soft_tissues": "string",
-    "paranasal_sinuses_mastoids": "string",
-    "orbits": "string"
-  },
-  "impression": [
-    "string (numbered point 1)",
-    "string (numbered point 2)"
-  ]
-}
-"""
-        
-        # Base Prompt
-        base_prompt = (
-            "You are an expert Radiologist. "
-            "Analyze the provided MRI image and generate a full radiology report. "
-            "You MUST return the report strictly in valid JSON format corresponding to the following structure. "
-            "Do not include any conversational text outside the JSON object.\n\n"
-            f"**JSON Structure:**\n```json\n{json_structure}\n```\n\n"
-        )
-
-        # Context-Specific Instructions
-        if prediction == "Normal" or prediction == "notumor" or prediction == "NonDemented":
-            context = (
-                f"**Clinical Context:** Patient scanned for routine checkup. AI Classifier predicts: **Normal/No Tumor** ({confidence_str}).\n"
-                "**Instructions:**\n"
-                "- Fill 'findings' with 'Unremarkable', 'Normal', or 'Preserved' where appropriate.\n"
-                "- Ensure 'impression' states 'No acute intracranial abnormality'.\n"
-            )
-        elif prediction in ALZ_CLASSES:
-            formatted_cond = prediction.replace("VeryMild", "Very Mild ").replace("Mild", "Mild ").replace("Moderate", "Moderate ")
-            context = (
-                f"**Clinical Context:** Evaluation for cognitive decline. AI Classifier predicts: **{formatted_cond} Alzheimer's** ({confidence_str}).\n"
-                "**Instructions:**\n"
-                "- Focus 'findings' on cortical atrophy, hippocampal volume, and ventricular enlargement.\n"
-                "- In 'impression', explicitly mention findings suggestive of dementia/Alzheimer's.\n"
-            )
-        else: # Tumor
-            tumor_name = f"{prediction.capitalize()} Tumor"
-            context = (
-                f"**Clinical Context:** Patient with suspected mass. AI Classifier predicts: **{tumor_name}** ({confidence_str}).\n"
-                "**Instructions:**\n"
-                "- In 'cerebral_parenchyma', describe the mass (approximate size, location, signal intensity).\n"
-                "- Describe 'mass_effect' (e.g., midline shift, compression).\n"
-                "- In 'impression', state the diagnosis of the specific tumor type.\n"
-            )
-
-        return base_prompt + context
 
 def main():
     root = tk.Tk()
