@@ -87,6 +87,27 @@ def one_hot(y_true: np.ndarray, class_count: int) -> np.ndarray:
     return out
 
 
+def normalize_probabilities(probabilities: np.ndarray) -> np.ndarray:
+    """Clean probability rows before sklearn metrics and plots.
+
+    Some GPU kernels can produce non-finite values when inference is run through
+    mixed precision on a checkpoint that was trained in full precision. The
+    publication evidence job is evaluation-only, so we prefer stable fp32
+    probabilities and a defensive normalization pass over speed.
+    """
+
+    np = get_numpy()
+    clean = np.asarray(probabilities, dtype=float)
+    clean = np.nan_to_num(clean, nan=0.0, posinf=0.0, neginf=0.0)
+    clean = np.clip(clean, 0.0, None)
+    row_sums = clean.sum(axis=1, keepdims=True)
+    empty_rows = row_sums.squeeze(1) <= 0
+    if empty_rows.any():
+        clean[empty_rows, :] = 1.0 / clean.shape[1]
+        row_sums = clean.sum(axis=1, keepdims=True)
+    return clean / row_sums
+
+
 def expected_calibration_error(
     y_true: np.ndarray,
     y_pred: np.ndarray,
@@ -148,6 +169,7 @@ def metrics_from_probabilities(
         roc_auc_score,
     )
 
+    probabilities = normalize_probabilities(probabilities)
     y_pred = probabilities.argmax(axis=1)
     confidence = probabilities.max(axis=1)
     class_count = len(class_names)
@@ -203,6 +225,7 @@ def prediction_rows(
     image_paths: list[str],
     extra: list[dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
+    probabilities = normalize_probabilities(probabilities)
     y_pred = probabilities.argmax(axis=1)
     rows: list[dict[str, Any]] = []
     for index, (true, pred) in enumerate(zip(y_true, y_pred)):
@@ -251,6 +274,7 @@ def plot_calibration(path: Path, calibration_rows: list[dict[str, Any]], title: 
 
 def plot_confidence_histogram(path: Path, y_true: np.ndarray, probabilities: np.ndarray, title: str) -> None:
     plt = ensure_matplotlib()
+    probabilities = normalize_probabilities(probabilities)
     y_pred = probabilities.argmax(axis=1)
     confidence = probabilities.max(axis=1)
     correct = confidence[y_true == y_pred]
@@ -273,6 +297,7 @@ def plot_roc_curves(path: Path, y_true: np.ndarray, probabilities: np.ndarray, c
     from sklearn.metrics import auc, roc_curve
 
     plt = ensure_matplotlib()
+    probabilities = normalize_probabilities(probabilities)
     y_onehot = one_hot(y_true, len(class_names))
     fig, ax = plt.subplots(figsize=(7, 5))
     plotted = 0
@@ -297,6 +322,7 @@ def plot_pr_curves(path: Path, y_true: np.ndarray, probabilities: np.ndarray, cl
     from sklearn.metrics import average_precision_score, precision_recall_curve
 
     plt = ensure_matplotlib()
+    probabilities = normalize_probabilities(probabilities)
     y_onehot = one_hot(y_true, len(class_names))
     fig, ax = plt.subplots(figsize=(7, 5))
     plotted = 0
@@ -349,11 +375,7 @@ def evaluate_task(args: argparse.Namespace, task: str, output_dir: Path) -> dict
     with torch.no_grad():
         for inputs, labels in loader:
             inputs = inputs.to(run_device)
-            if run_device.type == "cuda":
-                with torch.amp.autocast(device_type="cuda"):
-                    logits = model(inputs)
-            else:
-                logits = model(inputs)
+            logits = model(inputs)
             batch_probs = torch.softmax(logits, dim=1).detach().cpu().numpy()
             probs.extend(batch_probs)
             y_true.extend(labels.cpu().numpy().astype(int).tolist())
@@ -413,24 +435,15 @@ def evaluate_hierarchical(args: argparse.Namespace, output_dir: Path) -> dict[st
         for row in rows:
             image = Image.open(PROJECT_ROOT / row["path"]).convert("RGB")
             binary_input = binary_tf(image).unsqueeze(0).to(run_device)
-            if run_device.type == "cuda":
-                with torch.amp.autocast(device_type="cuda"):
-                    binary_logits = binary_model(binary_input)
-            else:
-                binary_logits = binary_model(binary_input)
+            binary_logits = binary_model(binary_input)
             binary_probs = torch.softmax(binary_logits, dim=1).squeeze(0)
             domain_idx = int(torch.argmax(binary_probs).item())
             predicted_domain = binary_ckpt["class_names"][domain_idx]
 
             tumor_input = tumor_tf(image).unsqueeze(0).to(run_device)
             dementia_input = dementia_tf(image).unsqueeze(0).to(run_device)
-            if run_device.type == "cuda":
-                with torch.amp.autocast(device_type="cuda"):
-                    tumor_logits = tumor_model(tumor_input)
-                    dementia_logits = dementia_model(dementia_input)
-            else:
-                tumor_logits = tumor_model(tumor_input)
-                dementia_logits = dementia_model(dementia_input)
+            tumor_logits = tumor_model(tumor_input)
+            dementia_logits = dementia_model(dementia_input)
 
             tumor_probs = torch.softmax(tumor_logits, dim=1).squeeze(0)
             dementia_probs = torch.softmax(dementia_logits, dim=1).squeeze(0)
