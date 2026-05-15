@@ -51,6 +51,7 @@ Multimodal VLMs were not competitive as direct MRI classifiers. The best flat ze
 Primary generated tables:
 
 - `docs/DATASET_PROVENANCE.md`
+- `docs/MANUSCRIPT_FULL_DRAFT.md`
 - `docs/PUBLICATION_RESULTS_TABLES.md`
 - `docs/publication_cnn_results.csv`
 - `docs/publication_audit_checks.csv`
@@ -86,6 +87,7 @@ The raw images are not redistributed in this repository. They can be obtained fr
 - Confirm all final tables are regenerated with `python3 scripts/build_publication_tables.py`.
 - Confirm the publication package gate passes with `python3 scripts/check_publication_package.py`.
 - Re-check `docs/DATASET_PROVENANCE.md` against the live Kaggle data cards and target venue requirements.
+- Use `docs/MANUSCRIPT_FULL_DRAFT.md` as the current full-paper source when adapting to a journal or conference template.
 - Use exact-deduplicated CNN results as the primary table.
 - Include the dHash sensitivity table as robustness evidence.
 - Include calibration, ROC, and precision-recall evidence from `training_logs/publication_evidence/`.
