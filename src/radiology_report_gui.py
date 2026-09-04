@@ -2,12 +2,15 @@ import os
 import sys
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk, simpledialog
+from dataclasses import dataclass
+from typing import Callable, Optional
 import torch
 import torch.nn as nn
 from torchvision.models import efficientnet_b3, mobilenet_v3_large
 from torchvision import transforms
 from src.gatekeeper_model import GatekeeperClassifier
 from src.grounded_report import build_grounded_report, render_report_html, render_report_markdown
+from src.grad_cam import GradCAM, get_target_layer, overlay_cam_on_image
 try:
     from src.experiment_pipeline import build_model as build_pipeline_model
     from src.experiment_pipeline import build_transforms as build_pipeline_transforms
@@ -99,6 +102,17 @@ def get_gatekeeper_transform():
         transforms.Normalize(mean=mean, std=std),
     ])
 
+@dataclass
+class ClassificationResult:
+    label: str
+    confidence: float
+    model_name: str
+    source_image: Image.Image
+    cam_model: Optional[nn.Module] = None
+    cam_transform: Optional[Callable] = None
+    cam_class_idx: Optional[int] = None
+
+
 class App(ttk.Frame):
     def __init__(self, master):
         super().__init__(master, padding=15)
@@ -126,7 +140,11 @@ class App(ttk.Frame):
 
         self.image_path = None
         self.tk_image = None
-        
+        self._original_pil_image = None
+        self.heatmap_pil_image = None
+        self.showing_heatmap = False
+        self.last_model_name = None
+
         # Transforms
         self.tumor_tfms = get_tumor_transform()
         self.alz_tfms = get_alzheimers_transform()
@@ -252,7 +270,18 @@ class App(ttk.Frame):
         # Scan Button (Upload) - Pack to BOTTOM first so it stays visible
         self.choose_img_btn = ttk.Button(img_frame, text="Scan", command=self.on_choose_image)
         self.choose_img_btn.pack(side="bottom", fill="x", pady=(5, 0))
-        
+
+        # Grad-CAM toggle + caption (disabled until a heatmap is generated)
+        self.heatmap_caption_label = ttk.Label(
+            img_frame, text="", foreground="#555", font=("Segoe UI", 8), wraplength=320, justify="left"
+        )
+        self.heatmap_caption_label.pack(side="bottom", fill="x", pady=(2, 0))
+
+        self.heatmap_toggle_btn = ttk.Button(
+            img_frame, text="Show Heatmap", command=self._toggle_heatmap_view, state="disabled"
+        )
+        self.heatmap_toggle_btn.pack(side="bottom", fill="x", pady=(5, 0))
+
         # Canvas - Pack to TOP and expand to fill remaining space
         self.canvas = tk.Canvas(img_frame, width=350, height=350, bg="#f0f0f0", relief="sunken", borderwidth=1)
         self.canvas.pack(side="top", fill="both", expand=True)
@@ -395,8 +424,12 @@ class App(ttk.Frame):
         )
         if path:
             self.image_path = path
+            self.heatmap_pil_image = None
+            self.showing_heatmap = False
+            self.heatmap_toggle_btn.configure(text="Show Heatmap", state="disabled")
+            self.heatmap_caption_label.configure(text="")
             self._display_image(path)
-            
+
             # Enable Exam Detail Controls
             self.manual_btn.configure(state="normal")
             self.ai_fill_btn.configure(state="normal")
@@ -496,16 +529,32 @@ class App(ttk.Frame):
     def _display_image(self, path: str):
         try:
             img = Image.open(path).convert("RGB")
-            # Force layout update to get correct dimensions
-            self.master.update_idletasks()
-            w, h = self.canvas.winfo_width(), self.canvas.winfo_height()
-            if w <= 1 or h <= 1: w, h = 350, 350
-            img.thumbnail((w, h))
-            self.tk_image = ImageTk.PhotoImage(img)
-            self.canvas.delete("all")
-            self.canvas.create_image(w // 2, h // 2, image=self.tk_image)
+            self._original_pil_image = img
+            self._render_pil_image(img)
         except Exception as e:
             messagebox.showerror("Image Error", f"Failed to load image:\n{e}")
+
+    def _render_pil_image(self, img: Image.Image):
+        # Force layout update to get correct dimensions
+        self.master.update_idletasks()
+        w, h = self.canvas.winfo_width(), self.canvas.winfo_height()
+        if w <= 1 or h <= 1: w, h = 350, 350
+        thumb = img.copy()
+        thumb.thumbnail((w, h))
+        self.tk_image = ImageTk.PhotoImage(thumb)
+        self.canvas.delete("all")
+        self.canvas.create_image(w // 2, h // 2, image=self.tk_image)
+
+    def _toggle_heatmap_view(self):
+        if self.heatmap_pil_image is None or self._original_pil_image is None:
+            return
+        self.showing_heatmap = not self.showing_heatmap
+        if self.showing_heatmap:
+            self._render_pil_image(self.heatmap_pil_image)
+            self.heatmap_toggle_btn.configure(text="Show Original")
+        else:
+            self._render_pil_image(self._original_pil_image)
+            self.heatmap_toggle_btn.configure(text="Show Heatmap")
 
     def on_analyze_and_generate(self):
         if not self.image_path: return
@@ -522,12 +571,30 @@ class App(ttk.Frame):
         self.update_idletasks()
 
         try:
-            pred_label, pred_conf, model_name = self._run_cascaded_classification()
-            
+            result = self._run_cascaded_classification()
+            pred_label, pred_conf, model_name = result.label, result.confidence, result.model_name
+            self.last_model_name = model_name
+
             self.pred_label.configure(text=f"Prediction: {pred_label}")
             self.confidence_label.configure(text=f"Confidence: {pred_conf:.2f}%")
             self.model_used_label.configure(text=f"Model Used: {model_name}")
-            
+
+            self.heatmap_pil_image = self._run_grad_cam(result)
+            self.showing_heatmap = False
+            if self.heatmap_pil_image is not None:
+                self.showing_heatmap = True
+                self._render_pil_image(self.heatmap_pil_image)
+                self.heatmap_toggle_btn.configure(text="Show Original", state="normal")
+                self.heatmap_caption_label.configure(
+                    text=(
+                        f"Grad-CAM: regions that most influenced the {model_name} prediction. "
+                        "Not a diagnostic localization of pathology."
+                    )
+                )
+            else:
+                self.heatmap_toggle_btn.configure(text="Show Heatmap", state="disabled")
+                self.heatmap_caption_label.configure(text="")
+
             confidence_str = f"{pred_conf:.1f}%"
             patient_info = {
                 "name": self.patient_name_entry.get(),
@@ -588,7 +655,7 @@ class App(ttk.Frame):
                 if class_idx == 0:
                     target_domain = "normal"
                     print(f"Gatekeeper: Normal/No Tumor detected (confidence {gate_conf*100:.2f}%)")
-                    return "Normal", gate_conf * 100.0, "Gatekeeper Model"
+                    return ClassificationResult("Normal", gate_conf * 100.0, "Gatekeeper Model", img)
                 elif class_idx == 1:
                     target_domain = "tumor"
                     print(f"Gatekeeper: Tumor scan detected (confidence {gate_conf*100:.2f}%)")
@@ -606,8 +673,11 @@ class App(ttk.Frame):
                 logits = self.alz_model(tensor_alz)
             probs = torch.softmax(logits, dim=1).squeeze(0)
             top_prob, top_idx = torch.topk(probs, 1)
-            return self.alz_classes[top_idx.item()], top_prob.item() * 100.0, "Alzheimer's/Dementia Model"
-            
+            return ClassificationResult(
+                self.alz_classes[top_idx.item()], top_prob.item() * 100.0, "Alzheimer's/Dementia Model", img,
+                cam_model=self.alz_model, cam_transform=self.alz_tfms, cam_class_idx=top_idx.item(),
+            )
+
         elif target_domain == "tumor" and self.tumor_model:
             tensor = self.tumor_tfms(img).unsqueeze(0).to(self.device)
             if self.device.type == "cuda":
@@ -617,11 +687,14 @@ class App(ttk.Frame):
                 logits = self.tumor_model(tensor)
             probs = torch.softmax(logits, dim=1).squeeze(0)
             top_prob, top_idx = torch.topk(probs, 1)
-            return self.tumor_classes[top_idx.item()], top_prob.item() * 100.0, "Brain Tumor Model"
-        
+            return ClassificationResult(
+                self.tumor_classes[top_idx.item()], top_prob.item() * 100.0, "Brain Tumor Model", img,
+                cam_model=self.tumor_model, cam_transform=self.tumor_tfms, cam_class_idx=top_idx.item(),
+            )
+
         # Fallback if specific model fails but we have a general prediction or fallback model
         if target_domain == "normal":
-             return "Normal", gate_conf * 100.0, "Gatekeeper Model"
+             return ClassificationResult("Normal", gate_conf * 100.0, "Gatekeeper Model", img)
 
         # Fallback if preferred model isn't loaded but the other is
         if self.tumor_model:
@@ -629,16 +702,36 @@ class App(ttk.Frame):
             logits = self.tumor_model(tensor)
             probs = torch.softmax(logits, dim=1).squeeze(0)
             top_prob, top_idx = torch.topk(probs, 1)
-            return self.tumor_classes[top_idx.item()], top_prob.item() * 100.0, "Brain Tumor Model (Fallback)"
-        
+            return ClassificationResult(
+                self.tumor_classes[top_idx.item()], top_prob.item() * 100.0, "Brain Tumor Model (Fallback)", img,
+                cam_model=self.tumor_model, cam_transform=self.tumor_tfms, cam_class_idx=top_idx.item(),
+            )
+
         if self.alz_model:
             tensor_alz = self.alz_tfms(img).unsqueeze(0).to(self.device)
             logits = self.alz_model(tensor_alz)
             probs = torch.softmax(logits, dim=1).squeeze(0)
             top_prob, top_idx = torch.topk(probs, 1)
-            return self.alz_classes[top_idx.item()], top_prob.item() * 100.0, "Alzheimer's Model (Fallback)"
+            return ClassificationResult(
+                self.alz_classes[top_idx.item()], top_prob.item() * 100.0, "Alzheimer's Model (Fallback)", img,
+                cam_model=self.alz_model, cam_transform=self.alz_tfms, cam_class_idx=top_idx.item(),
+            )
 
         raise Exception("No models loaded or available.")
+
+    def _run_grad_cam(self, result: "ClassificationResult") -> Optional[Image.Image]:
+        if result.cam_model is None or result.cam_transform is None or result.cam_class_idx is None:
+            return None
+        try:
+            target_layer = get_target_layer(result.cam_model)
+            tensor = result.cam_transform(result.source_image).unsqueeze(0).to(self.device)
+            cam = GradCAM(result.cam_model, target_layer).generate(tensor, result.cam_class_idx)
+            if cam is None:
+                return None
+            return overlay_cam_on_image(result.source_image, cam)
+        except Exception as e:
+            print(f"Grad-CAM generation error: {e}")
+            return None
 
     def _start_report_generation(self, prediction, confidence_str, patient_info, user_inputs, model_name):
         while not self.report_queue.empty():
@@ -711,6 +804,26 @@ class App(ttk.Frame):
 
             if image_data_uri:
                 pdf_html += f'<div style="text-align: center; margin-top: 20px;"><img src="{image_data_uri}" alt="MRI Scan" style="max-width: 300px; height: auto;"></div>'
+
+            # Embed Grad-CAM heatmap, if one was generated for this analysis
+            if self.heatmap_pil_image is not None:
+                try:
+                    heatmap_buffer = io.BytesIO()
+                    self.heatmap_pil_image.save(heatmap_buffer, format="PNG")
+                    heatmap_data_uri = "data:image/png;base64," + base64.b64encode(heatmap_buffer.getvalue()).decode('utf-8')
+                    model_label = self.last_model_name or "specialist"
+                    pdf_html += (
+                        '<div style="text-align: center; margin-top: 20px;">'
+                        f'<img src="{heatmap_data_uri}" alt="Grad-CAM heatmap" style="max-width: 300px; height: auto;">'
+                        '<p style="font-size: 0.85em; color: #555; max-width: 400px; margin: 6px auto 0;">'
+                        f'Grad-CAM visualization: highlights the image regions that most influenced the {model_label} '
+                        'classifier\'s predicted class. This is a visualization of model attention, not a validated '
+                        'diagnostic localization of pathology, and must be interpreted only alongside direct '
+                        'radiologist review of the original MRI images.'
+                        '</p></div>'
+                    )
+                except Exception:
+                    pass
 
             # Add CSS for Page Numbers in WeasyPrint
             css = """
